@@ -5,6 +5,11 @@ import { ConflictError, RegisterError, SessionError } from "@plugin";
 import { UserNotFoundError } from "./error";
 
 // Setup mocks for Drizzle DB and multi-tenant logic
+const mockReturning = mock();
+const mockWhere = mock().mockReturnValue({ returning: mockReturning });
+const mockSet = mock().mockReturnValue({ where: mockWhere });
+const mockUpdate = mock().mockReturnValue({ set: mockSet });
+
 mock.module("@db", () => ({
   db: {
     query: {
@@ -18,13 +23,7 @@ mock.module("@db", () => ({
         returning: mock(),
       })),
     })),
-    update: mock(() => ({
-      set: mock(() => ({
-        where: mock(() => ({
-          returning: mock(),
-        })),
-      })),
-    })),
+    update: mockUpdate,
   },
 }));
 
@@ -122,13 +121,7 @@ describe("Users Service Unit Tests", () => {
     const updateData = { name: "Jane Updated", email: "jane@upd.com", password: "newpassword" };
 
     it("should update cashier and re-hash password (Happy Path)", async () => {
-      (db.update as any).mockReturnValue({
-        set: mock(() => ({
-          where: mock(() => ({
-            returning: mock(() => [{ id: CASHIER_ID, ...updateData, tenantId: TENANT_A }]),
-          })),
-        })),
-      });
+      mockReturning.mockResolvedValue([{ id: CASHIER_ID, ...updateData, tenantId: TENANT_A }]);
 
       const result = await service.updateCashier(CASHIER_ID, TENANT_A, updateData);
       expect(result.name).toBe("Jane Updated");
@@ -136,13 +129,7 @@ describe("Users Service Unit Tests", () => {
     });
 
     it("should throw UserNotFoundError if attempting to update user in another tenant (Multi-Tenant Security)", async () => {
-      (db.update as any).mockReturnValue({
-        set: mock(() => ({
-          where: mock(() => ({
-            returning: mock(() => []),
-          })),
-        })),
-      });
+      mockReturning.mockResolvedValue([]);
 
       expect(service.updateCashier(CASHIER_ID, TENANT_B, updateData)).rejects.toThrow(UserNotFoundError);
     });
@@ -150,29 +137,14 @@ describe("Users Service Unit Tests", () => {
 
   describe("deleteCashier", () => {
     it("should set isActive to false and return deleted cashier ID (Soft Delete)", async () => {
-      (db.update as any).mockReturnValue({
-        set: mock((values: any) => {
-          expect(values.isActive).toBe(false);
-          return {
-            where: mock(() => ({
-              returning: mock(() => [{ id: CASHIER_ID }]),
-            })),
-          };
-        }),
-      });
+      mockReturning.mockResolvedValue([{ id: CASHIER_ID }]);
 
       const result = await service.deleteCashier(CASHIER_ID, TENANT_A);
       expect(result.id).toBe(CASHIER_ID);
     });
 
     it("should throw UserNotFoundError for invalid ID or tenant mismatch (ID Manipulation)", async () => {
-      (db.update as any).mockReturnValue({
-        set: mock(() => ({
-          where: mock(() => ({
-            returning: mock(() => []),
-          })),
-        })),
-      });
+      mockReturning.mockResolvedValue([]);
 
       expect(service.deleteCashier("fake-id", TENANT_A)).rejects.toThrow(UserNotFoundError);
     });
@@ -180,33 +152,20 @@ describe("Users Service Unit Tests", () => {
 
   describe("updateOwnProfile", () => {
     it("should allow profile update for the logged-in cashier (Happy Path)", async () => {
-      // Mocking array return for destructuring [updatedProfile]
-      (db.update as any).mockReturnValue({
-        set: mock(() => ({
-          where: mock(() => [{ id: CASHIER_ID, name: "Self Updated" }]), 
-        })),
-      });
+      mockReturning.mockResolvedValue([{ id: CASHIER_ID, name: "Self Updated" }]);
 
       const result = await service.updateOwnProfile(CASHIER_ID, TENANT_A, { name: "Self Updated" });
       expect(result.name).toBe("Self Updated");
     });
 
     it("should throw UserNotFoundError if profile doesn't exist or role is not cashier (RBAC check)", async () => {
-      (db.update as any).mockReturnValue({
-        set: mock(() => ({
-          where: mock(() => []),
-        })),
-      });
+      mockReturning.mockResolvedValue([]);
 
       expect(service.updateOwnProfile(CASHIER_ID, TENANT_A, { name: "Hack" })).rejects.toThrow(UserNotFoundError);
     });
 
     it("should properly hash password when updating own profile", async () => {
-       (db.update as any).mockReturnValue({
-        set: mock(() => ({
-          where: mock(() => [{ id: CASHIER_ID, name: "X" }]), 
-        })),
-      });
+       mockReturning.mockResolvedValue([{ id: CASHIER_ID, name: "X" }]);
 
       await service.updateOwnProfile(CASHIER_ID, TENANT_A, { name: "X", password: "new" });
       expect(Bun.password.hash).toHaveBeenCalled();

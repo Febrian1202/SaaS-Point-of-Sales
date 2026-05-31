@@ -10,17 +10,31 @@ import { ConflictError } from "@/plugins";
 import { TransactionNotFoundError } from "./error";
 
 // --- Database Mocks ---
+const mockReturning = mock();
+const mockValues = mock().mockReturnValue({ returning: mockReturning });
+const mockInsert = mock().mockReturnValue({ values: mockValues });
+
+const mockWhere = mock().mockReturnValue({ returning: mockReturning });
+const mockSet = mock().mockReturnValue({ set: mock().mockReturnValue({ where: mockWhere }), where: mockWhere });
+const mockUpdate = mock().mockReturnValue({ set: mockSet });
+
+const mockSelectResult = mock().mockResolvedValue([]);
+const mockLimit = mock().mockReturnValue({ offset: mock().mockReturnValue(Promise.resolve([])) });
+const mockOrderBy = mock().mockReturnValue({ limit: mockLimit });
+const mockSelectWhere = mock();
+mockSelectWhere.mockImplementation(() => {
+  const result = mockSelectResult();
+  (result as any).orderBy = mockOrderBy;
+  return result;
+});
+
+const mockFrom = mock().mockReturnValue({ where: mockSelectWhere });
+const mockSelect = mock().mockReturnValue({ from: mockFrom });
+
 const mockTx = {
-  insert: mock(() => ({
-    values: mock(() => ({
-      returning: mock(),
-    })),
-  })),
-  update: mock(() => ({
-    set: mock(() => ({
-      where: mock(),
-    })),
-  })),
+  insert: mockInsert,
+  update: mockUpdate,
+  select: mockSelect,
   query: {
     transactions: {
       findFirst: mock(),
@@ -37,21 +51,9 @@ mock.module("@/db", () => ({
         findFirst: mock(),
       },
     },
-    insert: mock(() => ({
-      values: mock(() => ({
-        returning: mock(),
-      })),
-    })),
-    update: mock(() => ({
-      set: mock(() => ({
-        where: mock(),
-      })),
-    })),
-    select: mock(() => ({
-      from: mock(() => ({
-        where: mock(() => [{ totalData: 0 }]),
-      })),
-    })),
+    insert: mockInsert,
+    update: mockUpdate,
+    select: mockSelect,
   },
 }));
 
@@ -63,8 +65,18 @@ describe("Transaction Service Unit Testing", () => {
 
   beforeEach(() => {
     mock.restore();
-    (mockTx.insert as any).mockClear();
-    (mockTx.update as any).mockClear();
+    mockReturning.mockClear();
+    mockValues.mockClear();
+    mockInsert.mockClear();
+    mockUpdate.mockClear();
+    mockSet.mockClear();
+    mockWhere.mockClear();
+    mockSelect.mockClear();
+    mockSelectWhere.mockClear();
+    mockSelectResult.mockClear();
+    mockSelectResult.mockResolvedValue([]);
+    (db.query.transactions.findMany as any).mockClear();
+    (db.query.transactions.findFirst as any).mockClear();
     (mockTx.query.transactions.findFirst as any).mockClear();
   });
 
@@ -79,18 +91,17 @@ describe("Transaction Service Unit Testing", () => {
     };
 
     it("should successfully create a transaction (Happy Path)", async () => {
-      (mockTx.insert() as any).values().returning.mockResolvedValue([{ 
-        id: mockTransactionId, 
-        trxNumber: "TRX-2024-TEST" 
-      }]);
+      mockReturning
+        .mockResolvedValueOnce([{ id: mockTransactionId, trxNumber: "TRX-2024-TEST" }]) // transaction insert
+        .mockResolvedValueOnce([]); // items insert
 
       const result = await createTransaction(mockTenantId, mockCashierId, validArgs);
 
       expect(result.trxNumber).toBeDefined();
       expect(result.totalAmount).toBe(20000);
       expect(result.changeAmount).toBe(5000);
-      expect(mockTx.insert).toHaveBeenCalledTimes(2); // Header & Items
-      expect(mockTx.update).toHaveBeenCalledTimes(2); // Stock update per product
+      expect(mockInsert).toHaveBeenCalledTimes(2); // Header & Items
+      expect(mockUpdate).toHaveBeenCalledTimes(2); // Stock update per product
     });
 
     it("should throw ConflictError if amount paid is less than total amount (Edge Case: Insufficient Funds)", async () => {
@@ -101,7 +112,7 @@ describe("Transaction Service Unit Testing", () => {
     });
 
     it("should throw ConflictError if database fails to return new transaction (Edge Case: DB Failure)", async () => {
-      (mockTx.insert() as any).values().returning.mockResolvedValue([]);
+      mockReturning.mockResolvedValue([]);
 
       expect(createTransaction(mockTenantId, mockCashierId, validArgs))
         .rejects.toThrow(ConflictError);
@@ -113,7 +124,7 @@ describe("Transaction Service Unit Testing", () => {
         amountPaid: 1000,
         paymentMethod: "cash" as const,
       };
-      (mockTx.insert() as any).values().returning.mockResolvedValue([{ id: "id", trxNumber: "TRX-ZERO" }]);
+      mockReturning.mockResolvedValue([{ id: "id", trxNumber: "TRX-ZERO" }]);
 
       const result = await createTransaction(mockTenantId, mockCashierId, zeroQtyArgs);
       expect(result.totalAmount).toBe(0);
@@ -121,7 +132,7 @@ describe("Transaction Service Unit Testing", () => {
     });
 
     it("should generate a random transaction number with TRX prefix", async () => {
-      (mockTx.insert() as any).values().returning.mockResolvedValue([{ id: "id", trxNumber: "TRX-RAND" }]);
+      mockReturning.mockResolvedValue([{ id: "id", trxNumber: "TRX-RAND" }]);
       const result = await createTransaction(mockTenantId, mockCashierId, validArgs);
       expect(result.trxNumber).toMatch(/^TRX-/);
     });
@@ -132,7 +143,7 @@ describe("Transaction Service Unit Testing", () => {
 
     it("should return list of transactions with pagination meta (Happy Path)", async () => {
       (db.query.transactions.findMany as any).mockResolvedValue([{ id: "1", trxNumber: "TRX-1" }]);
-      (db.select() as any).from().where.mockResolvedValue([{ totalData: 15 }]);
+      mockSelectResult.mockResolvedValueOnce([{ totalData: 15 }]);
 
       const result = await getTransactions(mockTenantId, query);
 
@@ -142,6 +153,9 @@ describe("Transaction Service Unit Testing", () => {
     });
 
     it("should strictly filter data by tenantId (Multi-Tenant Isolation)", async () => {
+      (db.query.transactions.findMany as any).mockResolvedValue([]);
+      mockSelectResult.mockResolvedValue([{ totalData: 0 }]);
+
       await getTransactions(mockTenantId, query);
       const callArgs = (db.query.transactions.findMany as any).mock.calls[0][0];
       expect(callArgs.where).toBeDefined();

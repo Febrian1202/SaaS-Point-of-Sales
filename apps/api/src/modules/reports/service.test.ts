@@ -3,6 +3,15 @@ import { getDailySummary, getMonthlySummary } from "./service";
 import { db } from "@db";
 import { ConflictError } from "@/plugins";
 
+// Mock Database
+const mockWhere = mock();
+const mockFrom = mock().mockReturnValue({ where: mockWhere });
+const mockSelect = mock().mockReturnValue({ from: mockFrom });
+
+const mockReturning = mock();
+const mockValues = mock().mockReturnValue({ returning: mockReturning });
+const mockInsert = mock().mockReturnValue({ values: mockValues });
+
 mock.module("@db", () => ({
   db: {
     query: {
@@ -10,8 +19,8 @@ mock.module("@db", () => ({
         findFirst: mock(),
       },
     },
-    select: mock(),
-    insert: mock(),
+    select: mockSelect,
+    insert: mockInsert,
   },
 }));
 
@@ -22,6 +31,13 @@ describe("Reports Service - getDailySummary", () => {
 
   beforeEach(() => {
     mock.restore();
+    mockWhere.mockClear();
+    mockFrom.mockClear();
+    mockSelect.mockClear();
+    mockReturning.mockClear();
+    mockValues.mockClear();
+    mockInsert.mockClear();
+    (db.query.dailySummaries.findFirst as any).mockClear();
   });
 
   it("Happy Path: Should return cached summary if exists", async () => {
@@ -42,25 +58,16 @@ describe("Reports Service - getDailySummary", () => {
     const result = await getDailySummary(mockTenantId, mockQuery);
 
     expect(result).toEqual(cachedData);
-    expect(db.select).not.toHaveBeenCalled();
+    expect(mockSelect).not.toHaveBeenCalled();
   });
 
   it("Happy Path: Should calculate and save new summary if cache miss", async () => {
     (db.query.dailySummaries.findFirst as any).mockResolvedValue(null);
     
-    // Mock Retail Result
-    const mockRetail = [{ totalRevenue: "100000", totalTrx: 10 }];
-    const retailWhere = mock(() => ({ where: mock(() => Promise.resolve(mockRetail)) }));
-    const retailFrom = mock(() => ({ from: retailWhere }));
-    
-    // Mock Brilink Result
-    const mockBrilink = [{ totalCommission: "5000", totalTrx: 5 }];
-    const brilinkWhere = mock(() => ({ where: mock(() => Promise.resolve(mockBrilink)) }));
-    const brilinkFrom = mock(() => ({ from: brilinkWhere }));
-
-    (db.select as any)
-      .mockImplementationOnce(() => ({ from: retailFrom }))
-      .mockImplementationOnce(() => ({ from: brilinkFrom }));
+    // Mock Retail & Brilink Result
+    mockWhere
+      .mockResolvedValueOnce([{ totalRevenue: "100000", totalTrx: 10 }])
+      .mockResolvedValueOnce([{ totalCommission: "5000", totalTrx: 5 }]);
 
     const mockNewSummary = { 
       id: "2", 
@@ -74,9 +81,7 @@ describe("Reports Service - getDailySummary", () => {
       trxCount: 15,
       generatedAt: new Date()
     };
-    const insertReturning = mock(() => Promise.resolve([mockNewSummary]));
-    const insertValues = mock(() => ({ returning: insertReturning }));
-    (db.insert as any).mockImplementation(() => ({ values: insertValues }));
+    mockReturning.mockResolvedValue([mockNewSummary]);
 
     const result = await getDailySummary(mockTenantId, mockQuery);
 
@@ -87,12 +92,8 @@ describe("Reports Service - getDailySummary", () => {
   it("Edge Case: Multi-tenant isolation (Zero results for different tenant)", async () => {
     (db.query.dailySummaries.findFirst as any).mockResolvedValue(null);
     
-    const mockEmpty = [{ totalRevenue: null, totalTrx: 0 }];
-    const emptyWhere = mock(() => ({ where: mock(() => Promise.resolve(mockEmpty)) }));
-    (db.select as any).mockImplementation(() => ({ from: () => ({ from: emptyWhere }) }));
-
-    const insertReturning = mock(() => Promise.resolve([{ totalRevenue: "0", trxCount: 0 }]));
-    (db.insert as any).mockImplementation(() => ({ values: () => ({ returning: insertReturning }) }));
+    mockWhere.mockResolvedValue([{ totalRevenue: null, totalTrx: 0 }]);
+    mockReturning.mockResolvedValue([{ totalRevenue: "0", trxCount: 0 }]);
 
     const result = await getDailySummary(mockOtherTenantId, mockQuery);
 
@@ -103,16 +104,12 @@ describe("Reports Service - getDailySummary", () => {
     (db.query.dailySummaries.findFirst as any).mockResolvedValueOnce(null); // First check
     
     // Mock calculation queries
-    (db.select as any).mockImplementation(() => ({ 
-      from: () => ({ from: { where: () => Promise.resolve([{ totalRevenue: "10", totalTrx: 1 }]) } }) 
-    }));
+    mockWhere.mockResolvedValue([{ totalRevenue: "10", totalTrx: 1 }]);
 
     // Mock Insert failure
     const error23505 = new Error("Unique violation");
     (error23505 as any).code = "23505";
-    (db.insert as any).mockImplementation(() => ({ 
-      values: () => ({ returning: () => Promise.reject(error23505) }) 
-    }));
+    mockReturning.mockRejectedValue(error23505);
 
     const retrySummary = { 
       id: "99", 
@@ -136,13 +133,8 @@ describe("Reports Service - getDailySummary", () => {
 
   it("Edge Case: Throw ConflictError on generic database failure", async () => {
     (db.query.dailySummaries.findFirst as any).mockResolvedValue(null);
-    (db.select as any).mockImplementation(() => ({ 
-      from: () => ({ from: { where: () => Promise.resolve([]) } }) 
-    }));
-
-    (db.insert as any).mockImplementation(() => ({ 
-      values: () => ({ returning: () => Promise.reject(new Error("DB Down")) }) 
-    }));
+    mockWhere.mockResolvedValue([]);
+    mockReturning.mockRejectedValue(new Error("DB Down"));
 
     expect(getDailySummary(mockTenantId, mockQuery)).rejects.toThrow(ConflictError);
   });
@@ -162,9 +154,7 @@ describe("Reports Service - getMonthlySummary", () => {
       totalTrxCount: "150"
     }];
 
-    const mockWhere = mock(() => Promise.resolve(mockAggregated));
-    const mockFrom = mock(() => ({ where: mockWhere }));
-    (db.select as any).mockImplementation(() => ({ from: mockFrom }));
+    mockWhere.mockResolvedValue(mockAggregated);
 
     const result = await getMonthlySummary(mockTenantId, mockQuery);
 
@@ -184,8 +174,7 @@ describe("Reports Service - getMonthlySummary", () => {
       totalTrxCount: null
     }];
 
-    const mockWhere = mock(() => Promise.resolve(mockEmpty));
-    (db.select as any).mockImplementation(() => ({ from: () => ({ where: mockWhere }) }));
+    mockWhere.mockResolvedValue(mockEmpty);
 
     const result = await getMonthlySummary(mockTenantId, mockQuery);
 
@@ -204,8 +193,7 @@ describe("Reports Service - getMonthlySummary", () => {
       totalTrxCount: "999999"
     }];
 
-    const mockWhere = mock(() => Promise.resolve(mockLargeData));
-    (db.select as any).mockImplementation(() => ({ from: () => ({ where: mockWhere }) }));
+    mockWhere.mockResolvedValue(mockLargeData);
 
     const result = await getMonthlySummary(mockTenantId, mockQuery);
 

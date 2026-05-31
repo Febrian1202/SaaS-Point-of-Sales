@@ -12,6 +12,14 @@ import { ProductNotFoundError } from "./error";
 import { ConflictError } from "@/plugins/error";
 
 // Mock Database
+const mockReturning = mock();
+const mockValues = mock().mockReturnValue({ returning: mockReturning });
+const mockInsert = mock().mockReturnValue({ values: mockValues });
+
+const mockWhere = mock().mockReturnValue({ returning: mockReturning });
+const mockSet = mock().mockReturnValue({ where: mockWhere });
+const mockUpdate = mock().mockReturnValue({ set: mockSet });
+
 mock.module("@/db", () => ({
   db: {
     query: {
@@ -20,18 +28,8 @@ mock.module("@/db", () => ({
         findFirst: mock(),
       },
     },
-    insert: mock(() => ({
-      values: mock(() => ({
-        returning: mock(),
-      })),
-    })),
-    update: mock(() => ({
-      set: mock(() => ({
-        where: mock(() => ({
-          returning: mock(),
-        })),
-      })),
-    })),
+    insert: mockInsert,
+    update: mockUpdate,
   },
 }));
 
@@ -42,6 +40,14 @@ describe("Product Service Unit Testing", () => {
 
   beforeEach(() => {
     mock.restore();
+    mockReturning.mockClear();
+    mockValues.mockClear();
+    mockInsert.mockClear();
+    mockUpdate.mockClear();
+    mockSet.mockClear();
+    mockWhere.mockClear();
+    (db.query.products.findMany as any).mockClear();
+    (db.query.products.findFirst as any).mockClear();
   });
 
   describe("getProduct", () => {
@@ -129,7 +135,7 @@ describe("Product Service Unit Testing", () => {
 
     it("should successfully create a product (Happy Path)", async () => {
       (db.query.products.findFirst as any).mockResolvedValue(null);
-      (db.insert(products).values({} as any).returning as any).mockResolvedValue([{
+      mockReturning.mockResolvedValue([{
         id: "new-id",
         name: validArgs.name,
         slug: "new-product",
@@ -148,7 +154,7 @@ describe("Product Service Unit Testing", () => {
 
     it("should allow same barcode for different tenants (Multi-Tenant Uniqueness)", async () => {
       (db.query.products.findFirst as any).mockResolvedValue(null);
-      (db.insert(products).values({} as any).returning as any).mockResolvedValue([{ id: "new-id" }]);
+      mockReturning.mockResolvedValue([{ id: "new-id" }]);
 
       const result = await postProduct({ ...validArgs, tenantId: mockOtherTenantId });
       expect(result).toBeDefined();
@@ -161,12 +167,11 @@ describe("Product Service Unit Testing", () => {
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce({ id: "old-id", slug: "new-product" });
 
-      const insertSpy = (db.insert(products).values as any);
-      insertSpy.mockReturnValue({ returning: mock(() => [{ id: "id", slug: "new-product-random" }]) });
+      mockReturning.mockResolvedValue([{ id: "id", slug: "new-product-random" }]);
 
       await postProduct(validArgs);
 
-      const insertedValue = insertSpy.mock.calls[0][0];
+      const insertedValue = mockValues.mock.calls[0]![0] as any;
       expect(insertedValue.slug).not.toBe("new-product");
       expect(insertedValue.slug).toContain("new-product-");
     });
@@ -179,7 +184,7 @@ describe("Product Service Unit Testing", () => {
   describe("patchProduct", () => {
     it("should successfully update product (Happy Path)", async () => {
       (db.query.products.findFirst as any).mockResolvedValue({ name: "Old", barcode: "111" });
-      (db.update(products).set({} as any).where({} as any).returning as any).mockResolvedValue([{ id: mockProductId }]);
+      mockReturning.mockResolvedValue([{ id: mockProductId }]);
 
       const result = await patchProduct(mockProductId, mockTenantId, { name: "New" });
       expect(result).toBeDefined();
@@ -206,7 +211,7 @@ describe("Product Service Unit Testing", () => {
   describe("softDeleteProduct", () => {
     it("should set isActive to false (Happy Path)", async () => {
       const mockDeleted = { id: mockProductId, isActive: false };
-      (db.update(products).set({} as any).where({} as any).returning as any).mockResolvedValue([mockDeleted]);
+      mockReturning.mockResolvedValue([mockDeleted]);
 
       const result = await softDeleteProduct(mockProductId, mockTenantId);
 
@@ -214,7 +219,7 @@ describe("Product Service Unit Testing", () => {
     });
 
     it("should throw ProductNotFoundError if product not found for that tenant", async () => {
-      (db.update(products).set({} as any).where({} as any).returning as any).mockResolvedValue([]);
+      mockReturning.mockResolvedValue([]);
 
       expect(softDeleteProduct(mockProductId, mockTenantId)).rejects.toThrow(ProductNotFoundError);
     });
