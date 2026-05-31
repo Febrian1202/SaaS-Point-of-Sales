@@ -183,7 +183,14 @@ export const updateOwnProfile = async (
         eq(users.tenantId, tenantId),
         eq(users.role, "cashier"),
       ),
-    );
+    )
+    .returning({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      tenantId: users.tenantId,
+    });
 
   if (!updatedProfile) throw new UserNotFoundError("Cashier not found!");
 
