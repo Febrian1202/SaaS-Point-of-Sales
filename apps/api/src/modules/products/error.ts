@@ -3,4 +3,3 @@ export class ProductNotFoundError extends Error {
     super(message);
   }
 }
-

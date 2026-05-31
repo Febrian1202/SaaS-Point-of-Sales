@@ -3,17 +3,25 @@ import { relations } from "drizzle-orm";
 import { tenants } from "@schema/tenants";
 import { products } from "@schema/products";
 
-export const categories = pgTable("categories", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
-  name: varchar("name", { length: 255 }).notNull(),
-  slug: varchar("slug", { length: 255 }).notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
-}, (table) => [
-  unique("unique_tenant_category_name").on(table.tenantId, table.name),
-  unique("unique_tenant_category_slug").on(table.tenantId, table.slug)
-])
+export const categories = pgTable(
+  "categories",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id").references(() => tenants.id, {
+      onDelete: "cascade",
+    }),
+    name: varchar("name", { length: 255 }).notNull(),
+    slug: varchar("slug", { length: 255 }).notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    unique("unique_tenant_category_name").on(table.tenantId, table.name),
+    unique("unique_tenant_category_slug").on(table.tenantId, table.slug),
+  ],
+);
 
 // Relations
 export const categorieRelations = relations(categories, ({ one, many }) => ({
@@ -22,5 +30,4 @@ export const categorieRelations = relations(categories, ({ one, many }) => ({
     references: [tenants.id],
   }),
   products: many(products),
-}))
-
+}));

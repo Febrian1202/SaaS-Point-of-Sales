@@ -11,20 +11,25 @@ const main = async () => {
     await db.delete(users);
     await db.delete(tenants);
 
-    console.log("Seeding tenant data!")
-    const [newTenant] = await db.insert(tenants).values({
-      name: "Kios Sheza",
-      slug: "kios-sheza",
-      plan: "premium",
-      isActive: true,
-    }).returning({ id: tenants.id })
+    console.log("Seeding tenant data!");
+    const [newTenant] = await db
+      .insert(tenants)
+      .values({
+        name: "Kios Sheza",
+        slug: "kios-sheza",
+        plan: "premium",
+        isActive: true,
+      })
+      .returning({ id: tenants.id });
 
     if (!newTenant) {
-      throw new Error("Failed creating tenant data, database didn't return the ID!")
+      throw new Error(
+        "Failed creating tenant data, database didn't return the ID!",
+      );
     }
-    console.log("Seeding tenant success!")
+    console.log("Seeding tenant success!");
 
-    console.log("Seeding users data!")
+    console.log("Seeding users data!");
     await db.insert(users).values([
       {
         tenantId: newTenant.id,
@@ -34,7 +39,7 @@ const main = async () => {
         passwordHash: await Bun.password.hash("password", {
           algorithm: "bcrypt",
           cost: 10,
-        })
+        }),
       },
       {
         tenantId: newTenant.id,
@@ -44,46 +49,53 @@ const main = async () => {
         passwordHash: await Bun.password.hash("password", {
           algorithm: "bcrypt",
           cost: 10,
-        })
-      }
-    ])
-    console.log("Seeding users success!")
-
-    const insertCategories = await db.insert(categories).values([
-      {
-        name: "Makanan",
-        tenantId: newTenant.id,
-        slug: "makanan",
-      }, {
-        name: "Minuman",
-        tenantId: newTenant.id,
-        slug: "minuman",
-      }, {
-        name: "Rokok",
-        tenantId: newTenant.id,
-        slug: "rokok",
-      }, {
-        name: "Kebersihan",
-        tenantId: newTenant.id,
-        slug: "kebersihan",
-      }, {
-        name: "Kebutuhan Rumah Tangga",
-        tenantId: newTenant.id,
-        slug: "kebutuhan-rumah-tangga",
+        }),
       },
-    ]).returning({ id: categories.id, slug: categories.slug })
+    ]);
+    console.log("Seeding users success!");
 
-    console.log(`Success create ${insertCategories.length} categories!`)
+    const insertCategories = await db
+      .insert(categories)
+      .values([
+        {
+          name: "Makanan",
+          tenantId: newTenant.id,
+          slug: "makanan",
+        },
+        {
+          name: "Minuman",
+          tenantId: newTenant.id,
+          slug: "minuman",
+        },
+        {
+          name: "Rokok",
+          tenantId: newTenant.id,
+          slug: "rokok",
+        },
+        {
+          name: "Kebersihan",
+          tenantId: newTenant.id,
+          slug: "kebersihan",
+        },
+        {
+          name: "Kebutuhan Rumah Tangga",
+          tenantId: newTenant.id,
+          slug: "kebutuhan-rumah-tangga",
+        },
+      ])
+      .returning({ id: categories.id, slug: categories.slug });
+
+    console.log(`Success create ${insertCategories.length} categories!`);
 
     const getCategoryId = (slug: string): string => {
-      const category = insertCategories.find((c) => c.slug === slug)
+      const category = insertCategories.find((c) => c.slug === slug);
       if (!category) {
         throw new Error(`Category ${slug} not found!`);
       }
-      return category.id
-    }
+      return category.id;
+    };
 
-    console.log("Seeding product data!")
+    console.log("Seeding product data!");
     await db.insert(products).values([
       // ================= MAKANAN =================
       {
@@ -293,7 +305,7 @@ const main = async () => {
         sellingPrice: "19000",
         unit: "Pcs",
         stockQty: 15,
-      }
+      },
     ]);
     console.log("Seeding 20 product success!");
 
@@ -303,6 +315,6 @@ const main = async () => {
   } finally {
     process.exit();
   }
-}
+};
 
 main();

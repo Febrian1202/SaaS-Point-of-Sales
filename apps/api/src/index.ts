@@ -6,25 +6,29 @@ import {
   productRoutes,
   transactionRoutes,
   reportRoutes,
-  usersRoutes
+  usersRoutes,
 } from "@modules/index.routes";
 import {
   ConflictError,
   SessionError,
   RegisterError,
   swaggerPlugin,
-  corsPlugin
+  corsPlugin,
 } from "@plugin";
-import { startDailySummaryJob } from "@jobs"
+import { startDailySummaryJob } from "@jobs";
 import { rateLimit } from "elysia-rate-limit";
 
 const app = new Elysia()
   .use(swaggerPlugin)
-  .use(rateLimit({
-    duration: 60000,
-    max: 120,
-    errorResponse: new Response("Too many request. Please wait a moment", { status: 429 })
-  }))
+  .use(
+    rateLimit({
+      duration: 60000,
+      max: 120,
+      errorResponse: new Response("Too many request. Please wait a moment", {
+        status: 429,
+      }),
+    }),
+  )
   .use(corsPlugin)
   .error({
     SESSION_ERROR: SessionError,
@@ -33,34 +37,35 @@ const app = new Elysia()
   })
   .onError(({ code, set, error }) => {
     if (code === "SESSION_ERROR") {
-      set.status = 401
-      return { success: false, message: error.message }
+      set.status = 401;
+      return { success: false, message: error.message };
     }
     if (code === "CONFLICT") {
       set.status = 409;
-      return { success: false, message: error.message }
+      return { success: false, message: error.message };
     }
 
     if (code === "REGISTER_ERROR") {
       set.status = 500;
-      return { success: false, message: error.message }
+      return { success: false, message: error.message };
     }
 
     if (code === "UNKNOWN") {
       set.status = 500;
-      return { success: false, message: "Something wrong with the server" }
+      return { success: false, message: "Something wrong with the server" };
     }
   })
-  .get("/health", () => ({ status: 'ok', ts: Date.now() }), {
+  .get("/health", () => ({ status: "ok", ts: Date.now() }), {
     response: t.Object({
       status: t.String(),
-      ts: t.Number()
+      ts: t.Number(),
     }),
     detail: {
       summary: "Server Health Check",
-      description: "Mengecek status kesehatan server dan sinkronisasi waktu (timestamp).",
-      tags: ["System"]
-    }
+      description:
+        "Mengecek status kesehatan server dan sinkronisasi waktu (timestamp).",
+      tags: ["System"],
+    },
   })
   .use(authRoutes)
   .use(usersRoutes)
@@ -71,8 +76,8 @@ const app = new Elysia()
   .use(reportRoutes)
   .listen(Bun.env.PORT ?? 3000);
 
-startDailySummaryJob()
+startDailySummaryJob();
 
 console.log(
-  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
+  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`,
 );

@@ -7,13 +7,13 @@ export const jwtAccessSetup = jwt({
   name: "accessJwt",
   secret: Bun.env.JWT_ACCESS_SECRET!,
   exp: "5m",
-})
+});
 
 export const jwtRefreshSetup = jwt({
   name: "refreshJwt",
   secret: Bun.env.JWT_REFRESH_SECRET!,
   exp: "7d",
-})
+});
 
 export const authPlugin = new Elysia({ name: "auth" })
   .error({ AUTH_FAILED: AuthError, FORBIDDEN: ForbiddenError })
@@ -25,7 +25,7 @@ export const authPlugin = new Elysia({ name: "auth" })
 
     if (code === "FORBIDDEN") {
       set.status = 403;
-      return { success: false, message: error.message }
+      return { success: false, message: error.message };
     }
   })
   .use(jwtAccessSetup)
@@ -48,4 +48,4 @@ export const adminGuard = new Elysia({ name: "admin-guard" })
   .use(authPlugin)
   .onBeforeHandle(({ role }) => {
     if (role !== "admin") throw new ForbiddenError();
-  })
+  });

@@ -1,4 +1,11 @@
-import { pgTable, uuid, text, varchar, boolean, timestamp } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  uuid,
+  text,
+  varchar,
+  boolean,
+  timestamp,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { categories } from "@schema/categories";
 import { users } from "@schema/users";
@@ -9,13 +16,15 @@ import { dailySummaries } from "@schema/dailySummaries";
 
 export const tenants = pgTable("multi-tenant", {
   id: uuid("id").defaultRandom().primaryKey(),
-  name: text('name').notNull(),
+  name: text("name").notNull(),
   slug: varchar("slug", { length: 255 }).unique().notNull(),
   plan: varchar("plan", { length: 255 }).notNull().default("free"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
-})
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
 
 // Relations
 export const tenantRelations = relations(tenants, ({ many }) => ({
@@ -25,6 +34,4 @@ export const tenantRelations = relations(tenants, ({ many }) => ({
   transactions: many(transactions),
   brilinkTransactions: many(brilinkTransactions),
   dailySummaries: many(dailySummaries),
-}))
-
-
+}));

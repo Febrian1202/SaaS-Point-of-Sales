@@ -1,4 +1,11 @@
-import { pgTable, uuid, varchar, text, boolean, timestamp } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  uuid,
+  varchar,
+  text,
+  boolean,
+  timestamp,
+} from "drizzle-orm/pg-core";
 import { tenants } from "@schema/tenants";
 import { relations } from "drizzle-orm";
 import { transactions } from "@schema/transactions";
@@ -6,8 +13,9 @@ import { brilinkTransactions } from "@schema/brilinkTransactions";
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: uuid("tenant_id").
-    references(() => tenants.id, { onDelete: "cascade" }),
+  tenantId: uuid("tenant_id").references(() => tenants.id, {
+    onDelete: "cascade",
+  }),
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 255 }),
   emailVerifiedAt: timestamp("email_verified_at"),
@@ -16,10 +24,12 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
-})
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
 
-// Relation 
+// Relation
 export const userRelations = relations(users, ({ one, many }) => ({
   tenant: one(tenants, {
     fields: [users.tenantId],
@@ -27,5 +37,4 @@ export const userRelations = relations(users, ({ one, many }) => ({
   }),
   transactions: many(transactions),
   brilinkTransactions: many(brilinkTransactions),
-}))
-
+}));

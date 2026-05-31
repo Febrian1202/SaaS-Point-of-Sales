@@ -1,6 +1,6 @@
-import { db } from "@db"
-import { tenants, users } from "@schema/index"
-import { and, eq } from "drizzle-orm"
+import { db } from "@db";
+import { tenants, users } from "@schema/index";
+import { and, eq } from "drizzle-orm";
 import { LoginError } from "./error";
 import type { ArgsRegister } from "./schema";
 import { ConflictError } from "@plugin";
@@ -17,13 +17,13 @@ export const verifyUsers = async (userEmail: string, userPassword: string) => {
       tenantId: true,
       passwordHash: true,
     },
-    where: and(
-      eq(users.email, normalizedEmail),
-      eq(users.isActive, true),
-    )
+    where: and(eq(users.email, normalizedEmail), eq(users.isActive, true)),
   });
 
-  const isMatch = await Bun.password.verify(userPassword, user?.passwordHash || "");
+  const isMatch = await Bun.password.verify(
+    userPassword,
+    user?.passwordHash || "",
+  );
 
   if (!user || !isMatch) throw new LoginError("Email or password is incorrect");
 
@@ -33,8 +33,8 @@ export const verifyUsers = async (userEmail: string, userPassword: string) => {
     tenantId: user.tenantId,
     email: user.email,
     role: user.role,
-  }
-}
+  };
+};
 
 export const registerBusiness = async (args: ArgsRegister) => {
   const normalizedEmail = args.email.toLowerCase().trim();
@@ -68,45 +68,52 @@ export const registerBusiness = async (args: ArgsRegister) => {
     cost: 10,
   });
 
-  // Transaction 
+  // Transaction
   const result = await db.transaction(async (tx) => {
-    // Buat tenant 
-    const [newTenant] = await tx.insert(tenants).values({
-      name: args.storeName,
-      slug: storeSlug,
-      plan: "free",
-      isActive: true,
-    }).returning({ id: tenants.id, name: tenants.name, slug: tenants.slug });
+    // Buat tenant
+    const [newTenant] = await tx
+      .insert(tenants)
+      .values({
+        name: args.storeName,
+        slug: storeSlug,
+        plan: "free",
+        isActive: true,
+      })
+      .returning({ id: tenants.id, name: tenants.name, slug: tenants.slug });
 
     // Buat user admin dan kaitkan dengan tenant yang barusan di query
-    const [newUser] = await tx.insert(users).values({
-      name: args.userName,
-      tenantId: newTenant?.id,
-      email: normalizedEmail,
-      passwordHash: hashedPassword,
-      role: "admin",
-      isActive: true,
-    }).returning({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      role: users.role,
-      tenantId: users.tenantId
-    });
+    const [newUser] = await tx
+      .insert(users)
+      .values({
+        name: args.userName,
+        tenantId: newTenant?.id,
+        email: normalizedEmail,
+        passwordHash: hashedPassword,
+        role: "admin",
+        isActive: true,
+      })
+      .returning({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        tenantId: users.tenantId,
+      });
 
     return {
       store: newTenant,
       user: newUser,
-    }
-  })
+    };
+  });
 
   return result;
-}
+};
 
 export const updateRefreshToken = async (id: string, token: string | null) => {
-  await db.update(users).set({
-    refreshToken: token
-  }).where(eq(users.id, id));
-}
-
-
+  await db
+    .update(users)
+    .set({
+      refreshToken: token,
+    })
+    .where(eq(users.id, id));
+};

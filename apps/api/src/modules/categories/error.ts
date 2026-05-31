@@ -1,5 +1,5 @@
 export class CategoryNotFoundError extends Error {
-  constructor(m: string) {
-    super(m)
+  constructor(message: string) {
+    super(message);
   }
 }

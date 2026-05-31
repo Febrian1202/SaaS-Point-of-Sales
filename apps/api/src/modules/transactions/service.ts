@@ -205,7 +205,10 @@ export const getTransactionDetail = async (
     ),
   });
 
-  if (!data) throw new TransactionNotFoundError("Failed, data transaction doesn't exist");
+  if (!data)
+    throw new TransactionNotFoundError(
+      "Failed, data transaction doesn't exist",
+    );
 
   return data;
 };
@@ -217,24 +220,34 @@ export const voidTransaction = async (
   return await db.transaction(async (tx) => {
     // Cari data transaksi beserta itemnya terlebih dahulu
     const transaction = await tx.query.transactions.findFirst({
-      where: and(eq(transactions.tenantId, tenantId), eq(transactions.id, transactionId)),
-      with: { items: true }
+      where: and(
+        eq(transactions.tenantId, tenantId),
+        eq(transactions.id, transactionId),
+      ),
+      with: { items: true },
     });
 
-    if (!transaction) throw new TransactionNotFoundError("Transaction not found!");
-    if (transaction.status === "void") throw new ConflictError("This transaction already cancelled!");
+    if (!transaction)
+      throw new TransactionNotFoundError("Transaction not found!");
+    if (transaction.status === "void")
+      throw new ConflictError("This transaction already cancelled!");
 
-    // Ubah status transaksi menjadi void 
-    await tx.update(transactions).set({
-      status: "void"
-    }).where(eq(transactions.id, transactionId));
+    // Ubah status transaksi menjadi void
+    await tx
+      .update(transactions)
+      .set({
+        status: "void",
+      })
+      .where(eq(transactions.id, transactionId));
 
-    // Kembalikan stock 
+    // Kembalikan stock
     for (const item of transaction.items) {
-      await tx.update(products)
+      await tx
+        .update(products)
         .set({
-          stockQty: sql`${products.stockQty} + ${item.qty}`
-        }).where(eq(products.id, item.productId))
+          stockQty: sql`${products.stockQty} + ${item.qty}`,
+        })
+        .where(eq(products.id, item.productId));
     }
 
     return { trxNumber: transaction.trxNumber };
