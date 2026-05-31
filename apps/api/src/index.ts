@@ -14,12 +14,14 @@ import {
   RegisterError,
   swaggerPlugin,
   corsPlugin,
+  loggerPlugin,
 } from "@plugin";
 import { startDailySummaryJob } from "@jobs";
 import { rateLimit } from "elysia-rate-limit";
 
 const app = new Elysia()
   .use(swaggerPlugin)
+  .use(loggerPlugin)
   .use(
     rateLimit({
       duration: 60000,
@@ -35,7 +37,14 @@ const app = new Elysia()
     REGISTER_ERROR: RegisterError,
     CONFLICT: ConflictError,
   })
-  .onError(({ code, set, error }) => {
+  .onError(({ code, set, error, request, log }) => {
+    const url = new URL(request.url).pathname;
+    const method = request.method;
+
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    log.error(`[${code}] ${method} ${url} - ${errorMessage}`);
+
     if (code === "SESSION_ERROR") {
       set.status = 401;
       return { success: false, message: error.message };

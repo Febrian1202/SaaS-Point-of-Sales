@@ -1,5 +1,6 @@
 import { db } from "@/db";
 import { Cron } from "croner";
+import { log } from "@/plugins";
 import { eq } from "drizzle-orm";
 import { tenants } from "@/db/schema";
 import { getDailySummary } from "@/modules/reports/service";
@@ -7,7 +8,7 @@ import { getDailySummary } from "@/modules/reports/service";
 export const startDailySummaryJob = () => {
   // Jalankan setiap tengah malam
   new Cron("0 0 * * *", { timezone: "Asia/Makassar" }, async () => {
-    console.log("[CRON] Starting daily summaries automatic...");
+    log.info("[CRON] Starting daily summaries automatic...");
 
     try {
       // Dapatkan tanggal kemarin
@@ -25,17 +26,26 @@ export const startDailySummaryJob = () => {
       for (const tenant of activeTenants) {
         try {
           await getDailySummary(tenant.id, { date: dateString });
-          console.log(
-            `[CRON] Daily recap for ${tenant.name} ${dateString} success!`,
+
+          // Menggunakan structured logging
+          log.info(
+            { tenantId: tenant.id, date: dateString },
+            `[CRON] Daily recap for ${tenant.name} success!`
           );
         } catch (e) {
-          console.error(`[CRON] Failed processing recap ${tenant.name}`, e);
+          // Melempar object error agar Pino bisa merekam stack trace-nya
+          const errorMessage = e instanceof Error ? e.message : String(e);
+          log.error(
+            { tenantId: tenant.id, err: errorMessage },
+            `[CRON] Failed processing recap for ${tenant.name}`
+          );
         }
       }
 
-      console.log("[CRON] All daily recap process complete!");
+      log.info("[CRON] All daily recap process complete!");
     } catch (e) {
-      console.error("[CRON] Something wrong with the job", e);
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      log.error({ err: errorMessage }, "[CRON] Something wrong with the job");
     }
   });
 };

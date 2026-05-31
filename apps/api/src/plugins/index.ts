@@ -1,3 +1,4 @@
+export * from "./logger.ts";
 export * from "./auth.ts";
 export * from "./cors.ts";
 export * from "./error.ts";
