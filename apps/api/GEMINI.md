@@ -73,3 +73,16 @@ Each module MUST contain:
 *   Passwords must be hashed using `Bun.password.hash(..., { algorithm: "bcrypt" })`.
 *   Sensitive tokens (`refreshToken`) must be stored in `HttpOnly`, `secure`, and `sameSite: 'strict'` cookies.
 *   Sensitive operations must be protected with appropriate Rate Limiting (`elysia-rate-limit`).
+
+## 6. Testing Standards
+### Unit Testing Routes (Transport Layer)
+Untuk menghindari error 422 (Validation) dan 500 (Plugin Clashes) saat menguji route Elysia:
+*   **Dynamic Import:** Gunakan `beforeAll` dengan `await import("./route")` agar `mock.module` dieksekusi sebelum module dimuat.
+*   **Stable Mocks:** Jangan gunakan nested mock factory. Gunakan objek mock stabil (misal `const mockReturning = mock()`) yang di-reuse di seluruh rantai `.insert().values().returning()`.
+*   **Auth Bypass:** Mock `@/plugins` menggunakan `.decorate()` (bukan `.derive()`) untuk menyuntikkan `accessJwt` dan `refreshJwt` agar tidak crash saat memanggil `.sign()` atau `.verify()`.
+*   **Isolation:** Gunakan `path.resolve(__dirname, "service.ts")` (absolute path) pada `mock.module` untuk mencegah kebocoran mock antar file test.
+*   **Cleanup:** Selalu panggil `.mockClear()` pada semua objek mock di dalam `beforeEach`.
+
+### Unit Testing Services (Logic Layer)
+*   **Drizzle Mocks:** Pastikan rantai query Drizzle (`db.query...`) di-mock secara lengkap sesuai dengan kolom yang diminta di service.
+*   **Tenant Isolation:** Wajib menguji bahwa query menyertakan filter `eq(table.tenantId, tenantId)`.
