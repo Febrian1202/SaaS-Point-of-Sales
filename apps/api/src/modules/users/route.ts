@@ -3,17 +3,33 @@ import Elysia from "elysia";
 import {
   getCashier,
   registerCashier,
-  getUser
+  getUser,
+  updateCashier,
+  deleteCashier
 } from "./service";
 import { schemaResponseError } from "@/shared";
 import {
   schemaResponseGetCashier,
   schemaBodyRegisterCashier,
   schemaResponseRegisterCashier,
-  schemaResponseMe
+  schemaResponseMe,
+  schemaParamsUserId,
+  schemaBodyUpdateCashier,
+  schemaResponseUpdateCashier,
+  schemaResponseDeleteCashier
 } from "./schema";
+import { UserNotFoundError } from "./error";
 
 export const usersRoutes = new Elysia({ prefix: "/users", name: "User Routes", detail: { tags: ["User Routes"] } })
+  .error({
+    NOT_FOUND: UserNotFoundError
+  })
+  .onError(({ code, error, set }) => {
+    if (code === "NOT_FOUND") {
+      set.status = 404;
+      return { success: false, message: error.message }
+    }
+  })
   .use(authPlugin)
   .get("/me", async ({ userId }) => {
     const user = await getUser(userId);
@@ -73,4 +89,49 @@ export const usersRoutes = new Elysia({ prefix: "/users", name: "User Routes", d
       description: "Mendaftarkan akun staf/kasir baru untuk toko. Akun ini secara otomatis akan diikat ke `tenantId` yang sama dengan milik Admin pembuatnya.\n\n🚨 **Perhatian:** Dilindungi ketat oleh `adminGuard` dan hanya bisa diakses oleh **Admin**."
     }
   })
+  .patch("/:id", async ({
+    tenantId,
+    params,
+    body
+  }) => {
+    const result = await updateCashier(tenantId, params.id, body);
+
+    return {
+      success: true,
+      message: `Cashier ${result.name} updated successfully`,
+      data: result
+    }
+  }, {
+    params: schemaParamsUserId,
+    body: schemaBodyUpdateCashier,
+    response: {
+      200: schemaResponseUpdateCashier,
+      404: schemaResponseError
+    },
+    detail: {
+      summary: "Perbarui Data Kasir",
+      description: "Memperbarui informasi kasir seperti nama, email, atau mereset password mereka.\n\n🚨 **Perhatian:** Hanya bisa diakses oleh **Admin**."
+    }
+  })
+  .delete("/:id", async ({
+    tenantId,
+    params: { id }
+  }) => {
+    const result = await deleteCashier(id, tenantId);
+
+    return {
+      success: true,
+      message: `Cashier with id: ${result.id} deleted succesfully!`
+    }
+  }, {
+    params: schemaParamsUserId,
+    response: {
+      200: schemaResponseDeleteCashier,
+      404: schemaResponseError,
+    },
+    detail: {
+      summary: "Nonaktifkan Kasir (Soft Delete)",
+      description: "Menonaktifkan akun kasir (mengubah status `isActive` menjadi false) sehingga kasir tersebut tidak dapat login lagi. Data tidak dihapus permanen agar riwayat transaksi dan struk lama tidak rusak.\n\n🚨 **Perhatian:** Hanya bisa diakses oleh **Admin**."
+    }
+  });
 

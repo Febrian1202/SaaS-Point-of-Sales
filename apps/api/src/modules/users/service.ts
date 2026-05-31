@@ -2,8 +2,9 @@ import { db } from "@db"
 import { users } from "@schema/index"
 import { and, eq } from "drizzle-orm"
 import { ConflictError } from "@plugin";
-import { type ArgsRegisterCashier } from "./schema";
+import { type ArgsRegisterCashier, type ArgsUpdateCashier } from "./schema";
 import { RegisterError, SessionError } from "@plugin";
+import { UserNotFoundError } from "./error";
 
 export const registerCashier = async (
   tenantId: string,
@@ -80,4 +81,68 @@ export const getUser = async (userId: string) => {
   if (!user) throw new SessionError("User not found!");
 
   return user;
+}
+
+export const updateCashier = async (
+  id: string,
+  tenantId: string,
+  data: ArgsUpdateCashier
+) => {
+  let hashedPassword;
+
+  // Jika admin mengubah passwordnya 
+  if (data.password) {
+    hashedPassword = await Bun.password.hash(data.password, {
+      algorithm: "bcrypt",
+      cost: 10
+    })
+  }
+
+  const [updatedUser] = await db.update(users).set({
+    name: data.name,
+    email: data.email,
+    ...(hashedPassword && { passwordHash: hashedPassword }),
+    updatedAt: new Date(),
+  })
+    .where(and(
+      eq(users.id, id),
+      eq(users.tenantId, tenantId),
+      eq(users.role, "cashier")
+    ))
+    .returning({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      tenantId: users.tenantId
+    })
+
+  if (!updatedUser) throw new UserNotFoundError("Cashier not found!")
+
+  return updatedUser;
+}
+
+export const deleteCashier = async (
+  id: string,
+  tenantId: string
+) => {
+  // Soft dalete cashier 
+  const [deletedCashier] = await db.update(users).set({
+    isActive: false,
+    updatedAt: new Date()
+  })
+    .where(
+      and(
+        eq(users.id, id),
+        eq(users.tenantId, tenantId),
+        eq(users.role, "cashier")
+      )
+    )
+    .returning({
+      id: users.id
+    })
+
+  if (!deletedCashier) throw new UserNotFoundError("Cashier not found!");
+
+  return deletedCashier;
 }

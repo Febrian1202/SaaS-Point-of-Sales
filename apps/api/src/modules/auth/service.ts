@@ -1,7 +1,6 @@
 import { db } from "@db"
 import { tenants, users } from "@schema/index"
 import { and, eq } from "drizzle-orm"
-import { SessionError } from "@plugin";
 import { LoginError } from "./error";
 import type { ArgsRegister } from "./schema";
 import { ConflictError } from "@plugin";
