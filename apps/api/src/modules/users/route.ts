@@ -72,7 +72,6 @@ export const usersRoutes = new Elysia({
       };
     },
     {
-      params: schemaParamsUserId,
       body: schemaBodyUpdateProfile,
       response: {
         200: schemaResponseUpdateProfile,
@@ -88,8 +87,8 @@ export const usersRoutes = new Elysia({
   .use(adminGuard)
   .get(
     "/",
-    ({ tenantId }) => {
-      const result = getCashier(tenantId);
+    async ({ tenantId }) => {
+      const result = await getCashier(tenantId);
 
       return {
         success: true,
