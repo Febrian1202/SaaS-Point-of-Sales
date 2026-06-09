@@ -9,6 +9,7 @@ import {
 } from "./schema";
 import { RegisterError, SessionError } from "@plugin";
 import { UserNotFoundError } from "./error";
+import { UserRole } from "@shared";
 
 export const registerCashier = async (
   tenantId: string,
@@ -48,7 +49,13 @@ export const registerCashier = async (
 
   if (!newCashier) throw new RegisterError("Failed to register new cashier!");
 
-  return newCashier;
+  return {
+    id: newCashier.id,
+    name: newCashier.name || "",
+    email: newCashier.email || "",
+    role: (newCashier.role as UserRole) || UserRole.CASHIER,
+    tenantId: newCashier.tenantId || "",
+  };
 };
 
 export const getCashier = async (tenantId: string) => {
@@ -67,7 +74,13 @@ export const getCashier = async (tenantId: string) => {
     },
   });
 
-  return result;
+  return result.map((u) => ({
+    id: u.id,
+    name: u.name || "",
+    email: u.email || "",
+    role: (u.role as UserRole) || UserRole.CASHIER,
+    tenantId: u.tenantId || "",
+  }));
 };
 
 export const getUser = async (userId: string) => {
@@ -85,7 +98,14 @@ export const getUser = async (userId: string) => {
 
   if (!user) throw new SessionError("User not found!");
 
-  return user;
+  return {
+    id: user.id,
+    name: user.name || "",
+    email: user.email || "",
+    role: (user.role as UserRole) || UserRole.ADMIN,
+    tenantId: user.tenantId || "",
+    refreshToken: user.refreshToken,
+  };
 };
 
 export const updateCashier = async (
@@ -128,7 +148,13 @@ export const updateCashier = async (
 
   if (!updatedUser) throw new UserNotFoundError("Cashier not found!");
 
-  return updatedUser;
+  return {
+    id: updatedUser.id,
+    name: updatedUser.name || "",
+    email: updatedUser.email || "",
+    role: (updatedUser.role as UserRole) || UserRole.CASHIER,
+    tenantId: updatedUser.tenantId || "",
+  };
 };
 
 export const deleteCashier = async (id: string, tenantId: string) => {
@@ -194,5 +220,11 @@ export const updateOwnProfile = async (
 
   if (!updatedProfile) throw new UserNotFoundError("Cashier not found!");
 
-  return updatedProfile;
+  return {
+    id: updatedProfile.id,
+    name: updatedProfile.name || "",
+    email: updatedProfile.email || "",
+    role: (updatedProfile.role as UserRole) || UserRole.CASHIER,
+    tenantId: updatedProfile.tenantId || "",
+  };
 };

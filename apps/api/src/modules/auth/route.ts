@@ -27,14 +27,16 @@ export const authRoutes = new Elysia({
   detail: { tags: ["Auth Routes"] },
 })
   .use(
-    rateLimit({
-      duration: 60000,
-      max: 5,
-      errorResponse: new Response(
-        "Too many login attempts. Please wait 1 minute.",
-        { status: 429 },
-      ),
-    }),
+    Bun.env.NODE_ENV === "production"
+      ? rateLimit({
+        duration: 60000,
+        max: 5,
+        errorResponse: new Response(
+          "Too many login attempts. Please wait 1 minute.",
+          { status: 429 },
+        ),
+      })
+      : (app) => app
   )
   .error({
     LOGIN_ERROR: LoginError,
@@ -153,7 +155,7 @@ export const authRoutes = new Elysia({
       body: schemaBodyRegister,
       cookie: schemaCookie,
       response: {
-        200: schemaResponseRegister,
+        201: schemaResponseRegister,
         401: schemaResponseError,
         500: schemaResponseError,
       },

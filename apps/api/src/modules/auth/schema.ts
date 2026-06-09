@@ -51,10 +51,24 @@ export const schemaCookie = t.Cookie({
 
 // --- Response Schemas ---
 
+const schemaSafeUser = t.Object({
+  id: t.String({ format: "uuid" }),
+  name: t.String(),
+  email: t.String({ format: "email" }),
+  role: t.String(),
+  tenantId: t.String({ format: "uuid" }),
+});
+
+const schemaSafeTenant = t.Object({
+  id: t.String({ format: "uuid" }),
+  name: t.String(),
+  slug: t.String()
+})
+
 export const schemaResponseLogin = withSuccess(
   t.Object({
     accessToken: t.String(),
-    user: schemaUser,
+    user: schemaSafeUser,
   }),
 );
 

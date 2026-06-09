@@ -46,6 +46,7 @@ describe("Brilink Routes", () => {
     mock.module("@/plugins", () => ({
       authPlugin: mockAuth,
       adminGuard: new Elysia({ name: "admin-guard" }).use(mockAuth),
+      ConflictError: class extends Error {},
     }));
 
     const { brilinkRoutes } = await import("./route");

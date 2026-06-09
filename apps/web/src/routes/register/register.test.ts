@@ -63,7 +63,7 @@ describe("Register Action", () => {
             error: null,
             response: {
                 headers: {
-                    get: (name: string) => name === "set-cookie" ? "refreshToken=mock-refresh-token; HttpOnly" : null
+                    getSetCookie: () => ["refreshToken=mock-refresh-token; HttpOnly"]
                 }
             }
         };

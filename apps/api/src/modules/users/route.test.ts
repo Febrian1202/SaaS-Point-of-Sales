@@ -29,6 +29,7 @@ describe("User Routes", () => {
     mock.module("@/plugins", () => ({
       authPlugin: mockAuth,
       adminGuard: mockAdmin,
+      ConflictError: class extends Error {},
       jwtAccessSetup: new Elysia(),
       jwtRefreshSetup: new Elysia(),
       logger: new Elysia(),
@@ -36,9 +37,7 @@ describe("User Routes", () => {
       swagger: () => new Elysia(),
     }));
 
-    // Use absolute path for service mock to prevent clashing with other modules
-    const servicePath = path.resolve(__dirname, "service.ts");
-    mock.module(servicePath, () => ({
+    mock.module("./service.ts", () => ({
       getCashier: mock(),
       registerCashier: mock(),
       getUser: mock(),

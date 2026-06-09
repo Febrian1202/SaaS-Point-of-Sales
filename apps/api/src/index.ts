@@ -23,13 +23,15 @@ const app = new Elysia()
   .use(swaggerPlugin)
   .use(loggerPlugin)
   .use(
-    rateLimit({
-      duration: 60000,
-      max: 120,
-      errorResponse: new Response("Too many request. Please wait a moment", {
-        status: 429,
-      }),
-    }),
+    Bun.env.NODE_ENV === "production"
+      ? rateLimit({
+          duration: 60000,
+          max: 120,
+          errorResponse: new Response("Too many request. Please wait a moment", {
+            status: 429,
+          }),
+        })
+      : (app) => app
   )
   .use(corsPlugin)
   .error({

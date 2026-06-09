@@ -19,15 +19,13 @@ describe("Auth Routes", () => {
   let userService: any;
 
   beforeAll(async () => {
-    const servicePath = path.resolve(__dirname, "service.ts");
-    mock.module(servicePath, () => ({
+    mock.module("./service.ts", () => ({
       verifyUsers: mock(),
       registerBusiness: mock(),
       updateRefreshToken: mock(),
     }));
 
-    const userServicePath = path.resolve(__dirname, "../users/service.ts");
-    mock.module(userServicePath, () => ({
+    mock.module("../users/service.ts", () => ({
       getUser: mock(),
       getCashier: mock(),
       registerCashier: mock(),
@@ -58,6 +56,7 @@ describe("Auth Routes", () => {
       adminGuard: new Elysia({ name: "admin-guard" }),
       SessionError: class extends Error {},
       RegisterError: class extends Error {},
+      ConflictError: class extends Error {},
     }));
 
     const { authRoutes } = await import("./route");

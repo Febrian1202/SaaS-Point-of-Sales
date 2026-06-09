@@ -9,14 +9,6 @@ import { slugify } from "@helper";
 export const verifyUsers = async (userEmail: string, userPassword: string) => {
   const normalizedEmail = userEmail.toLowerCase().trim();
   const user = await db.query.users.findFirst({
-    columns: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      tenantId: true,
-      passwordHash: true,
-    },
     where: and(eq(users.email, normalizedEmail), eq(users.isActive, true)),
   });
 

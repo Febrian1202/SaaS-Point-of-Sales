@@ -10,6 +10,10 @@ const mockWhere = mock().mockReturnValue({ returning: mockReturning });
 const mockSet = mock().mockReturnValue({ where: mockWhere });
 const mockUpdate = mock().mockReturnValue({ set: mockSet });
 
+const mockInsertReturning = mock();
+const mockInsertValues = mock().mockReturnValue({ returning: mockInsertReturning });
+const mockInsert = mock().mockReturnValue({ values: mockInsertValues });
+
 mock.module("@db", () => ({
   db: {
     query: {
@@ -18,11 +22,7 @@ mock.module("@db", () => ({
         findMany: mock(),
       },
     },
-    insert: mock(() => ({
-      values: mock(() => ({
-        returning: mock(),
-      })),
-    })),
+    insert: mockInsert,
     update: mockUpdate,
   },
 }));
@@ -36,7 +36,10 @@ describe("Users Service Unit Tests", () => {
   const CASHIER_ID = "cashier-uuid-888";
 
   beforeEach(() => {
-    mock.restore();
+    mockReturning.mockClear();
+    mockInsertReturning.mockClear();
+    (db.query.users.findFirst as any).mockClear();
+    (db.query.users.findMany as any).mockClear();
   });
 
   describe("registerCashier", () => {
@@ -48,17 +51,13 @@ describe("Users Service Unit Tests", () => {
 
     it("should register a new cashier successfully (Happy Path)", async () => {
       (db.query.users.findFirst as any).mockResolvedValue(null);
-      (db.insert as any).mockReturnValue({
-        values: mock(() => ({
-          returning: mock(() => [{
-            id: CASHIER_ID,
-            name: validData.name,
-            email: validData.email,
-            role: "cashier",
-            tenantId: TENANT_A
-          }]),
-        })),
-      });
+      mockInsertReturning.mockResolvedValue([{
+        id: CASHIER_ID,
+        name: validData.name,
+        email: validData.email,
+        role: "cashier",
+        tenantId: TENANT_A
+      }]);
 
       const result = await service.registerCashier(TENANT_A, validData);
       
@@ -75,11 +74,7 @@ describe("Users Service Unit Tests", () => {
 
     it("should throw RegisterError if database insertion returns empty (DB Failure Edge Case)", async () => {
       (db.query.users.findFirst as any).mockResolvedValue(null);
-      (db.insert as any).mockReturnValue({
-        values: mock(() => ({
-          returning: mock(() => []),
-        })),
-      });
+      mockInsertReturning.mockResolvedValue([]);
 
       expect(service.registerCashier(TENANT_A, validData)).rejects.toThrow(RegisterError);
     });

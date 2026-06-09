@@ -44,6 +44,7 @@ describe("Transaction Routes", () => {
     mock.module("@plugin", () => ({
       authPlugin: mockAuth,
       adminGuard: new Elysia({ name: "admin-guard" }).use(mockAuth),
+      ConflictError: class extends Error {},
     }));
 
     const { transactionRoutes } = await import("./route");

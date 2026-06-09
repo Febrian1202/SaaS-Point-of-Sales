@@ -10,39 +10,7 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
-		"moduleResolution": "bundler",
-		"paths": {
-			"@/*": [
-				"../api/src/*"
-			],
-			"@modules/*": [
-				"../api/src/modules/*"
-			],
-			"@schema/*": [
-				"../api/src/db/schema/*"
-			],
-			"@db": [
-				"../api/src/db/index.ts"
-			],
-			"@plugin": [
-				"../api/src/plugins/index.ts"
-			],
-			"@jobs": [
-				"../api/src/jobs/index.ts"
-			],
-			"@shared": [
-				"../api/src/shared/index.ts"
-			],
-			"@helper": [
-				"../api/src/helper/index.ts"
-			],
-			"$lib": [
-				"./src/lib"
-			],
-			"$lib/*": [
-				"./src/lib/*"
-			]
-		}
+		"moduleResolution": "bundler"
 	}
 	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
 	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files

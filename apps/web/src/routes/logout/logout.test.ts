@@ -64,6 +64,6 @@ describe("Logout Action", () => {
 
         expect(serverApi.auth.logout.post).toHaveBeenCalled();
         expect(cookies.delete).toHaveBeenCalledWith("accessToken", { path: "/" });
-        expect(cookies.delete).toHaveBeenCalledWith("refreshToken", { path: "/auth" });
+        expect(cookies.delete).toHaveBeenCalledWith("refreshToken", { path: "/" });
     });
 });

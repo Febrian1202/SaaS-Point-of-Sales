@@ -36,6 +36,7 @@ describe("Category Routes", () => {
     mock.module("@/plugins", () => ({
       authPlugin: mockAuth,
       adminGuard: new Elysia({ name: "admin-guard" }).use(mockAuth),
+      ConflictError: class extends Error {},
     }));
 
     const { categoriesRoutes } = await import("./route");

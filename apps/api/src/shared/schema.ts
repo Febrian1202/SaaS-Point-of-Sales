@@ -31,13 +31,12 @@ export const schemaResponseSuccess = t.Object({
   message: t.String(),
 });
 
-export const withSuccess = (dataSchema: TSchema) => {
-  return t.Composite([
-    schemaResponseSuccess,
-    t.Object({
-      data: dataSchema,
-    }),
-  ]);
+export const withSuccess = <T extends TSchema>(dataSchema: T) => {
+  return t.Object({
+    success: t.Boolean({ default: true }),
+    message: t.String(),
+    data: dataSchema,
+  });
 };
 
 export const schemaPagination = t.Object({
@@ -47,12 +46,14 @@ export const schemaPagination = t.Object({
   totalPages: t.Number(),
 });
 
-export const withSuccessMeta = (dataSchema: TSchema, metaSchema: TSchema) => {
-  return t.Composite([
-    schemaResponseSuccess,
-    t.Object({
-      data: dataSchema,
-      meta: metaSchema,
-    }),
-  ]);
+export const withSuccessMeta = <T extends TSchema, M extends TSchema>(
+  dataSchema: T,
+  metaSchema: M
+) => {
+  return t.Object({
+    success: t.Boolean({ default: true }),
+    message: t.String(),
+    data: dataSchema,
+    meta: metaSchema,
+  });
 };

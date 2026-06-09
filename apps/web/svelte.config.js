@@ -12,9 +12,9 @@ const config = {
 		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
 		adapter: adapter(),
 		alias: {
-			"@/*": "../api/src/*",
-			"@modules/*": "../api/src/modules/*",
-			"@schema/*": "../api/src/db/schema/*",
+			"@": "../api/src",
+			"@modules": "../api/src/modules",
+			"@schema": "../api/src/db/schema",
 			"@db": "../api/src/db/index.ts",
 			"@plugin": "../api/src/plugins/index.ts",
 			"@jobs": "../api/src/jobs/index.ts",

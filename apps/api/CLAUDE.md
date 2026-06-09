@@ -1,106 +1,300 @@
+# Kios Sheza API — Project Guide for AI Assistants
 
-Default to using Bun instead of Node.js.
+## Project Overview
 
-- Use `bun <file>` instead of `node <file>` or `ts-node <file>`
-- Use `bun test` instead of `jest` or `vitest`
-- Use `bun build <file.html|file.ts|file.css>` instead of `webpack` or `esbuild`
-- Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
-- Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
-- Use `bunx <package> <command>` instead of `npx <package> <command>`
-- Bun automatically loads .env, so don't use dotenv.
+Backend API untuk **Kios Sheza**, sistem Point of Sale (POS) dan manajemen inventori **multi-tenant**. Menyediakan endpoint RESTful untuk autentikasi, produk, kategori, transaksi (retail & Brilink), dan laporan.
 
-## APIs
+**Tech Stack:**
+- **Runtime:** Bun
+- **Framework:** ElysiaJS (TypeScript)
+- **ORM:** Drizzle ORM
+- **Database:** PostgreSQL
+- **Validation:** TypeBox (`elysia`, `drizzle-typebox`)
+- **Docs:** Swagger/OpenAPI (`@elysiajs/swagger`)
 
-- `Bun.serve()` supports WebSockets, HTTPS, and routes. Don't use `express`.
-- `bun:sqlite` for SQLite. Don't use `better-sqlite3`.
-- `Bun.redis` for Redis. Don't use `ioredis`.
-- `Bun.sql` for Postgres. Don't use `pg` or `postgres.js`.
-- `WebSocket` is built-in. Don't use `ws`.
-- Prefer `Bun.file` over `node:fs`'s readFile/writeFile
-- Bun.$`ls` instead of execa.
+---
 
-## Testing
+## Commands
 
-Use `bun test` to run tests.
+```bash
+# Dependencies
+bun install
 
-```ts#index.test.ts
-import { test, expect } from "bun:test";
+# Development (watch mode)
+bun run dev
 
-test("hello world", () => {
-  expect(1).toBe(1);
-});
+# Production
+bun run start
+
+# Database
+bun run db:generate   # Generate migrations
+bun run db:migrate    # Run migrations
+bun run db:fresh      # Reset & migrate
+bun run db:seed       # Seed database
+bun run db:studio     # Open Drizzle Studio
+
+# Testing
+bun test
 ```
 
-## Frontend
+---
 
-Use HTML imports with `Bun.serve()`. Don't use `vite`. HTML imports fully support React, CSS, Tailwind.
+## Project Structure
 
-Server:
+```
+src/
+├── index.ts              # Entry point (app setup, global middleware, error handlers)
+├── db/
+│   ├── index.ts          # Drizzle DB instance
+│   ├── seed.ts           # Database seeder
+│   ├── reset.ts          # Database reset script
+│   └── schema/           # Drizzle table schemas
+│       ├── users.ts
+│       ├── tenants.ts
+│       ├── products.ts
+│       ├── categories.ts
+│       ├── transactions.ts
+│       ├── transactionItems.ts
+│       ├── brilinkTransactions.ts
+│       └── dailySummaries.ts
+├── modules/              # Feature modules (grouped by domain)
+│   ├── auth/
+│   ├── users/
+│   ├── products/
+│   ├── categories/
+│   ├── transactions/
+│   ├── brilink/
+│   ├── reports/
+│   └── index.routes.ts   # Re-exports all module routes
+├── plugins/              # Elysia plugins
+│   ├── auth.ts           # authPlugin, adminGuard, JWT setup
+│   ├── cors.ts
+│   ├── swagger.ts
+│   ├── logger.ts
+│   ├── error.ts          # Shared error classes (AuthError, ForbiddenError, etc.)
+│   └── index.ts
+├── shared/               # Shared utilities & schemas
+│   ├── schema.ts         # withSuccess, withSuccessMeta, shared TypeBox schemas
+│   └── index.ts
+├── helper/               # Utility helpers
+│   └── index.ts
+└── jobs/                 # Background jobs (e.g., daily summary cron)
+    └── index.ts
+```
 
-```ts#index.ts
-import index from "./index.html"
+### Path Aliases (tsconfig.json)
 
-Bun.serve({
-  routes: {
-    "/": index,
-    "/api/users/:id": {
-      GET: (req) => {
-        return new Response(JSON.stringify({ id: req.params.id }));
-      },
-    },
+| Alias | Maps To |
+|---|---|
+| `@/*` | `src/*` |
+| `@schema/*` | `src/db/schema/*` |
+| `@db` | `src/db/index.ts` |
+| `@modules/*` | `src/modules/*` |
+| `@plugin` | `src/plugins/index.ts` |
+| `@shared` | `src/shared/index.ts` |
+| `@helper` | `src/helper/index.ts` |
+| `@jobs` | `src/jobs/index.ts` |
+
+---
+
+## Module Structure (Mandatory)
+
+Setiap modul di `src/modules/<domain>/` WAJIB memiliki 4 file:
+
+```
+src/modules/<domain>/
+├── route.ts    # Endpoint definitions, validation binding, Swagger detail
+├── service.ts  # Business logic & database queries
+├── schema.ts   # TypeBox request/response schemas
+└── error.ts    # Custom domain error classes
+```
+
+---
+
+## Conventions
+
+### 1. Response Format
+
+Semua response sukses WAJIB dibungkus menggunakan helper dari `@shared`:
+
+```ts
+import { withSuccess, withSuccessMeta } from "@shared";
+
+// Single data
+withSuccess(dataSchema)
+// → { success: true, message: string, data: T }
+
+// Paginated data
+withSuccessMeta(dataSchema, schemaPagination)
+// → { success: true, message: string, data: T[], meta: { page, limit, totalData, totalPages } }
+```
+
+### 2. Schema (`schema.ts`)
+
+```ts
+// Constants & enums at top in UPPER_SNAKE_CASE
+const SLUG_REGEX = /^[a-z0-9-]+$/;
+
+// Generate base schemas from Drizzle table definitions
+import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
+
+// Group sections clearly
+// --- Request Schemas ---
+// --- Response Schemas ---
+```
+
+### 3. Routing (`route.ts`)
+
+```ts
+// Every endpoint MUST have a detail block
+.get("/products", handler, {
+  response: withSuccess(ProductSchema),
+  detail: {
+    summary: "Get All Products",
+    description: "Mengambil daftar semua produk aktif milik tenant.",
+    tags: ["Products"],
   },
-  // optional websocket support
-  websocket: {
-    open: (ws) => {
-      ws.send("Hello, world!");
-    },
-    message: (ws, message) => {
-      ws.send(message);
-    },
-    close: (ws) => {
-      // handle close
-    }
-  },
-  development: {
-    hmr: true,
-    console: true,
+})
+
+// Protected routes
+.use(authPlugin)   // Requires valid JWT
+.use(adminGuard)   // Requires role === "admin"
+```
+
+### 4. Service & Tenant Isolation (`service.ts`)
+
+```ts
+// WAJIB: filter tenantId di setiap query
+const products = await db.query.products.findMany({
+  where: eq(products.tenantId, tenantId),
+});
+
+// Throw custom errors, bukan generic HTTP
+throw new ProductNotFoundError(); // ✅
+throw new NotFoundError(404, "Not found"); // ❌
+```
+
+### 5. Error Handling (`error.ts`)
+
+```ts
+// Definisikan error domain di error.ts modul
+export class ProductNotFoundError extends Error {
+  constructor() {
+    super("Product not found");
+  }
+}
+
+// Map di route.ts dengan .onError()
+.error({ PRODUCT_NOT_FOUND: ProductNotFoundError })
+.onError(({ code, error, set }) => {
+  if (code === "PRODUCT_NOT_FOUND") {
+    set.status = 404;
+    return { success: false, message: error.message };
   }
 })
 ```
 
-HTML files can import .tsx, .jsx or .js files directly and Bun's bundler will transpile & bundle automatically. `<link>` tags can point to stylesheets and Bun's CSS bundler will bundle.
+### 6. Soft Delete
 
-```html#index.html
-<html>
-  <body>
-    <h1>Hello, world!</h1>
-    <script type="module" src="./frontend.tsx"></script>
-  </body>
-</html>
+```ts
+// Jangan hapus fisik data master yang direferensi transaksi
+await db.update(products)
+  .set({ isActive: false })
+  .where(eq(products.id, id));
 ```
 
-With the following `frontend.tsx`:
+### 7. Security
 
-```tsx#frontend.tsx
-import React from "react";
-import { createRoot } from "react-dom/client";
+```ts
+// Password hashing
+await Bun.password.hash(password, { algorithm: "bcrypt" });
 
-// import .css files directly and it works
-import './index.css';
-
-const root = createRoot(document.body);
-
-export default function Frontend() {
-  return <h1>Hello, world!</h1>;
-}
-
-root.render(<Frontend />);
+// Refresh token: HttpOnly cookie
+cookie.set("refreshToken", token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "strict",
+});
 ```
 
-Then, run index.ts
+---
 
-```sh
-bun --hot ./index.ts
+## Auth System
+
+- **Access Token:** JWT, exp `5m`, dikirim via Bearer header
+- **Refresh Token:** JWT, exp `7d`, disimpan di HttpOnly cookie
+- **Payload JWT:** `{ sub: userId, tenantId, role }`
+- **Roles:** `admin` | `cashier`
+- `authPlugin` → inject `{ tenantId, userId, role }` ke context
+- `adminGuard` → throw `ForbiddenError` jika `role !== "admin"`
+
+---
+
+## Testing
+
+Gunakan `bun test`. Ikuti konvensi berikut:
+
+### Route Tests (Transport Layer)
+
+```ts
+import { describe, test, expect, beforeAll, beforeEach, mock } from "bun:test";
+
+describe("Product Routes", () => {
+  let app: Elysia;
+
+  beforeAll(async () => {
+    // Mock SEBELUM dynamic import
+    mock.module(path.resolve(__dirname, "service.ts"), () => ({
+      getProducts: mockGetProducts,
+    }));
+
+    // Dynamic import SETELAH mock
+    const mod = await import("./route");
+    app = mod.productRoutes;
+  });
+
+  beforeEach(() => {
+    mockGetProducts.mockClear(); // Cleanup antar test
+  });
+});
 ```
 
-For more information, read the Bun API docs in `node_modules/bun-types/docs/**.mdx`.
+**Key rules:**
+- Gunakan `dynamic import` di `beforeAll` agar mock aktif sebelum modul dimuat
+- Gunakan `path.resolve(__dirname, "service.ts")` (absolute path) untuk mencegah mock leakage
+- Mock `@/plugins` dengan `.decorate()` untuk bypass auth
+- Gunakan objek mock stabil yang di-reuse di seluruh rantai query
+
+### Service Tests (Logic Layer)
+
+```ts
+// Wajib test tenant isolation
+expect(mockDb.query.products.findMany).toHaveBeenCalledWith(
+  expect.objectContaining({
+    where: expect.any(Function), // memastikan ada filter tenantId
+  })
+);
+```
+
+---
+
+## Environment Variables
+
+Lihat `.env.example` untuk referensi. Bun otomatis memuat `.env` — tidak perlu `dotenv`.
+
+```env
+DATABASE_URL=
+JWT_ACCESS_SECRET=
+JWT_REFRESH_SECRET=
+PORT=3000
+```
+
+---
+
+## Important Notes
+
+- Jangan gunakan `node`, `ts-node`, `npx`, `npm`, atau `yarn`. Gunakan `bun` dan `bunx`.
+- Bun otomatis load `.env` — tidak perlu `import "dotenv/config"`.
+- `Bun.env.VAR` untuk akses environment variables.
+- Drizzle schema di `src/db/schema/` adalah **single source of truth** untuk tabel database.
+- Semua perubahan skema database harus melalui migration (`bun run db:generate` → `bun run db:migrate`).
