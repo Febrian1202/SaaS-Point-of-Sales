@@ -52,6 +52,10 @@ export const usersRoutes = new Elysia({
     {
       response: {
         200: schemaResponseMe,
+        401: schemaResponseError,
+        403: schemaResponseError,
+        404: schemaResponseError,
+        500: schemaResponseError,
       },
       detail: {
         summary: "Ambil Profil Pengguna Aktif",

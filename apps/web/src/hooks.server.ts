@@ -1,9 +1,7 @@
-import { redirect, type Handle } from '@sveltejs/kit';
-import { serverApi } from '$lib/server/api';
-import { dev } from '$app/environment';
+import { redirect, type Handle, type RequestEvent } from '@sveltejs/kit';
+import { fetchUserProfile, refreshSession, deleteAuthCookies } from '$lib/server/auth';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	// 1. Inisialisasi locals user
 	event.locals.user = null;
 
 	const accessToken = event.cookies.get('accessToken');
@@ -12,101 +10,75 @@ export const handle: Handle = async ({ event, resolve }) => {
 	let tokenToUse = accessToken;
 	let isTokenRefreshed = false;
 
-	// Helper function untuk memanggil API refresh token
-	const refreshSession = async () => {
-		if (!refreshToken) return false;
-		
-		try {
-			// Sesuai syntax Eden Treaty, header dipassing via $headers
-			const result = await serverApi.auth.refresh.post(null as any, {
-				$headers: {
-					Cookie: `refreshToken=${refreshToken}`
-				}
-			} as any);
-
-			const data = result.data as any;
-			if (!result.error && data?.success) {
-				tokenToUse = data.data.accessToken;
-				isTokenRefreshed = true;
-
-				// Perbarui cookie di browser
-				event.cookies.set('accessToken', tokenToUse as string, {
-					path: '/',
-					httpOnly: false,
-					secure: !dev,
-					sameSite: 'strict',
-					maxAge: 60 * 15
-				});
-				return true;
-			}
-		} catch (e) {
-			console.error('Failed to refresh token:', e);
+	// Helper lokal untuk mencoba merefresh session dan mencatat statusnya
+	const tryRefresh = async (): Promise<boolean> => {
+		if (isTokenRefreshed) return false;
+		const newToken = await refreshSession(event.cookies);
+		if (newToken) {
+			tokenToUse = newToken;
+			isTokenRefreshed = true;
+			return true;
 		}
-		
 		return false;
 	};
 
-	// 2. Jika tidak ada access token tapi ada refresh token, coba refresh dulu
+	// Alur 1: Jika accessToken kosong tetapi refreshToken ada, coba refresh session
 	if (!tokenToUse && refreshToken) {
-		const success = await refreshSession();
+		const success = await tryRefresh();
 		if (!success) {
-			// Refresh token tidak valid/kedaluwarsa, bersihkan cookies
-			event.cookies.delete('accessToken', { path: '/' });
-			event.cookies.delete('refreshToken', { path: '/' });
+			deleteAuthCookies(event.cookies);
 		}
 	}
 
-	// 3. Jika sekarang kita punya access token yang valid, ambil data user
+	// Alur 2: Jika ada accessToken, coba ambil profil user
 	if (tokenToUse && tokenToUse !== 'undefined' && tokenToUse !== 'null') {
-		const fetchUser = async (token: string) => {
-			return await serverApi.users.me.get({
-				$headers: {
-					Authorization: `Bearer ${token}`
-				}
-			} as any);
-		};
+		let result = await fetchUserProfile(tokenToUse);
 
-		let result = await fetchUser(tokenToUse);
-
-		// 4. Jika access token ternyata sudah expired (401) saat dipakai, 
-		//    dan kita belum mencoba refresh di request ini, lakukan refresh sekarang.
-		const err = result.error as any;
-		if (err?.status === 401 && !isTokenRefreshed && refreshToken) {
-			const success = await refreshSession();
+		// Jika token expired (401), lakukan refresh session dan coba request ulang
+		if (result.error?.status === 401 && refreshToken) {
+			const success = await tryRefresh();
 			if (success && tokenToUse) {
-				result = await fetchUser(tokenToUse);
+				result = await fetchUserProfile(tokenToUse);
 			} else {
-				event.cookies.delete('accessToken', { path: '/' });
-				event.cookies.delete('refreshToken', { path: '/' });
+				deleteAuthCookies(event.cookies);
 			}
 		}
 
-		const data = result.data as any;
-		if (!result.error && data?.success) {
-			event.locals.user = data.data; // Simpan data user ke locals
+		// Jika data user berhasil diambil, set ke event.locals.user
+		if (!result.error && result.data?.success) {
+			event.locals.user = result.data.data;
 		}
 	}
 
-	// 5. Auth Guards (Proteksi Route)
-	// Proteksi root route '/'
-	if (event.url.pathname === '/') {
-		if (event.locals.user) throw redirect(303, '/dashboard');
-		else throw redirect(303, '/login');
-	}
+	// Alur 3: Jalankan routing guard/proteksi halaman
+	checkRoutingGuards(event);
 
-	const isAuthRoute = event.url.pathname.startsWith('/login') || event.url.pathname.startsWith('/register');
-	const isProtectedRoute = event.url.pathname.startsWith('/dashboard');
+	return resolve(event);
+};
 
-	// Jika user mencoba masuk halaman proteksi tapi belum login
-	if (isProtectedRoute && !event.locals.user) {
+/**
+ * Memeriksa hak akses user terhadap rute yang sedang diakses (Auth Guards)
+ */
+function checkRoutingGuards(event: RequestEvent) {
+	const user = event.locals.user;
+	const path = event.url.pathname;
+
+	// Halaman Root '/' selalu diarahkan ke dashboard jika login, atau login page jika belum
+	if (path === '/') {
+		if (user) throw redirect(303, '/dashboard');
 		throw redirect(303, '/login');
 	}
 
-	// Jika user sudah login tapi mencoba akses halaman login/register
-	if (isAuthRoute && event.locals.user) {
-		throw redirect(303, '/dashboard');
+	const isAuthRoute = path.startsWith('/login') || path.startsWith('/register');
+	const isProtectedRoute = path.startsWith('/dashboard');
+
+	// Proteksi halaman dashboard (harus login)
+	if (isProtectedRoute && !user) {
+		throw redirect(303, '/login');
 	}
 
-	// Lanjutkan request SvelteKit
-	return resolve(event);
-};
+	// Mencegah user yang sudah login mengakses halaman auth
+	if (isAuthRoute && user) {
+		throw redirect(303, '/dashboard');
+	}
+}

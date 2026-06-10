@@ -16,7 +16,7 @@
 </script>
 
 <svelte:head>
-	<title>Registrasi Toko Baru | Kios Sheza</title>
+	<title>Registrasi Toko Baru | Transa</title>
 </svelte:head>
 
 <div class="pointer-events-none fixed inset-0 z-0 opacity-20">
@@ -27,7 +27,7 @@
 </div>
 
 <main
-	class="relative z-10 mx-auto w-full max-w-120 animate-in px-4 py-12 duration-700 fade-in slide-in-from-bottom-4"
+	class="relative z-10 mx-auto flex min-h-screen w-full max-w-120 animate-in flex-col justify-center px-4 py-12 duration-700 fade-in slide-in-from-bottom-4"
 >
 	<!-- Brand Identity -->
 	<div class="mb-10 flex flex-col items-center text-center">
@@ -36,9 +36,7 @@
 		>
 			<Store class="size-8 text-primary-foreground" />
 		</div>
-		<h1 class="mb-1 font-tight text-4xl font-semibold tracking-tight text-foreground">
-			Kios Sheza
-		</h1>
+		<h1 class="mb-1 font-tight text-4xl font-semibold tracking-tight text-foreground">Transa</h1>
 		<p class="font-sans text-secondary-foreground">Buka lembaran baru untuk bisnis Anda.</p>
 	</div>
 
@@ -197,7 +195,10 @@
 			</p>
 		</Card.Footer>
 	</Card.Root>
+	{@render statusInfo()}
+</main>
 
+{#snippet statusInfo()}
 	<!-- System Status Info -->
 	<div class="mt-8 flex items-center justify-center space-x-4">
 		<div class="flex items-center space-x-2">
@@ -211,7 +212,7 @@
 			>v2.4.0</span
 		>
 	</div>
-</main>
+{/snippet}
 
 <!-- Decorative Elements -->
 <div

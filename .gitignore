@@ -1,1 +1,6 @@
-node_modules/\n.env\n*.local
+node_modules/
+.env
+*.local
+.svelte-kit/
+build/
+dist/

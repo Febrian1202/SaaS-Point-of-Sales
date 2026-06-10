@@ -4,5 +4,12 @@
   "private": true,
   "workspaces": [
     "apps/*"
-  ]
+  ],
+  "scripts": {
+    "changeset": "changeset",
+    "version": "changeset version && bun apps/mobile/sync-version.js"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.31.0"
+  }
 }

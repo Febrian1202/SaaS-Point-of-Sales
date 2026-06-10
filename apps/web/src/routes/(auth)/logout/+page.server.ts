@@ -7,11 +7,14 @@ const performLogout = async (cookies: any) => {
 	const token = cookies.get('accessToken');
 	
 	if (token) {
-		await serverApi.auth.logout.post({}, {
-			$headers: {
-				Authorization: `Bearer ${token}`
+		await serverApi.auth.logout.post(
+			{},
+			{
+				headers: {
+					Authorization: `Bearer ${token}`
+				}
 			}
-		} as any);
+		);
 	}
 
 	// 2. Hapus semua cookie auth di browser
