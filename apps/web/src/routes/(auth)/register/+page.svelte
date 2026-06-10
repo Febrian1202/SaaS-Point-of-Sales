@@ -166,11 +166,11 @@
 				<!-- Privacy Policy / Terms -->
 				<div class="flex items-start space-x-2 pt-2">
 					<Checkbox id="terms" required />
-					<Label for="terms" class="text-sm leading-tight font-normal text-secondary-foreground">
+					<label for="terms" class="text-sm leading-normal font-normal text-secondary-foreground cursor-pointer">
 						Saya menyetujui <a href="/terms" class="text-primary hover:underline"
 							>Syarat & Ketentuan</a
 						> serta Kebijakan Privasi Kios Sheza.
-					</Label>
+					</label>
 				</div>
 
 				<!-- Submit Button -->
