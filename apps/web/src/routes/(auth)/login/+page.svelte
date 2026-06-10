@@ -1,17 +1,51 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import type { SubmitFunction } from '@sveltejs/kit';
 	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
 	import { Store, Mail, Lock, LogIn, ArrowRight } from 'lucide-svelte';
 	import type { ActionData } from './$types';
+	import { loginSchema } from '$lib/schemas';
+	import { base } from '$app/paths';
 
 	let { form }: { form: ActionData } = $props();
+
+	// State form input reaktif Svelte 5
+	let email = $state('');
+	let password = $state('');
+
+	// State error reaktif untuk validasi Zod
+	let errors = $state<{ email?: string; password?: string }>({});
+
+	// Fungsi validasi real-time per kolom saat mengetik
+	function validateField(field: 'email' | 'password') {
+		const result = loginSchema.safeParse({ email, password });
+		if (result.success) {
+			errors[field] = undefined;
+		} else {
+			const fieldErrors = result.error.flatten().fieldErrors;
+			errors[field] = fieldErrors[field]?.[0];
+		}
+	}
+
+	// Submit handler yang terintegrasi dengan SvelteKit progressive enhancement
+	const handleEnhance: SubmitFunction = ({ cancel }) => {
+		const result = loginSchema.safeParse({ email, password });
+		if (!result.success) {
+			cancel(); // Batalkan pengiriman ke server
+			const fieldErrors = result.error.flatten().fieldErrors;
+			errors = {
+				email: fieldErrors.email?.[0],
+				password: fieldErrors.password?.[0]
+			};
+		}
+	};
 </script>
 
 <svelte:head>
-	<title>Masuk | Transa</title>
+	<title>Masuk | Kios Sheza</title>
 </svelte:head>
 
 <div class="pointer-events-none fixed inset-0 z-0 opacity-20">
@@ -22,7 +56,7 @@
 </div>
 
 <main
-	class="relative z-10 mx-auto flex min-h-screen w-full max-w-105 animate-in flex-col justify-center px-4 py-12 duration-700 fade-in slide-in-from-bottom-4"
+	class="relative z-10 mx-auto flex min-h-screen w-full max-w-115 animate-in flex-col justify-center px-4 py-12 duration-700 fade-in slide-in-from-bottom-4"
 >
 	<!-- Brand Identity -->
 	<div class="mb-10 flex flex-col items-center text-center">
@@ -46,13 +80,14 @@
 			>
 		</Card.Header>
 		<Card.Content>
-			<form method="POST" use:enhance class="space-y-5">
+			<form method="POST" use:enhance={handleEnhance} novalidate class="space-y-5">
 				<!-- Email -->
 				<div class="group space-y-2">
 					<Label
 						for="email"
-						class="font-mono text-[11px] tracking-wider text-secondary-foreground uppercase transition-colors group-focus-within:text-primary"
-						>Email</Label
+						class="font-mono text-[11px] tracking-wider uppercase transition-colors group-focus-within:text-primary {errors.email
+							? 'text-destructive'
+							: 'text-secondary-foreground'}">Email</Label
 					>
 					<div class="relative">
 						<Mail
@@ -62,11 +97,18 @@
 							id="email"
 							name="email"
 							type="email"
+							bind:value={email}
+							oninput={() => validateField('email')}
 							placeholder="email@bisnisanda.com"
 							required
-							class="h-11 border-border bg-background pl-10 transition-all focus:border-primary"
+							class="h-11 border-border bg-background pl-10 transition-all focus:border-primary {errors.email
+								? 'border-destructive focus:border-destructive'
+								: ''}"
 						/>
 					</div>
+					{#if errors.email}
+						<p class="mt-1 text-xs text-destructive">{errors.email}</p>
+					{/if}
 				</div>
 
 				<!-- Password -->
@@ -74,11 +116,12 @@
 					<div class="flex items-center justify-between">
 						<Label
 							for="password"
-							class="font-mono text-[11px] tracking-wider text-secondary-foreground uppercase transition-colors group-focus-within:text-primary"
-							>Password</Label
+							class="font-mono text-[11px] tracking-wider uppercase transition-colors group-focus-within:text-primary {errors.password
+								? 'text-destructive'
+								: 'text-secondary-foreground'}">Password</Label
 						>
 						<a
-							href="/forgot-password"
+							href="{base}/forgot-password"
 							class="font-mono text-[11px] font-bold tracking-wider text-primary uppercase hover:underline"
 							>Lupa?</a
 						>
@@ -91,11 +134,18 @@
 							id="password"
 							name="password"
 							type="password"
+							bind:value={password}
+							oninput={() => validateField('password')}
 							placeholder="••••••••"
 							required
-							class="h-11 border-border bg-background pl-10 transition-all focus:border-primary"
+							class="h-11 border-border bg-background pl-10 transition-all focus:border-primary {errors.password
+								? 'border-destructive focus:border-destructive'
+								: ''}"
 						/>
 					</div>
+					{#if errors.password}
+						<p class="mt-1 text-xs text-destructive">{errors.password}</p>
+					{/if}
 				</div>
 
 				<!-- Submit Button -->
@@ -116,7 +166,7 @@
 			<p class="text-sm text-secondary-foreground">
 				Belum punya akun toko?
 				<a
-					href="/register"
+					href="{base}/register"
 					class="ml-1 inline-flex items-center font-bold text-primary hover:underline"
 				>
 					Daftar Baru
