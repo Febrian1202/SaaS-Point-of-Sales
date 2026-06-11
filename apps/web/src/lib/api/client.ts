@@ -1,6 +1,6 @@
-import { edenTreaty } from "@elysiajs/eden";
-import type { App } from "../../../../api/src/index.ts";
-import { PUBLIC_API_URL } from "$env/static/public";
+import { edenTreaty } from '@elysiajs/eden';
+import type { App } from '../../../../api/src/index.ts';
+import { PUBLIC_API_URL } from '$env/static/public';
 
 // Helper untuk mengambil cookie di sisi client
 function getCookie(name: string) {

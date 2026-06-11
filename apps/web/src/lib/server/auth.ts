@@ -1,4 +1,4 @@
-import type { Cookies } from "@sveltejs/kit";
+import type { Cookies } from '@sveltejs/kit';
 import { dev } from '$app/environment';
 import { serverApi } from './api';
 

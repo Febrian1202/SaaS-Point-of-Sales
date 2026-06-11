@@ -5,7 +5,7 @@ import { serverApi } from '$lib/server/api';
 const performLogout = async (cookies: any) => {
 	// 1. Panggil logout di Elysia (opsional, untuk menghapus session di DB)
 	const token = cookies.get('accessToken');
-	
+
 	if (token) {
 		await serverApi.auth.logout.post(
 			{},

@@ -5,6 +5,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import { base } from '$app/paths';
+	import { enhance } from '$app/forms';
 
 	let { user } = $props();
 </script>
@@ -79,16 +80,19 @@
 					<DropdownMenu.Separator class="bg-border" />
 
 					<!-- Form Logout Native SvelteKit -->
-					<form id="logout-form" method="POST" action="{base}/logout" class="hidden"></form>
+					<form
+						id="logout-form"
+						method="POST"
+						action="{base}/logout"
+						class="hidden"
+						use:enhance
+					></form>
 					<DropdownMenu.Item
 						variant="destructive"
 						class="cursor-pointer"
-						onclick={(e) => {
-							e.preventDefault();
-							document
-								.getElementById('logout-form')
-								?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-							(document.getElementById('logout-form') as HTMLFormElement)?.submit();
+						onclick={() => {
+							const form = document.getElementById('logout-form') as HTMLFormElement;
+							form?.requestSubmit();
 						}}
 					>
 						<LogOut class="mr-2 size-4" />

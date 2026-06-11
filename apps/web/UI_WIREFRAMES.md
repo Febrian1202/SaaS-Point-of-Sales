@@ -6,38 +6,38 @@ Dokumen ini berisi wireframe berbasis teks dan diagram aliran data (**UI → API
 
 ## Ringkasan Endpoint API
 
-| Method | Endpoint | Guard | Deskripsi |
-|---|---|---|---|
-| `POST` | `/auth/register` | — | Daftar toko baru |
-| `POST` | `/auth/login` | — | Login admin/kasir |
-| `POST` | `/auth/refresh` | Cookie | Silent refresh token |
-| `POST` | `/auth/logout` | JWT | Logout |
-| `GET` | `/users/me` | JWT | Profil user aktif |
-| `PATCH` | `/users/me` | JWT | Update profil sendiri |
-| `GET` | `/users` | Admin | Daftar kasir |
-| `POST` | `/users` | Admin | Tambah kasir |
-| `PATCH` | `/users/:id` | Admin | Edit kasir |
-| `DELETE` | `/users/:id` | Admin | Nonaktifkan kasir |
-| `GET` | `/products` | JWT | Daftar produk (+ filter) |
-| `GET` | `/products/:id` | JWT | Detail produk |
-| `POST` | `/products` | Admin | Tambah produk |
-| `PATCH` | `/products/:id` | Admin | Edit produk |
-| `DELETE` | `/products/:id` | Admin | Soft-delete produk |
-| `GET` | `/categories` | JWT | Daftar kategori |
-| `POST` | `/categories` | Admin | Tambah kategori |
-| `PATCH` | `/categories/:id` | Admin | Edit kategori |
-| `DELETE` | `/categories/:id` | Admin | Hapus kategori |
-| `GET` | `/transactions` | JWT | Riwayat transaksi |
-| `GET` | `/transactions/:id` | JWT | Detail transaksi |
-| `POST` | `/transactions` | JWT | Buat transaksi (checkout) |
-| `POST` | `/transactions/:id/void` | Admin | Batalkan transaksi |
-| `GET` | `/brilink` | JWT | Riwayat transaksi Brilink |
-| `GET` | `/brilink/summary` | JWT | Ringkasan komisi Brilink |
-| `GET` | `/brilink/:id` | JWT | Detail transaksi Brilink |
-| `POST` | `/brilink` | JWT | Catat transaksi Brilink |
-| `POST` | `/brilink/:id/void` | Admin | Batalkan transaksi Brilink |
-| `GET` | `/reports/daily` | Admin | Laporan harian |
-| `GET` | `/reports/monthly` | Admin | Laporan bulanan |
+| Method   | Endpoint                 | Guard  | Deskripsi                  |
+| -------- | ------------------------ | ------ | -------------------------- |
+| `POST`   | `/auth/register`         | —      | Daftar toko baru           |
+| `POST`   | `/auth/login`            | —      | Login admin/kasir          |
+| `POST`   | `/auth/refresh`          | Cookie | Silent refresh token       |
+| `POST`   | `/auth/logout`           | JWT    | Logout                     |
+| `GET`    | `/users/me`              | JWT    | Profil user aktif          |
+| `PATCH`  | `/users/me`              | JWT    | Update profil sendiri      |
+| `GET`    | `/users`                 | Admin  | Daftar kasir               |
+| `POST`   | `/users`                 | Admin  | Tambah kasir               |
+| `PATCH`  | `/users/:id`             | Admin  | Edit kasir                 |
+| `DELETE` | `/users/:id`             | Admin  | Nonaktifkan kasir          |
+| `GET`    | `/products`              | JWT    | Daftar produk (+ filter)   |
+| `GET`    | `/products/:id`          | JWT    | Detail produk              |
+| `POST`   | `/products`              | Admin  | Tambah produk              |
+| `PATCH`  | `/products/:id`          | Admin  | Edit produk                |
+| `DELETE` | `/products/:id`          | Admin  | Soft-delete produk         |
+| `GET`    | `/categories`            | JWT    | Daftar kategori            |
+| `POST`   | `/categories`            | Admin  | Tambah kategori            |
+| `PATCH`  | `/categories/:id`        | Admin  | Edit kategori              |
+| `DELETE` | `/categories/:id`        | Admin  | Hapus kategori             |
+| `GET`    | `/transactions`          | JWT    | Riwayat transaksi          |
+| `GET`    | `/transactions/:id`      | JWT    | Detail transaksi           |
+| `POST`   | `/transactions`          | JWT    | Buat transaksi (checkout)  |
+| `POST`   | `/transactions/:id/void` | Admin  | Batalkan transaksi         |
+| `GET`    | `/brilink`               | JWT    | Riwayat transaksi Brilink  |
+| `GET`    | `/brilink/summary`       | JWT    | Ringkasan komisi Brilink   |
+| `GET`    | `/brilink/:id`           | JWT    | Detail transaksi Brilink   |
+| `POST`   | `/brilink`               | JWT    | Catat transaksi Brilink    |
+| `POST`   | `/brilink/:id/void`      | Admin  | Batalkan transaksi Brilink |
+| `GET`    | `/reports/daily`         | Admin  | Laporan harian             |
+| `GET`    | `/reports/monthly`       | Admin  | Laporan bulanan            |
 
 ---
 
@@ -149,6 +149,7 @@ UI → Retry request awal dengan token baru
 ```
 
 **Flow:**
+
 ```
 UI Mount
   ├─ GET /reports/daily?date=2026-05-31   → kartu ringkasan
@@ -177,6 +178,7 @@ UI Mount
 ```
 
 **Flow — Muat Halaman:**
+
 ```
 UI Mount
   │
@@ -190,6 +192,7 @@ UI → Render tabel produk
 ```
 
 **Flow — Tambah Produk (Modal Form):**
+
 ```
 Admin klik [+ Tambah Baru]
   │
@@ -208,6 +211,7 @@ UI → Tutup modal, refresh tabel
 ```
 
 **Flow — Edit Produk:**
+
 ```
 Admin klik ✏️
   │
@@ -223,6 +227,7 @@ Response 200: { data: Product }  →  UI update baris tabel
 ```
 
 **Flow — Hapus Produk:**
+
 ```
 Admin klik 🗑️ → konfirmasi dialog
   │
@@ -251,6 +256,7 @@ UI → Hapus baris dari tabel (soft-delete, isActive = false)
 ```
 
 **Flow:**
+
 ```
 Mount  →  GET /users             [Admin only]
 Tambah →  POST /users            Body: { name, email, password }
@@ -279,6 +285,7 @@ Hapus  →  DELETE /users/:id      (soft-delete: isActive = false)
 ```
 
 **Flow:**
+
 ```
 Mount  →  GET /transactions?page=1&date=2026-05-31
 Detail →  GET /transactions/:id
@@ -308,6 +315,7 @@ Void   →  POST /transactions/:id/void   [Admin only]
 ```
 
 **Flow:**
+
 ```
 Laporan Harian   →  GET /reports/daily?date=2026-05-31    [Admin only]
 Laporan Bulanan  →  GET /reports/monthly?month=2026-05    [Admin only]
@@ -343,6 +351,7 @@ Laporan Bulanan  →  GET /reports/monthly?month=2026-05    [Admin only]
 ```
 
 **Flow — Muat Produk:**
+
 ```
 UI Mount
   │
@@ -354,6 +363,7 @@ UI Mount
 ```
 
 **Flow — Checkout:**
+
 ```
 Kasir klik [BAYAR SEKARANG]
   │
@@ -415,6 +425,7 @@ UI → Cetak struk, kosongkan keranjang
 ```
 
 **Flow:**
+
 ```
 Mount  →  GET /transactions?date=TODAY&limit=20
 Detail →  GET /transactions/:id   → tampilkan modal detail struk
@@ -449,6 +460,7 @@ Detail →  GET /transactions/:id   → tampilkan modal detail struk
 ```
 
 **Flow — Catat Brilink:**
+
 ```
 Kasir isi form → klik [SIMPAN TRANSAKSI BRILINK]
   │
@@ -467,6 +479,7 @@ UI → Tampilkan nomor referensi, reset form
 ```
 
 **Flow — Ringkasan Brilink:**
+
 ```
 GET /brilink/summary?date=2026-05-31
   → { totalVolume, totalCommission, breakdown: [{ type, count, commission }] }
@@ -498,15 +511,15 @@ GET /brilink/summary?date=2026-05-31
 
 ## 🛡️ Matriks Akses per Layar
 
-| Layar / Fitur | Kasir | Admin |
-|---|:---:|:---:|
-| Login / Register | ✅ | ✅ |
-| POS Retail (buat transaksi) | ✅ | ✅ |
-| Lihat Riwayat Transaksi | ✅ | ✅ |
-| Catat & Lihat Brilink | ✅ | ✅ |
-| Void Transaksi / Brilink | ❌ | ✅ |
-| Manajemen Produk (CRUD) | ❌ | ✅ |
-| Manajemen Kategori (CRUD) | ❌ | ✅ |
-| Manajemen Staf (CRUD) | ❌ | ✅ |
-| Laporan Harian & Bulanan | ❌ | ✅ |
-| Update profil sendiri | ✅ | ✅ |
+| Layar / Fitur               | Kasir | Admin |
+| --------------------------- | :---: | :---: |
+| Login / Register            |  ✅   |  ✅   |
+| POS Retail (buat transaksi) |  ✅   |  ✅   |
+| Lihat Riwayat Transaksi     |  ✅   |  ✅   |
+| Catat & Lihat Brilink       |  ✅   |  ✅   |
+| Void Transaksi / Brilink    |  ❌   |  ✅   |
+| Manajemen Produk (CRUD)     |  ❌   |  ✅   |
+| Manajemen Kategori (CRUD)   |  ❌   |  ✅   |
+| Manajemen Staf (CRUD)       |  ❌   |  ✅   |
+| Laporan Harian & Bulanan    |  ❌   |  ✅   |
+| Update profil sendiri       |  ✅   |  ✅   |

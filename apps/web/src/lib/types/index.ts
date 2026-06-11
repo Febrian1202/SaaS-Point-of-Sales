@@ -3,13 +3,13 @@
  */
 
 export interface User {
-    id: string;
-    email: string;
-    name: string;
+	id: string;
+	email: string;
+	name: string;
 }
 
 export interface ApiResponse<T> {
-    data?: T;
-    error?: string;
-    status: number;
+	data?: T;
+	error?: string;
+	status: number;
 }
