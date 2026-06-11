@@ -193,7 +193,7 @@
 		<!-- Recent Transactions (Using Shadcn Table) -->
 		<Card.Root class="gap-0 overflow-hidden border-border bg-card pt-0 pb-0">
 			<Card.Header
-				class="flex flex-row items-center justify-between border-b border-border bg-background/30 p-4"
+				class="flex flex-row items-center justify-between border-b border-border bg-background/30 p-4 [.border-b]:pb-4"
 			>
 				<Card.Title class="font-tight text-lg text-foreground">Transaksi Terbaru</Card.Title>
 				<Button
@@ -252,7 +252,7 @@
 		<!-- Stock Warnings (Graphite Surfaces) -->
 		<Card.Root class="gap-0 overflow-hidden border-border bg-card pt-0">
 			<Card.Header
-				class="flex flex-row items-center justify-between border-b border-border bg-background/30 p-4"
+				class="flex flex-row items-center justify-between border-b border-border bg-background/30 p-4 [.border-b]:pb-4"
 			>
 				<Card.Title class="font-tight text-lg text-foreground">Stok Menipis</Card.Title>
 				<Badge

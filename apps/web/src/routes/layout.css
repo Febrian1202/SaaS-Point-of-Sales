@@ -1,103 +1,135 @@
 @import 'tailwindcss';
-@import "tw-animate-css";
-@import "shadcn-svelte/tailwind.css";
-@import "@fontsource-variable/inter";
+@import 'tw-animate-css';
+@import 'shadcn-svelte/tailwind.css';
+@import '@fontsource-variable/inter';
 
 @custom-variant dark (&:is(.dark *));
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 
 :root {
-  /* Page foundation */
-  --background: #0E1013;
-  /* Headlines and core text */
-  --foreground: #ECEDEE;
+	/* Page foundation */
+	--background: #0e1013;
+	/* Headlines and core text */
+	--foreground: #ecedee;
 
-  /* Card surfaces */
-  --card: #17191C;
-  --card-foreground: #ECEDEE;
-  
-  --popover: #17191C;
-  --popover-foreground: #ECEDEE;
+	/* Card surfaces */
+	--card: #17191c;
+	--card-foreground: #ecedee;
 
-  /* Interaction driver (Lime Signal) */
-  --primary: #B4FF39;
-  /* Text on interaction driver */
-  --primary-foreground: #0E1013;
+	--popover: #17191c;
+	--popover-foreground: #ecedee;
 
-  /* Secondary surface */
-  --secondary: #17191C;
-  /* Borders, captions, and metadata */
-  --secondary-foreground: #9CA3AF;
+	/* Interaction driver (Lime Signal) */
+	--primary: #b4ff39;
+	/* Text on interaction driver */
+	--primary-foreground: #0e1013;
 
-  --muted: #17191C;
-  --muted-foreground: #9CA3AF;
+	/* Secondary surface */
+	--secondary: #17191c;
+	/* Borders, captions, and metadata */
+	--secondary-foreground: #9ca3af;
 
-  --accent: #17191C;
-  --accent-foreground: #B4FF39;
+	--muted: #17191c;
+	--muted-foreground: #9ca3af;
 
-  --destructive: #EF4444;
-  --destructive-foreground: #ffffff;
+	--accent: #17191c;
+	--accent-foreground: #b4ff39;
 
-  /* Using a tuned grey for borders to keep it subtle */
-  --border: #272A2E;
-  --input: #272A2E;
-  --ring: #B4FF39;
+	--destructive: #ef4444;
+	--destructive-foreground: #ffffff;
 
-  /* Border radius: md is default */
-  --radius: 0.625rem;
+	/* Using a tuned grey for borders to keep it subtle */
+	--border: #272a2e;
+	--input: #272a2e;
+	--ring: #b4ff39;
+
+	/* Border radius: md is default */
+	--radius: 0.625rem;
 }
 
 @theme inline {
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-tight: 'Inter Tight', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+	--font-sans: 'Inter', system-ui, sans-serif;
+	--font-tight: 'Inter Tight', sans-serif;
+	--font-mono: 'JetBrains Mono', monospace;
 
-  /* Graphite semantic tokens */
-  --color-neutral: #0E1013;
-  --color-surface: #17191C;
-  --color-tertiary: #B4FF39;
-  
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+	/* Graphite semantic tokens */
+	--color-neutral: #0e1013;
+	--color-surface: #17191c;
+	--color-tertiary: #b4ff39;
 
-  /* Radius mapping from design.md */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+
+	/* Radius mapping from design.md */
+	--radius-sm: 6px;
+	--radius-md: 10px;
+	--radius-lg: 14px;
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
+	* {
+		@apply border-border outline-ring/50;
+	}
 
-  body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-size: 0.95rem;
-    line-height: 1.55;
-  }
+	body {
+		@apply bg-background font-sans text-foreground antialiased;
+		font-size: 0.95rem;
+		line-height: 1.55;
+	}
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-tight font-semibold tracking-tight;
-  }
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		@apply font-tight font-semibold tracking-tight;
+	}
 
-  h1 { font-size: 2.25rem; }
+	h1 {
+		font-size: 2.25rem;
+	}
+
+	/* Custom Scrollbar Styles */
+	::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
+	}
+
+	::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	::-webkit-scrollbar-thumb {
+		background: var(--border);
+		border-radius: 9999px;
+	}
+
+	::-webkit-scrollbar-thumb:hover {
+		background: var(--secondary-foreground);
+	}
+
+	/* Firefox standard scrollbars */
+	* {
+		scrollbar-color: var(--border) transparent;
+		scrollbar-width: thin;
+	}
 }

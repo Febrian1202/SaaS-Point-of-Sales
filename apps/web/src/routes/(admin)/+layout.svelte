@@ -1,6 +1,6 @@
 <script lang="ts">
-	import SideBar from '$lib/components/layout/SideBar.svelte';
-	import TopBar from '$lib/components/layout/TopBar.svelte';
+	import SideBar from '$lib/components/layout/admin/SideBar.svelte';
+	import TopBar from '$lib/components/layout/admin/TopBar.svelte';
 
 	let { data, children } = $props();
 </script>

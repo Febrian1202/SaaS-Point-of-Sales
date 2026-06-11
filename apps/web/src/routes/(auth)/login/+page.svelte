@@ -48,13 +48,6 @@
 	<title>Masuk | Kios Sheza</title>
 </svelte:head>
 
-<div class="pointer-events-none fixed inset-0 z-0 opacity-20">
-	<div
-		class="absolute top-0 left-0 h-full w-full"
-		style="background-image: radial-gradient(circle at 2px 2px, var(--border) 1px, transparent 0); background-size: 32px 32px;"
-	></div>
-</div>
-
 <main
 	class="relative z-10 mx-auto flex min-h-screen w-full max-w-115 animate-in flex-col justify-center px-4 py-12 duration-700 fade-in slide-in-from-bottom-4"
 >
@@ -193,10 +186,3 @@
 		>
 	</div>
 {/snippet}
-
-<style>
-	:global(body) {
-		background-color: var(--background);
-		color: var(--foreground);
-	}
-</style>

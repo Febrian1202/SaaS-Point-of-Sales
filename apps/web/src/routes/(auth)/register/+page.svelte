@@ -79,13 +79,6 @@
 	<title>Registrasi Toko Baru | Kios Sheza</title>
 </svelte:head>
 
-<div class="pointer-events-none fixed inset-0 z-0 opacity-20">
-	<div
-		class="absolute top-0 left-0 h-full w-full"
-		style="background-image: radial-gradient(circle at 2px 2px, var(--border) 1px, transparent 0); background-size: 32px 32px;"
-	></div>
-</div>
-
 <main
 	class="relative z-10 mx-auto flex min-h-screen w-full max-w-140 animate-in flex-col justify-center px-4 py-12 duration-700 fade-in slide-in-from-bottom-4"
 >
@@ -340,18 +333,3 @@
 		>
 	</div>
 {/snippet}
-
-<!-- Decorative Elements -->
-<div
-	class="pointer-events-none fixed -right-24 -bottom-24 hidden size-96 rounded-full bg-primary/5 blur-[100px] lg:block"
-></div>
-<div
-	class="pointer-events-none fixed -top-24 -left-24 hidden size-80 rounded-full bg-primary/10 blur-[120px] lg:block"
-></div>
-
-<style>
-	:global(body) {
-		background-color: var(--background);
-		color: var(--foreground);
-	}
-</style>
