@@ -84,6 +84,14 @@ describe("Product Service Unit Testing", () => {
       // Drizzle filters are complex objects, so we check if the where clause exists
       expect(callArgs.where).toBeDefined();
     });
+
+    it("should apply stockLte filter and sort by stockQty asc", async () => {
+      await getProduct(mockTenantId, undefined, undefined, undefined, 10);
+
+      const callArgs = (db.query.products.findMany as any).mock.calls[0][0];
+      expect(callArgs.where).toBeDefined();
+      expect(callArgs.orderBy).toBeDefined();
+    });
   });
 
   describe("getProductDetail", () => {

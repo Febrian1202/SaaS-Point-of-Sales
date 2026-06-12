@@ -14,6 +14,7 @@ const validSummary = {
   totalRevenue: "1200",
   grossProfit: "400",
   trxCount: 10,
+  itemsSold: 10,
   generatedAt: new Date(),
 };
 
@@ -25,6 +26,7 @@ describe("Report Routes", () => {
     mock.module("./service", () => ({
       getDailySummary: mock(),
       getMonthlySummary: mock(),
+      getDailyRangeSummary: mock(),
     }));
 
     const mockAuth = new Elysia({ name: "auth" }).derive(() => ({
@@ -70,6 +72,27 @@ describe("Report Routes", () => {
       trxCount: 10,
     });
     const response = await app.handle(new Request("http://localhost/reports/monthly?month=2024-05", { headers }));
+    expect(response.status).toBe(200);
+  });
+
+  it("GET /reports/daily-range should return 200", async () => {
+    service.getDailyRangeSummary.mockResolvedValue([
+      {
+        date: "2024-05-30",
+        retailRevenue: 1000,
+        brilinkCommission: 200,
+        trxCount: 10,
+      },
+      {
+        date: "2024-05-31",
+        retailRevenue: 1200,
+        brilinkCommission: 250,
+        trxCount: 12,
+      },
+    ]);
+    const response = await app.handle(
+      new Request("http://localhost/reports/daily-range?from=2024-05-30&to=2024-05-31", { headers })
+    );
     expect(response.status).toBe(200);
   });
 });

@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike } from "drizzle-orm";
+import { and, desc, eq, ilike, lte, asc } from "drizzle-orm";
 import { slugify } from "@helper";
 import { products } from "@/db/schema";
 import { db } from "@/db";
@@ -11,6 +11,7 @@ export const getProduct = async (
   search?: string,
   barcode?: string,
   categoryId?: string,
+  stockLte?: number,
 ) => {
   const filters = [eq(products.tenantId, tenantId)];
 
@@ -19,6 +20,8 @@ export const getProduct = async (
   if (barcode) filters.push(eq(products.barcode, barcode));
 
   if (categoryId) filters.push(eq(products.categoryId, categoryId));
+
+  if (stockLte !== undefined) filters.push(lte(products.stockQty, stockLte));
 
   const result = await db.query.products.findMany({
     columns: {
@@ -32,7 +35,7 @@ export const getProduct = async (
       updatedAt: true,
     },
     where: and(...filters, eq(products.isActive, true)),
-    orderBy: desc(products.createdAt),
+    orderBy: stockLte !== undefined ? asc(products.stockQty) : desc(products.createdAt),
     with: {
       category: {
         columns: {
