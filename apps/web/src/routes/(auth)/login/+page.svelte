@@ -5,7 +5,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
-	import { Store, Mail, Lock, LogIn, ArrowRight } from 'lucide-svelte';
+	import { Store, Mail, Lock, LogIn, ArrowRight, Eye, EyeClosed } from 'lucide-svelte';
 	import type { ActionData } from './$types';
 	import { loginSchema } from '$lib/schemas';
 	import { base } from '$app/paths';
@@ -15,6 +15,9 @@
 	// State form input reaktif Svelte 5
 	let email = $state('');
 	let password = $state('');
+
+	// State visible pasword
+	let isVisiblePassword = $state(false);
 
 	// State error reaktif untuk validasi Zod
 	let errors = $state<{ email?: string; password?: string }>({});
@@ -126,7 +129,7 @@
 						<Input
 							id="password"
 							name="password"
-							type="password"
+							type={isVisiblePassword ? 'text' : 'password'}
 							bind:value={password}
 							oninput={() => validateField('password')}
 							placeholder="••••••••"
@@ -135,6 +138,17 @@
 								? 'border-destructive focus:border-destructive'
 								: ''}"
 						/>
+						<button
+							type="button"
+							class="absolute top-1/2 right-5 size-5 -translate-y-1/2 text-secondary-foreground"
+							onclick={() => (isVisiblePassword = !isVisiblePassword)}
+						>
+							{#if isVisiblePassword}
+								<Eye />
+							{:else}
+								<EyeClosed />
+							{/if}
+						</button>
 					</div>
 					{#if errors.password}
 						<p class="mt-1 text-xs text-destructive">{errors.password}</p>

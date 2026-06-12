@@ -65,7 +65,8 @@ function checkRoutingGuards(event: RequestEvent) {
 
 	// Halaman Root '/' selalu diarahkan ke dashboard jika login, atau login page jika belum
 	if (path === '/') {
-		if (user) throw redirect(303, '/dashboard');
+		if (user?.role === 'admin') throw redirect(303, '/admin');
+		if (user?.role === 'cashier') throw redirect(303, '/dashboard');
 		throw redirect(303, '/login');
 	}
 
@@ -79,6 +80,7 @@ function checkRoutingGuards(event: RequestEvent) {
 
 	// Mencegah user yang sudah login mengakses halaman auth
 	if (isAuthRoute && user) {
-		throw redirect(303, '/dashboard');
+		if (user?.role === 'admin') throw redirect(303, '/admin');
+		if (user?.role === 'cashier') throw redirect(303, '/dashboard');
 	}
 }

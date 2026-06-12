@@ -35,6 +35,10 @@ export const actions: Actions = {
 			setAccessToken(cookies, token);
 		}
 
-		throw redirect(303, '/dashboard');
+		if (result.data && 'data' in result.data) {
+			const role = result.data.data.user.role;
+			if (role === 'admin') throw redirect(303, '/admin');
+			if (role === 'cashier') throw redirect(303, '/dashboard');
+		}
 	}
 };

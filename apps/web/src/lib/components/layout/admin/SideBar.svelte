@@ -22,24 +22,24 @@
 
 	// Definisikan daftar menu item dan role yang diizinkan untuk melihatnya
 	const menuItems = [
-		{ name: 'Dashboard', path: '/admin', icon: LayoutDashboard, roles: ['admin'] },
-		{ name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['cashier'] },
-		{ name: 'Products', path: '/dashboard/products', icon: Package, roles: ['admin', 'cashier'] },
+		{ name: 'Dasbor Admin', path: '/admin/dashboard', icon: LayoutDashboard, roles: ['admin'] },
+		{ name: 'Dasbor', path: '/dashboard', icon: LayoutDashboard, roles: ['cashier'] },
+		{ name: 'Produk', path: '/dashboard/products', icon: Package, roles: ['admin', 'cashier'] },
 		{
-			name: 'Categories',
+			name: 'Kategori',
 			path: '/dashboard/categories',
 			icon: Layers,
 			roles: ['admin', 'cashier']
 		},
 		{
-			name: 'Transactions',
+			name: 'Transaksi',
 			path: '/dashboard/transactions',
 			icon: Receipt,
 			roles: ['admin', 'cashier']
 		},
 		{ name: 'Brilink', path: '/dashboard/brilink', icon: Landmark, roles: ['admin', 'cashier'] },
 		{ name: 'Staff', path: '/dashboard/staff', icon: Users, roles: ['admin'] },
-		{ name: 'Reports', path: '/dashboard/reports', icon: BarChart3, roles: ['admin'] }
+		{ name: 'Laporan', path: '/dashboard/reports', icon: BarChart3, roles: ['admin'] }
 	];
 
 	// Filter menu secara dinamis menggunakan Svelte 5 derived state
