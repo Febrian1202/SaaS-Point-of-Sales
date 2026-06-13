@@ -1,11 +1,16 @@
 import { describe, it, expect, mock, beforeEach } from "bun:test";
-import { getDailySummary, getMonthlySummary } from "./service";
+import { getDailySummary, getMonthlySummary, getDailyRangeSummary } from "./service";
 import { db } from "@db";
 import { ConflictError } from "@/plugins";
+import { InvalidDateRangeError } from "./error";
 
 // Mock Database
 const mockWhere = mock();
-const mockFrom = mock().mockReturnValue({ where: mockWhere });
+const mockInnerJoin = mock().mockReturnValue({ where: mockWhere });
+const mockFrom = mock().mockImplementation(() => ({
+  where: mockWhere,
+  innerJoin: mockInnerJoin,
+}));
 const mockSelect = mock().mockReturnValue({ from: mockFrom });
 
 const mockReturning = mock();
@@ -17,6 +22,7 @@ mock.module("@db", () => ({
     query: {
       dailySummaries: {
         findFirst: mock(),
+        findMany: mock(),
       },
     },
     select: mockSelect,
@@ -32,12 +38,14 @@ describe("Reports Service - getDailySummary", () => {
   beforeEach(() => {
     mock.restore();
     mockWhere.mockClear();
+    mockInnerJoin.mockClear();
     mockFrom.mockClear();
     mockSelect.mockClear();
     mockReturning.mockClear();
     mockValues.mockClear();
     mockInsert.mockClear();
     (db.query.dailySummaries.findFirst as any).mockClear();
+    (db.query.dailySummaries.findMany as any).mockClear();
   });
 
   it("Happy Path: Should return cached summary if exists", async () => {
@@ -51,6 +59,7 @@ describe("Reports Service - getDailySummary", () => {
       brilinkCommission: "5000",
       grossProfit: "15000",
       trxCount: 10,
+      itemsSold: null,
       generatedAt: new Date()
     };
     (db.query.dailySummaries.findFirst as any).mockResolvedValue(cachedData);
@@ -64,9 +73,10 @@ describe("Reports Service - getDailySummary", () => {
   it("Happy Path: Should calculate and save new summary if cache miss", async () => {
     (db.query.dailySummaries.findFirst as any).mockResolvedValue(null);
     
-    // Mock Retail & Brilink Result
+    // Mock Retail, Items Sold, & Brilink Result
     mockWhere
       .mockResolvedValueOnce([{ totalRevenue: "100000", totalTrx: 10 }])
+      .mockResolvedValueOnce([{ totalItemsSold: "15" }])
       .mockResolvedValueOnce([{ totalCommission: "5000", totalTrx: 5 }]);
 
     const mockNewSummary = { 
@@ -79,6 +89,7 @@ describe("Reports Service - getDailySummary", () => {
       totalRevenue: "105000", 
       grossProfit: "25000",
       trxCount: 15,
+      itemsSold: 15,
       generatedAt: new Date()
     };
     mockReturning.mockResolvedValue([mockNewSummary]);
@@ -199,5 +210,76 @@ describe("Reports Service - getMonthlySummary", () => {
 
     expect(result.retailRevenue).toBe(999999999.99);
     expect(result.retailCogs).toBe(0.01);
+  });
+});
+
+describe("Reports Service - getDailyRangeSummary", () => {
+  const mockTenantId = "77f9999a-4713-431f-993d-d42173167b73";
+
+  it("Happy Path: Should return daily range reports from cache if they exist", async () => {
+    const cachedData = [
+      {
+        id: "1",
+        tenantId: mockTenantId,
+        summaryDate: "2026-06-06",
+        retailRevenue: "1800000.00",
+        brilinkCommission: "90000.00",
+        totalRevenue: "1890000.00",
+        grossProfit: "1890000.00",
+        trxCount: 28,
+        itemsSold: 50,
+        generatedAt: new Date()
+      },
+      {
+        id: "2",
+        tenantId: mockTenantId,
+        summaryDate: "2026-06-07",
+        retailRevenue: "2100000.00",
+        brilinkCommission: "110000.00",
+        totalRevenue: "2210000.00",
+        grossProfit: "2210000.00",
+        trxCount: 31,
+        itemsSold: 60,
+        generatedAt: new Date()
+      }
+    ];
+
+    (db.query.dailySummaries.findFirst as any).mockClear();
+    (db.query.dailySummaries.findMany as any).mockResolvedValue(cachedData);
+
+    const result = await getDailyRangeSummary(mockTenantId, { from: "2026-06-06", to: "2026-06-07" });
+
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual({
+      date: "2026-06-06",
+      retailRevenue: 1800000,
+      brilinkCommission: 90000,
+      trxCount: 28,
+      itemsSold: 50,
+      totalRevenue: 1890000,
+      grossProfit: 1890000,
+    });
+    expect(result[1]).toEqual({
+      date: "2026-06-07",
+      retailRevenue: 2100000,
+      brilinkCommission: 110000,
+      trxCount: 31,
+      itemsSold: 60,
+      totalRevenue: 2210000,
+      grossProfit: 2210000,
+    });
+    expect(db.query.dailySummaries.findFirst).not.toHaveBeenCalled();
+  });
+
+  it("Edge Case: Should throw InvalidDateRangeError if 'to' is before 'from'", async () => {
+    expect(
+      getDailyRangeSummary(mockTenantId, { from: "2026-06-07", to: "2026-06-06" })
+    ).rejects.toThrow(InvalidDateRangeError);
+  });
+
+  it("Edge Case: Should throw InvalidDateRangeError if range is > 31 days", async () => {
+    expect(
+      getDailyRangeSummary(mockTenantId, { from: "2026-06-01", to: "2026-07-03" })
+    ).rejects.toThrow(InvalidDateRangeError);
   });
 });

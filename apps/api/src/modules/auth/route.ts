@@ -56,12 +56,16 @@ export const authRoutes = new Elysia({
 
       const accessToken = await accessJwt.sign({
         sub: user.id,
+        name: user.name,
+        email: user.email,
         tenantId: user.tenantId,
         role: user.role,
       });
 
       const refreshJwtToken = await refreshJwt.sign({
         sub: user.id,
+        name: user.name,
+        email: user.email,
         tenantId: user.tenantId,
         role: user.role,
       });

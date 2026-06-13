@@ -3,3 +3,9 @@ export class SummaryNotFoundError extends Error {
     super(message);
   }
 }
+
+export class InvalidDateRangeError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}

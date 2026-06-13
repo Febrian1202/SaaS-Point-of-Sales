@@ -58,7 +58,10 @@ describe('Register Action', () => {
 		const mockResponse = {
 			data: {
 				success: true,
-				data: { accessToken: 'mock-access-token' }
+				data: {
+					accessToken: 'mock-access-token',
+					user: { role: 'cashier' }
+				}
 			},
 			error: null,
 			response: {

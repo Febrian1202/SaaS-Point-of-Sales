@@ -19,6 +19,9 @@ export const schemaQueryProduct = t.Object({
   category_id: t.Optional(
     t.String({ error: validationDetail("Category ID must be a string") }),
   ),
+  stock_lte: t.Optional(
+    t.Numeric({ error: validationDetail("Stock limit must be a number") }),
+  ),
 });
 
 export const schemaParamsId = t.Object({

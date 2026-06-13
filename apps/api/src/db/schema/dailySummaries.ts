@@ -24,6 +24,7 @@ export const dailySummaries = pgTable(
     totalRevenue: decimal("total_revenue"),
     grossProfit: decimal("gross_profit"),
     trxCount: integer("trx_count"),
+    itemsSold: integer("items_sold"),
     generatedAt: timestamp("generated_at").defaultNow(),
   },
   (table) => [

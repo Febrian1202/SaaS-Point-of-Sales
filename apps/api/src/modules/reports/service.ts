@@ -1,8 +1,9 @@
 import { and, count, eq, gte, lte, sum } from "drizzle-orm";
-import type { ArgsQueryDailySummary, ArgsQueryMonthlySummary } from "./schema";
+import type { ArgsQueryDailySummary, ArgsQueryMonthlySummary, ArgsQueryDailyRange } from "./schema";
 import { db } from "@db";
-import { brilinkTransactions, dailySummaries, transactions } from "@/db/schema";
+import { brilinkTransactions, dailySummaries, transactionItems, transactions } from "@/db/schema";
 import { ConflictError } from "@/plugins";
+import { InvalidDateRangeError } from "./error";
 
 export const getDailySummary = async (
   tenantId: string,
@@ -40,6 +41,19 @@ export const getDailySummary = async (
       ),
     );
 
+  // Barang terjual harian
+  const itemsSoldResult = await db.select({ totalItemsSold: sum(transactionItems.qty) })
+    .from(transactionItems)
+    .innerJoin(transactions, eq(transactionItems.transactionId, transactions.id))
+    .where(
+      and(
+        eq(transactions.tenantId, tenantId),
+        eq(transactions.status, "success"),
+        gte(transactions.createdAt, startDate),
+        lte(transactions.createdAt, endDate),
+      )
+    );
+
   // Transaksi Brilink
   const brilinkResult = await db
     .select({
@@ -63,6 +77,8 @@ export const getDailySummary = async (
   const brilinkCommission = Number(brilinkResult[0]?.totalCommission || 0);
   const brilinkTrxCount = Number(brilinkResult[0]?.totalTrx || 0);
 
+  const itemsSold = Number(itemsSoldResult[0]?.totalItemsSold || 0);
+
   // Kalkulasi total
   const totalRevenue = retailRevenue + brilinkCommission;
   const trxCount = retailTrxCount + brilinkTrxCount;
@@ -83,6 +99,7 @@ export const getDailySummary = async (
         totalRevenue: totalRevenue.toString(),
         grossProfit: grossProfit.toString(),
         trxCount: trxCount,
+        itemsSold: itemsSold,
       })
       .returning();
 
@@ -140,4 +157,79 @@ export const getMonthlySummary = async (
     grossProfit: Number(result[0]?.grandTotalProfit || 0),
     trxCount: Number(result[0]?.totalTrxCount || 0),
   };
+};
+
+export const getDailyRangeSummary = async (
+  tenantId: string,
+  query: ArgsQueryDailyRange,
+) => {
+  const { from, to } = query;
+
+  const [startY, startM, startD] = from.split("-").map(Number);
+  const [endY, endM, endD] = to.split("-").map(Number);
+
+  if (
+    startY === undefined ||
+    startM === undefined ||
+    startD === undefined ||
+    endY === undefined ||
+    endM === undefined ||
+    endD === undefined
+  ) {
+    throw new InvalidDateRangeError("Invalid date format");
+  }
+
+  const startDate = new Date(Date.UTC(startY, startM - 1, startD));
+  const endDate = new Date(Date.UTC(endY, endM - 1, endD));
+
+  if (endDate < startDate) {
+    throw new InvalidDateRangeError("'to' date cannot be before 'from' date");
+  }
+
+  const diffTime = endDate.getTime() - startDate.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  if (diffDays > 31) {
+    throw new InvalidDateRangeError("Date range cannot exceed 31 days");
+  }
+
+  const existingSummaries = await db.query.dailySummaries.findMany({
+    where: and(
+      eq(dailySummaries.tenantId, tenantId),
+      gte(dailySummaries.summaryDate, from),
+      lte(dailySummaries.summaryDate, to),
+    ),
+  });
+
+  const cachedMap = new Map(
+    existingSummaries.map((s) => [s.summaryDate, s])
+  );
+
+  const dates: string[] = [];
+  const currentDate = new Date(startDate);
+  while (currentDate <= endDate) {
+    dates.push(currentDate.toISOString().substring(0, 10));
+    currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+  }
+
+  const results = await Promise.all(
+    dates.map(async (dateStr) => {
+      const cache = cachedMap.get(dateStr);
+      if (cache) {
+        return cache;
+      }
+      return await getDailySummary(tenantId, { date: dateStr });
+    })
+  );
+
+  return results
+    .filter((r): r is NonNullable<typeof r> => r !== undefined && r !== null)
+    .map((r) => ({
+      date: r.summaryDate,
+      retailRevenue: Number(r.retailRevenue || 0),
+      brilinkCommission: Number(r.brilinkCommission || 0),
+      trxCount: Number(r.trxCount || 0),
+      itemsSold: Number(r.itemsSold || 0),
+      totalRevenue: Number(r.totalRevenue || 0),
+      grossProfit: Number(r.grossProfit || 0),
+    }));
 };

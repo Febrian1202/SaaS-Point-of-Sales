@@ -35,7 +35,7 @@ describe("Product Routes", () => {
       rateLimit: () => new Elysia(),
     }));
 
-    const mockAuth = new Elysia({ name: "auth" }).derive(() => ({
+    const mockAuth = new Elysia({ name: "auth" }).derive({ as: "global" }, () => ({
       userId: mockUserId,
       tenantId: mockTenantId,
       role: "admin",
@@ -54,6 +54,7 @@ describe("Product Routes", () => {
 
   beforeEach(() => {
     mock.restore();
+    service.getProduct.mockClear();
   });
 
   const headers = { 
@@ -68,6 +69,24 @@ describe("Product Routes", () => {
     }]);
     const response = await app.handle(new Request("http://localhost/products", { headers }));
     expect(response.status).toBe(200);
+  });
+
+  it("GET /products with stock_lte should return 200", async () => {
+    service.getProduct.mockResolvedValue([{
+      ...validProduct,
+      category: { name: "Food" }
+    }]);
+    const response = await app.handle(
+      new Request("http://localhost/products?stock_lte=10", { headers })
+    );
+    expect(response.status).toBe(200);
+    expect(service.getProduct).toHaveBeenCalledWith(
+      mockTenantId,
+      undefined,
+      undefined,
+      undefined,
+      10
+    );
   });
 
   it("GET /products/:id should return 200", async () => {

@@ -1,5 +1,7 @@
 import { redirect, type Handle, type RequestEvent } from '@sveltejs/kit';
-import { fetchUserProfile, refreshSession, deleteAuthCookies } from '$lib/server/auth';
+import { refreshSession, deleteAuthCookies } from '$lib/server/auth';
+import { env } from '$env/dynamic/private';
+import { errors, jwtVerify } from 'jose';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;
@@ -32,21 +34,33 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	// Alur 2: Jika ada accessToken, coba ambil profil user
 	if (tokenToUse && tokenToUse !== 'undefined' && tokenToUse !== 'null') {
-		let result = await fetchUserProfile(tokenToUse);
+		const secret = new TextEncoder().encode(env.JWT_ACCESS_SECRET);
 
-		// Jika token expired (401), lakukan refresh session dan coba request ulang
-		if (result.error?.status === 401 && refreshToken) {
-			const success = await tryRefresh();
-			if (success && tokenToUse) {
-				result = await fetchUserProfile(tokenToUse);
-			} else {
-				deleteAuthCookies(event.cookies);
+		try {
+			// Verifikasi accessToken
+			const { payload } = await jwtVerify(tokenToUse, secret);
+
+			// Asumsikan payload berisi data user
+			event.locals.user = payload as App.Locals['user'];
+		} catch (e) {
+			// Jika token expired
+			if (e instanceof errors.JWTExpired && refreshToken) {
+				const success = await tryRefresh();
+
+				if (success && tokenToUse) {
+					try {
+						// Verifikasi token yang sudah di-refresh
+						const { payload } = await jwtVerify(tokenToUse, secret);
+						event.locals.user = payload as App.Locals['user'];
+					} catch (e) {
+						// Jika token refresh gagal
+						console.error(e); // TODO: handle refresh error
+						deleteAuthCookies(event.cookies);
+					}
+				} else {
+					deleteAuthCookies(event.cookies);
+				}
 			}
-		}
-
-		// Jika data user berhasil diambil, set ke event.locals.user
-		if (!result.error && result.data?.success) {
-			event.locals.user = result.data.data;
 		}
 	}
 
@@ -65,12 +79,13 @@ function checkRoutingGuards(event: RequestEvent) {
 
 	// Halaman Root '/' selalu diarahkan ke dashboard jika login, atau login page jika belum
 	if (path === '/') {
-		if (user) throw redirect(303, '/dashboard');
+		if (user?.role === 'admin') throw redirect(303, '/admin/dashboard');
+		if (user?.role === 'cashier') throw redirect(303, '/dashboard');
 		throw redirect(303, '/login');
 	}
 
 	const isAuthRoute = path.startsWith('/login') || path.startsWith('/register');
-	const isProtectedRoute = path.startsWith('/dashboard');
+	const isProtectedRoute = path.startsWith('/dashboard') || path.startsWith('/admin');
 
 	// Proteksi halaman dashboard (harus login)
 	if (isProtectedRoute && !user) {
@@ -79,6 +94,7 @@ function checkRoutingGuards(event: RequestEvent) {
 
 	// Mencegah user yang sudah login mengakses halaman auth
 	if (isAuthRoute && user) {
-		throw redirect(303, '/dashboard');
+		if (user?.role === 'admin') throw redirect(303, '/admin/dashboard');
+		if (user?.role === 'cashier') throw redirect(303, '/dashboard');
 	}
 }
