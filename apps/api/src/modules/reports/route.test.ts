@@ -1,6 +1,8 @@
 import { mock, describe, it, expect, beforeEach, beforeAll } from "bun:test";
 import { Elysia } from "elysia";
 
+import path from "path";
+
 const mockUserId = "550e8400-e29b-41d4-a716-446655440000";
 const mockTenantId = "8f682d46-419b-449e-9d29-c09e3a62888c";
 
@@ -23,7 +25,7 @@ describe("Report Routes", () => {
   let service: any;
 
   beforeAll(async () => {
-    mock.module("./service", () => ({
+    mock.module(path.resolve(__dirname, "service.ts"), () => ({
       getDailySummary: mock(),
       getMonthlySummary: mock(),
       getDailyRangeSummary: mock(),
@@ -82,12 +84,18 @@ describe("Report Routes", () => {
         retailRevenue: 1000,
         brilinkCommission: 200,
         trxCount: 10,
+        itemsSold: 10,
+        totalRevenue: 1200,
+        grossProfit: 400,
       },
       {
         date: "2024-05-31",
         retailRevenue: 1200,
         brilinkCommission: 250,
         trxCount: 12,
+        itemsSold: 12,
+        totalRevenue: 1450,
+        grossProfit: 500,
       },
     ]);
     const response = await app.handle(

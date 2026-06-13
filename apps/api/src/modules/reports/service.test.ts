@@ -224,7 +224,10 @@ describe("Reports Service - getDailyRangeSummary", () => {
         summaryDate: "2026-06-06",
         retailRevenue: "1800000.00",
         brilinkCommission: "90000.00",
+        totalRevenue: "1890000.00",
+        grossProfit: "1890000.00",
         trxCount: 28,
+        itemsSold: 50,
         generatedAt: new Date()
       },
       {
@@ -233,7 +236,10 @@ describe("Reports Service - getDailyRangeSummary", () => {
         summaryDate: "2026-06-07",
         retailRevenue: "2100000.00",
         brilinkCommission: "110000.00",
+        totalRevenue: "2210000.00",
+        grossProfit: "2210000.00",
         trxCount: 31,
+        itemsSold: 60,
         generatedAt: new Date()
       }
     ];
@@ -249,12 +255,18 @@ describe("Reports Service - getDailyRangeSummary", () => {
       retailRevenue: 1800000,
       brilinkCommission: 90000,
       trxCount: 28,
+      itemsSold: 50,
+      totalRevenue: 1890000,
+      grossProfit: 1890000,
     });
     expect(result[1]).toEqual({
       date: "2026-06-07",
       retailRevenue: 2100000,
       brilinkCommission: 110000,
       trxCount: 31,
+      itemsSold: 60,
+      totalRevenue: 2210000,
+      grossProfit: 2210000,
     });
     expect(db.query.dailySummaries.findFirst).not.toHaveBeenCalled();
   });

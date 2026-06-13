@@ -37,8 +37,9 @@ export const actions: Actions = {
 
 		if (result.data && 'data' in result.data) {
 			const role = result.data.data.user.role;
-			if (role === 'admin') throw redirect(303, '/admin');
-			if (role === 'cashier') throw redirect(303, '/dashboard');
+			if (role === 'admin') throw redirect(303, '/admin/dashboard');
 		}
+
+		throw redirect(303, '/dashboard');
 	}
 };

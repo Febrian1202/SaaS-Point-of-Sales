@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 
 	const toDate = new Date();
 	const fromDate = new Date();
-	fromDate.setDate(toDate.getDate() - 6);
+	fromDate.setDate(toDate.getDate() - 27);
 	const from = fromDate.toISOString().substring(0, 10);
 	const to = toDate.toISOString().substring(0, 10);
 
@@ -41,9 +41,11 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	});
 
 	return {
-		daily: dailyResPromise.then((res) => (res.data?.success ? res.data.data : null)),
-		range: rangeResPromise.then((res) => (res.data?.success ? res.data.data : [])),
-		transactions: transactionsResPromise.then((res) => (res.data?.success ? res.data.data : [])),
-		lowStock: lowStockResPromise.then((res) => (res.data?.success ? res.data.data : []))
+		streamed: {
+			daily: dailyResPromise.then((res) => (res.data?.success ? res.data.data : null)),
+			range: rangeResPromise.then((res) => (res.data?.success ? res.data.data : [])),
+			transactions: transactionsResPromise.then((res) => (res.data?.success ? res.data.data : [])),
+			lowStock: lowStockResPromise.then((res) => (res.data?.success ? res.data.data : []))
+		}
 	};
 };

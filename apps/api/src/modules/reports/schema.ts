@@ -49,6 +49,9 @@ export const schemaResponseDailyRange = withSuccess(
       retailRevenue: t.Number(),
       brilinkCommission: t.Number(),
       trxCount: t.Number(),
+      itemsSold: t.Number(),
+      totalRevenue: t.Number(),
+      grossProfit: t.Number(),
     })
   )
 );

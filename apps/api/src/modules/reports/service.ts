@@ -228,5 +228,8 @@ export const getDailyRangeSummary = async (
       retailRevenue: Number(r.retailRevenue || 0),
       brilinkCommission: Number(r.brilinkCommission || 0),
       trxCount: Number(r.trxCount || 0),
+      itemsSold: Number(r.itemsSold || 0),
+      totalRevenue: Number(r.totalRevenue || 0),
+      grossProfit: Number(r.grossProfit || 0),
     }));
 };
