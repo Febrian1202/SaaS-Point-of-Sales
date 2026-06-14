@@ -11,7 +11,7 @@
 </script>
 
 <Sonner
-	theme={mode.current}
+	theme={'system'}
 	class="toaster group"
 	toastOptions={{
 		class:

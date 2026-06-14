@@ -19,7 +19,10 @@ export const registerSchema = z
 			.regex(/[a-z]/, { message: 'Password harus mengandung huruf kecil' })
 			.regex(/[0-9]/, { message: 'Password harus mengandung angka' })
 			.regex(/[^A-Za-z0-9]/, { message: 'Password harus mengandung karakter khusus' }),
-		confirmPassword: z.string()
+		confirmPassword: z.string(),
+		terms: z.boolean().refine((val) => val === true, {
+			message: 'Anda harus menyetujui Syarat & Ketentuan serta Kebijakan Privasi'
+		})
 	})
 	.refine((data) => data.password === data.confirmPassword, {
 		error: 'Password dan Konfirmasi Password tidak cocok',

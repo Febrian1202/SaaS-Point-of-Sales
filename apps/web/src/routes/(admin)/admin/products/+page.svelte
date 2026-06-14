@@ -154,6 +154,10 @@
 	];
 </script>
 
+<svelte:head>
+	<title>Daftar Produk | Transa</title>
+</svelte:head>
+
 <div
 	class="flex-1 animate-in space-y-6 overflow-y-auto duration-500 fade-in slide-in-from-bottom-3"
 >

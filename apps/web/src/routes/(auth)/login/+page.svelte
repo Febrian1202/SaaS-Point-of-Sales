@@ -6,6 +6,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
 	import { Store, Mail, Lock, LogIn, ArrowRight, Eye, EyeClosed } from 'lucide-svelte';
+	import { slide, scale } from 'svelte/transition';
 	import type { ActionData } from './$types';
 	import { loginSchema } from '$lib/schemas';
 	import { base } from '$app/paths';
@@ -103,7 +104,7 @@
 						/>
 					</div>
 					{#if errors.email}
-						<p class="mt-1 text-xs text-destructive">{errors.email}</p>
+						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.email}</p>
 					{/if}
 				</div>
 
@@ -140,18 +141,22 @@
 						/>
 						<button
 							type="button"
-							class="absolute top-1/2 right-5 size-5 -translate-y-1/2 text-secondary-foreground"
+							class="absolute top-1/2 right-5 flex size-5 -translate-y-1/2 items-center justify-center text-secondary-foreground"
 							onclick={() => (isVisiblePassword = !isVisiblePassword)}
 						>
 							{#if isVisiblePassword}
-								<Eye />
+								<div in:scale={{ duration: 200, start: 0.5 }} out:scale={{ duration: 200, start: 0.5 }} class="absolute">
+									<EyeClosed />
+								</div>
 							{:else}
-								<EyeClosed />
+								<div in:scale={{ duration: 200, start: 0.5 }} out:scale={{ duration: 200, start: 0.5 }} class="absolute">
+									<Eye />
+								</div>
 							{/if}
 						</button>
 					</div>
 					{#if errors.password}
-						<p class="mt-1 text-xs text-destructive">{errors.password}</p>
+						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.password}</p>
 					{/if}
 				</div>
 
@@ -165,7 +170,7 @@
 				</Button>
 
 				{#if form?.message}
-					<p class="mt-2 text-center text-sm font-medium text-destructive">{form.message}</p>
+					<p transition:slide={{ duration: 200 }} class="mt-2 text-center text-sm font-medium text-destructive">{form.message}</p>
 				{/if}
 			</form>
 		</Card.Content>

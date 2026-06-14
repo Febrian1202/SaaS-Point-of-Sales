@@ -113,7 +113,7 @@
 <!-- TODO: refactor kalau ada kesempatan -->
 <!-- Bagi section jadi component component-->
 <svelte:head>
-	<title>Dashboard Admin | Kios Sheza</title>
+	<title>Dashboard Admin | Transa</title>
 </svelte:head>
 
 <div class="animate-in space-y-8 duration-500 fade-in slide-in-from-bottom-3">

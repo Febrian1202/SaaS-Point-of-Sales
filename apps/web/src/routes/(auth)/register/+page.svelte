@@ -6,6 +6,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { Store, User, Mail, Lock, ShieldCheck, ArrowRight, Eye, EyeClosed } from 'lucide-svelte';
+	import { slide, scale } from 'svelte/transition';
 	import type { ActionData, SubmitFunction } from './$types';
 	import { registerSchema } from '$lib/schemas';
 	import { base } from '$app/paths';
@@ -18,6 +19,7 @@
 	let email = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
+	let terms = $state(false);
 
 	// State error reaktif
 	let errors = $state<{
@@ -26,6 +28,7 @@
 		email?: string;
 		password?: string;
 		confirmPassword?: string;
+		terms?: string;
 	}>({});
 
 	// State visibility password
@@ -34,14 +37,15 @@
 
 	// Fungsi validasi real-time per kolom
 	function validateField(
-		field: 'storeName' | 'userName' | 'email' | 'password' | 'confirmPassword'
+		field: 'storeName' | 'userName' | 'email' | 'password' | 'confirmPassword' | 'terms'
 	) {
 		const result = registerSchema.safeParse({
 			storeName,
 			userName,
 			email,
 			password,
-			confirmPassword
+			confirmPassword,
+			terms
 		});
 		if (result.success) {
 			errors[field] = undefined;
@@ -58,7 +62,8 @@
 			userName,
 			email,
 			password,
-			confirmPassword
+			confirmPassword,
+			terms
 		});
 
 		if (!result.success) {
@@ -69,7 +74,8 @@
 				userName: fieldError.userName?.[0],
 				email: fieldError.email?.[0],
 				password: fieldError.password?.[0],
-				confirmPassword: fieldError.confirmPassword?.[0]
+				confirmPassword: fieldError.confirmPassword?.[0],
+				terms: fieldError.terms?.[0]
 			};
 		}
 	};
@@ -131,7 +137,7 @@
 						/>
 					</div>
 					{#if errors.storeName}
-						<p class="mt-1 text-xs text-destructive">{errors.storeName}</p>
+						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.storeName}</p>
 					{/if}
 				</div>
 
@@ -161,7 +167,7 @@
 						/>
 					</div>
 					{#if errors.userName}
-						<p class="mt-1 text-xs text-destructive">{errors.userName}</p>
+						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.userName}</p>
 					{/if}
 				</div>
 
@@ -191,7 +197,7 @@
 						/>
 					</div>
 					{#if errors.email}
-						<p class="mt-1 text-xs text-destructive">{errors.email}</p>
+						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.email}</p>
 					{/if}
 				</div>
 
@@ -224,17 +230,21 @@
 							<button
 								type="button"
 								onclick={() => (isVisible = !isVisible)}
-								class="absolute top-1/2 right-3 size-5 -translate-y-1/2 text-secondary-foreground"
+								class="absolute top-1/2 right-3 flex size-5 -translate-y-1/2 items-center justify-center text-secondary-foreground"
 							>
 								{#if isVisible}
-									<Eye class="size-5" />
+									<div in:scale={{ duration: 200, start: 0.5 }} out:scale={{ duration: 200, start: 0.5 }} class="absolute">
+										<EyeClosed class="size-5" />
+									</div>
 								{:else}
-									<EyeClosed class="size-5" />
+									<div in:scale={{ duration: 200, start: 0.5 }} out:scale={{ duration: 200, start: 0.5 }} class="absolute">
+										<Eye class="size-5" />
+									</div>
 								{/if}
 							</button>
 						</div>
 						{#if errors.password}
-							<p class="mt-1 text-xs text-destructive">{errors.password}</p>
+							<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.password}</p>
 						{/if}
 					</div>
 
@@ -265,32 +275,47 @@
 							<button
 								type="button"
 								onclick={() => (isVisibleConfirm = !isVisibleConfirm)}
-								class="absolute top-1/2 right-3 size-5 -translate-y-1/2 text-secondary-foreground"
+								class="absolute top-1/2 right-3 flex size-5 -translate-y-1/2 items-center justify-center text-secondary-foreground"
 							>
 								{#if isVisibleConfirm}
-									<Eye class="size-5" />
+									<div in:scale={{ duration: 200, start: 0.5 }} out:scale={{ duration: 200, start: 0.5 }} class="absolute">
+										<EyeClosed class="size-5" />
+									</div>
 								{:else}
-									<EyeClosed class="size-5" />
+									<div in:scale={{ duration: 200, start: 0.5 }} out:scale={{ duration: 200, start: 0.5 }} class="absolute">
+										<Eye class="size-5" />
+									</div>
 								{/if}
 							</button>
 						</div>
 						{#if errors.confirmPassword}
-							<p class="mt-1 text-xs text-destructive">{errors.confirmPassword}</p>
+							<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.confirmPassword}</p>
 						{/if}
 					</div>
 				</div>
 
 				<!-- Privacy Policy / Terms -->
-				<div class="flex items-start space-x-2 pt-2">
-					<Checkbox id="terms" required class="mt-0.5" />
-					<label
-						for="terms"
-						class="cursor-pointer text-sm leading-normal font-normal text-secondary-foreground"
-					>
-						Saya menyetujui <a href="/terms" class="text-primary hover:underline"
-							>Syarat & Ketentuan</a
-						> serta Kebijakan Privasi Kios Sheza.
-					</label>
+				<div class="space-y-2">
+					<div class="flex items-start space-x-2 pt-2">
+						<Checkbox 
+							id="terms" 
+							name="terms"
+							bind:checked={terms} 
+							onCheckedChange={() => validateField('terms')}
+							class="mt-0.5 {errors.terms ? 'border-destructive' : ''}" 
+						/>
+						<label
+							for="terms"
+							class="cursor-pointer text-sm leading-normal font-normal transition-colors {errors.terms ? 'text-destructive' : 'text-secondary-foreground'}"
+						>
+							Saya menyetujui <a href="/terms" class="text-primary hover:underline"
+								>Syarat & Ketentuan</a
+							> serta Kebijakan Privasi Kios Sheza.
+						</label>
+					</div>
+					{#if errors.terms}
+						<p transition:slide={{ duration: 200 }} class="text-xs text-destructive">{errors.terms}</p>
+					{/if}
 				</div>
 
 				<!-- Submit Button -->
@@ -303,7 +328,7 @@
 				</Button>
 
 				{#if form?.message}
-					<p class="mt-2 text-center text-sm font-medium text-destructive">{form.message}</p>
+					<p transition:slide={{ duration: 200 }} class="mt-2 text-center text-sm font-medium text-destructive">{form.message}</p>
 				{/if}
 			</form>
 		</Card.Content>
