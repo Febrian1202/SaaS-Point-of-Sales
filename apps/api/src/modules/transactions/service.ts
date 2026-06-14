@@ -99,9 +99,14 @@ export const getTransactions = async (
   query: ArgsGetTransaction,
 ) => {
   // Destructuring
-  const { to, from, date, limit, page } = query;
+  const { to, from, date, limit, page, search } = query;
 
   const filters = [eq(transactions.tenantId, tenantId)];
+
+  // check search query
+  if (search) {
+    filters.push(sql`(${transactions.trxNumber} ILIKE ${`%${search}%`})`);
+  }
 
   // check query date
   if (date) {

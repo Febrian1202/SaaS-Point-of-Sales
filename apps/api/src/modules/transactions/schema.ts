@@ -39,6 +39,7 @@ export const bodySchemaTransaction = t.Object({
 export type ArgsTransaction = Static<typeof bodySchemaTransaction>;
 
 export const querySchemaTransaction = t.Object({
+  search: t.Optional(t.String({ error: validationDetail("Must be a string") })),
   date: t.Optional(
     t.String({ format: "date", error: validationDetail("Date invalid") }),
   ),
