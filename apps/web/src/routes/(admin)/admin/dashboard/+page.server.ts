@@ -41,6 +41,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	});
 
 	return {
+		title: 'Dasbor | Transa',
 		streamed: {
 			daily: dailyResPromise.then((res) => (res.data?.success ? res.data.data : null)),
 			range: rangeResPromise.then((res) => (res.data?.success ? res.data.data : [])),

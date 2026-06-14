@@ -137,7 +137,9 @@
 						/>
 					</div>
 					{#if errors.storeName}
-						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.storeName}</p>
+						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">
+							{errors.storeName}
+						</p>
 					{/if}
 				</div>
 
@@ -167,7 +169,9 @@
 						/>
 					</div>
 					{#if errors.userName}
-						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.userName}</p>
+						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">
+							{errors.userName}
+						</p>
 					{/if}
 				</div>
 
@@ -197,7 +201,9 @@
 						/>
 					</div>
 					{#if errors.email}
-						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.email}</p>
+						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">
+							{errors.email}
+						</p>
 					{/if}
 				</div>
 
@@ -233,18 +239,28 @@
 								class="absolute top-1/2 right-3 flex size-5 -translate-y-1/2 items-center justify-center text-secondary-foreground"
 							>
 								{#if isVisible}
-									<div in:scale={{ duration: 200, start: 0.5 }} out:scale={{ duration: 200, start: 0.5 }} class="absolute">
+									<div
+										in:scale={{ duration: 200, start: 0.5 }}
+										out:scale={{ duration: 200, start: 0.5 }}
+										class="absolute"
+									>
 										<EyeClosed class="size-5" />
 									</div>
 								{:else}
-									<div in:scale={{ duration: 200, start: 0.5 }} out:scale={{ duration: 200, start: 0.5 }} class="absolute">
+									<div
+										in:scale={{ duration: 200, start: 0.5 }}
+										out:scale={{ duration: 200, start: 0.5 }}
+										class="absolute"
+									>
 										<Eye class="size-5" />
 									</div>
 								{/if}
 							</button>
 						</div>
 						{#if errors.password}
-							<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.password}</p>
+							<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">
+								{errors.password}
+							</p>
 						{/if}
 					</div>
 
@@ -278,18 +294,28 @@
 								class="absolute top-1/2 right-3 flex size-5 -translate-y-1/2 items-center justify-center text-secondary-foreground"
 							>
 								{#if isVisibleConfirm}
-									<div in:scale={{ duration: 200, start: 0.5 }} out:scale={{ duration: 200, start: 0.5 }} class="absolute">
+									<div
+										in:scale={{ duration: 200, start: 0.5 }}
+										out:scale={{ duration: 200, start: 0.5 }}
+										class="absolute"
+									>
 										<EyeClosed class="size-5" />
 									</div>
 								{:else}
-									<div in:scale={{ duration: 200, start: 0.5 }} out:scale={{ duration: 200, start: 0.5 }} class="absolute">
+									<div
+										in:scale={{ duration: 200, start: 0.5 }}
+										out:scale={{ duration: 200, start: 0.5 }}
+										class="absolute"
+									>
 										<Eye class="size-5" />
 									</div>
 								{/if}
 							</button>
 						</div>
 						{#if errors.confirmPassword}
-							<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.confirmPassword}</p>
+							<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">
+								{errors.confirmPassword}
+							</p>
 						{/if}
 					</div>
 				</div>
@@ -297,16 +323,18 @@
 				<!-- Privacy Policy / Terms -->
 				<div class="space-y-2">
 					<div class="flex items-start space-x-2 pt-2">
-						<Checkbox 
-							id="terms" 
+						<Checkbox
+							id="terms"
 							name="terms"
-							bind:checked={terms} 
+							bind:checked={terms}
 							onCheckedChange={() => validateField('terms')}
-							class="mt-0.5 {errors.terms ? 'border-destructive' : ''}" 
+							class="mt-0.5 {errors.terms ? 'border-destructive' : ''}"
 						/>
 						<label
 							for="terms"
-							class="cursor-pointer text-sm leading-normal font-normal transition-colors {errors.terms ? 'text-destructive' : 'text-secondary-foreground'}"
+							class="cursor-pointer text-sm leading-normal font-normal transition-colors {errors.terms
+								? 'text-destructive'
+								: 'text-secondary-foreground'}"
 						>
 							Saya menyetujui <a href="/terms" class="text-primary hover:underline"
 								>Syarat & Ketentuan</a
@@ -314,7 +342,9 @@
 						</label>
 					</div>
 					{#if errors.terms}
-						<p transition:slide={{ duration: 200 }} class="text-xs text-destructive">{errors.terms}</p>
+						<p transition:slide={{ duration: 200 }} class="text-xs text-destructive">
+							{errors.terms}
+						</p>
 					{/if}
 				</div>
 
@@ -328,7 +358,12 @@
 				</Button>
 
 				{#if form?.message}
-					<p transition:slide={{ duration: 200 }} class="mt-2 text-center text-sm font-medium text-destructive">{form.message}</p>
+					<p
+						transition:slide={{ duration: 200 }}
+						class="mt-2 text-center text-sm font-medium text-destructive"
+					>
+						{form.message}
+					</p>
 				{/if}
 			</form>
 		</Card.Content>

@@ -10,6 +10,7 @@ declare global {
 				email: string;
 				role: string;
 				tenantId: string;
+				tenantName: string;
 			} | null;
 		}
 		// interface PageData {}

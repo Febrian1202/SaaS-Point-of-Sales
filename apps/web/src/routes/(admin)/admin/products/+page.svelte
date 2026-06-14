@@ -155,7 +155,7 @@
 </script>
 
 <svelte:head>
-	<title>Daftar Produk | Transa</title>
+	<title>{data.title}</title>
 </svelte:head>
 
 <div

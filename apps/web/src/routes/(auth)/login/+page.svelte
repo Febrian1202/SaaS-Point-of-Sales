@@ -104,7 +104,9 @@
 						/>
 					</div>
 					{#if errors.email}
-						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.email}</p>
+						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">
+							{errors.email}
+						</p>
 					{/if}
 				</div>
 
@@ -145,18 +147,28 @@
 							onclick={() => (isVisiblePassword = !isVisiblePassword)}
 						>
 							{#if isVisiblePassword}
-								<div in:scale={{ duration: 200, start: 0.5 }} out:scale={{ duration: 200, start: 0.5 }} class="absolute">
+								<div
+									in:scale={{ duration: 200, start: 0.5 }}
+									out:scale={{ duration: 200, start: 0.5 }}
+									class="absolute"
+								>
 									<EyeClosed />
 								</div>
 							{:else}
-								<div in:scale={{ duration: 200, start: 0.5 }} out:scale={{ duration: 200, start: 0.5 }} class="absolute">
+								<div
+									in:scale={{ duration: 200, start: 0.5 }}
+									out:scale={{ duration: 200, start: 0.5 }}
+									class="absolute"
+								>
 									<Eye />
 								</div>
 							{/if}
 						</button>
 					</div>
 					{#if errors.password}
-						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.password}</p>
+						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">
+							{errors.password}
+						</p>
 					{/if}
 				</div>
 
@@ -170,7 +182,12 @@
 				</Button>
 
 				{#if form?.message}
-					<p transition:slide={{ duration: 200 }} class="mt-2 text-center text-sm font-medium text-destructive">{form.message}</p>
+					<p
+						transition:slide={{ duration: 200 }}
+						class="mt-2 text-center text-sm font-medium text-destructive"
+					>
+						{form.message}
+					</p>
 				{/if}
 			</form>
 		</Card.Content>

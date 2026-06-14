@@ -94,6 +94,13 @@ export const getUser = async (userId: string) => {
       tenantId: true,
       refreshToken: true,
     },
+    with: {
+      tenant: {
+        columns: {
+          name: true,
+        },
+      },
+    },
   });
 
   if (!user) throw new SessionError("Pengguna tidak ditemukan!");
@@ -104,6 +111,7 @@ export const getUser = async (userId: string) => {
     email: user.email || "",
     role: (user.role as UserRole) || UserRole.ADMIN,
     tenantId: user.tenantId || "",
+    tenantName: user.tenant?.name || "",
     refreshToken: user.refreshToken,
   };
 };

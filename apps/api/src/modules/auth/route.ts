@@ -59,6 +59,7 @@ export const authRoutes = new Elysia({
         name: user.name,
         email: user.email,
         tenantId: user.tenantId,
+        tenantName: user.tenantName,
         role: user.role,
       });
 
@@ -67,6 +68,7 @@ export const authRoutes = new Elysia({
         name: user.name,
         email: user.email,
         tenantId: user.tenantId,
+        tenantName: user.tenantName,
         role: user.role,
       });
 
@@ -123,12 +125,18 @@ export const authRoutes = new Elysia({
 
       const accessToken = await accessJwt.sign({
         sub: result.user.id,
+        name: result.user.name,
+        email: result.user.email,
         tenantId: result.store.id,
+        tenantName: result.store.name,
         role: result.user.role,
       });
       const refreshJwtToken = await refreshJwt.sign({
         sub: result.user.id,
+        name: result.user.name,
+        email: result.user.email,
         tenantId: result.store.id,
+        tenantName: result.store.name,
         role: result.user.role,
       });
 
@@ -189,7 +197,10 @@ export const authRoutes = new Elysia({
 
       const newAccessToken = await accessJwt.sign({
         sub: user.id,
+        name: user.name,
+        email: user.email,
         tenantId: user.tenantId,
+        tenantName: user.tenantName,
         role: user.role,
       });
 

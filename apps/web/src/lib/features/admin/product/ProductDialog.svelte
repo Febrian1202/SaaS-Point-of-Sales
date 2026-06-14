@@ -234,7 +234,9 @@
 					required
 				/>
 				{#if errors.name}
-					<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.name}</p>
+					<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">
+						{errors.name}
+					</p>
 				{/if}
 			</div>
 
@@ -262,7 +264,9 @@
 							: ''}"
 					/>
 					{#if errors.barcode}
-						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.barcode}</p>
+						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">
+							{errors.barcode}
+						</p>
 					{/if}
 				</div>
 
@@ -297,7 +301,9 @@
 						</Select.Content>
 					</Select.Root>
 					{#if errors.categoryId}
-						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.categoryId}</p>
+						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">
+							{errors.categoryId}
+						</p>
 					{/if}
 				</div>
 			</div>
@@ -327,7 +333,9 @@
 							: ''}"
 					/>
 					{#if errors.price}
-						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.price}</p>
+						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">
+							{errors.price}
+						</p>
 					{/if}
 				</div>
 
@@ -354,7 +362,9 @@
 						required
 					/>
 					{#if errors.unit}
-						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.unit}</p>
+						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">
+							{errors.unit}
+						</p>
 					{/if}
 				</div>
 
@@ -381,7 +391,9 @@
 							: ''}"
 					/>
 					{#if errors.stock}
-						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">{errors.stock}</p>
+						<p transition:slide={{ duration: 200 }} class="mt-1 text-xs text-destructive">
+							{errors.stock}
+						</p>
 					{/if}
 				</div>
 			</div>

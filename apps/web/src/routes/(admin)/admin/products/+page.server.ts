@@ -58,7 +58,7 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
 	});
 
 	return {
-		title: 'Products',
+		title: 'Produk | Transa',
 		streamed: {
 			categories: categoryResPromise.then((res) => (res.data?.success ? res.data.data : null)),
 			products: productResPromise.then((res) => (res.data?.success ? res.data : null))

@@ -15,7 +15,9 @@
 >
 	<!-- Context Title -->
 	<div class="flex items-center gap-4">
-		<h2 class="font-tight text-lg font-semibold text-foreground">Kios Sheza POS</h2>
+		<h2 class="font-tight text-lg font-semibold text-foreground">
+			{user?.tenantName || 'Transa POS'}
+		</h2>
 	</div>
 
 	<!-- Search & Actions -->

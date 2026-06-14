@@ -1,0 +1,311 @@
+<main class="p-margin ml-64 min-h-screen pt-16">
+	<div class="space-y-lg mx-auto max-w-[1200px]">
+		<!-- Header Section -->
+		<div class="gap-md flex flex-col justify-between md:flex-row md:items-center">
+			<div>
+				<h2 class="font-headline-lg text-headline-lg">Daftar Kategori</h2>
+				<p class="font-body-sm text-body-sm text-secondary">
+					Kelola kategori produk untuk mempermudah inventarisasi
+				</p>
+			</div>
+			<button
+				class="bg-primary-fixed text-on-primary py-md px-lg gap-sm flex items-center rounded-xl font-bold transition-all hover:brightness-110 active:scale-95"
+			>
+				<span class="material-symbols-outlined">add_circle</span>
+				<span class="font-label-mono text-label-mono tracking-wider uppercase"
+					>+ Tambah Kategori</span
+				>
+			</button>
+		</div>
+		<!-- Filters & Search -->
+		<div
+			class="border-border-subtle p-md gap-md flex flex-col items-center rounded-xl border bg-surface md:flex-row"
+		>
+			<div class="relative w-full md:w-96">
+				<span
+					class="material-symbols-outlined absolute top-1/2 left-4 -translate-y-1/2 text-secondary"
+					>search</span
+				>
+				<input
+					class="bg-surface-container-low border-border-subtle text-body-sm font-body-sm focus:border-primary-fixed w-full rounded-lg border py-3 pr-4 pl-12 transition-all outline-none focus:ring-0"
+					placeholder="Cari kategori..."
+					type="text"
+				/>
+			</div>
+			<div class="gap-sm flex w-full items-center md:w-auto">
+				<span class="font-label-mono text-label-mono px-sm text-secondary uppercase">Status:</span>
+				<select
+					class="bg-surface-container-low border-border-subtle px-lg text-body-sm font-body-sm focus:border-primary-fixed min-w-[140px] cursor-pointer rounded-lg border py-3 outline-none focus:ring-0"
+				>
+					<option>Semua</option>
+					<option>Aktif</option>
+					<option>Nonaktif</option>
+				</select>
+			</div>
+			<div class="gap-sm ml-auto flex items-center">
+				<button
+					class="hover:bg-surface-container border-border-subtle rounded-lg border p-3 text-secondary transition-colors"
+				>
+					<span class="material-symbols-outlined">filter_list</span>
+				</button>
+				<button
+					class="hover:bg-surface-container border-border-subtle rounded-lg border p-3 text-secondary transition-colors"
+				>
+					<span class="material-symbols-outlined">refresh</span>
+				</button>
+			</div>
+		</div>
+		<!-- Data Table Card -->
+		<div class="border-border-subtle overflow-hidden rounded-xl border bg-surface">
+			<table class="w-full border-collapse">
+				<thead>
+					<tr class="bg-surface-container border-border-subtle border-b text-left">
+						<th class="p-md font-label-caps text-label-caps text-secondary uppercase">Kategori</th>
+						<th class="p-md font-label-caps text-label-caps text-secondary uppercase">
+							Jumlah Produk
+						</th>
+						<th class="p-md font-label-caps text-label-caps text-secondary uppercase">Status</th>
+						<th class="p-md font-label-caps text-label-caps text-right text-secondary uppercase">
+							Aksi
+						</th>
+					</tr>
+				</thead>
+				<tbody class="divide-border-subtle divide-y">
+					<!-- Row 1 -->
+					<tr class="group transition-colors hover:bg-[#1C1F23]">
+						<td class="p-md">
+							<div class="gap-md flex items-center">
+								<div
+									class="bg-surface-container-highest text-primary-fixed flex h-10 w-10 items-center justify-center rounded"
+								>
+									<span class="material-symbols-outlined">local_bar</span>
+								</div>
+								<span class="font-body-lg text-body-lg font-medium">Minuman</span>
+							</div>
+						</td>
+						<td class="p-md">
+							<span class="font-label-mono text-label-mono text-on-surface">124 Items</span>
+						</td>
+						<td class="p-md">
+							<span
+								class="active-pill flex w-fit items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold"
+							>
+								<span class="bg-primary-fixed h-1.5 w-1.5 rounded-full"></span>
+								Aktif
+							</span>
+						</td>
+						<td class="p-md text-right">
+							<div
+								class="gap-sm flex justify-end opacity-60 transition-opacity group-hover:opacity-100"
+							>
+								<button
+									class="hover:bg-surface-container-highest rounded p-2 text-secondary transition-all hover:text-primary"
+								>
+									<span class="material-symbols-outlined text-md">edit</span>
+								</button>
+								<button
+									class="hover:bg-error/10 hover:text-error rounded p-2 text-secondary transition-all"
+								>
+									<span class="material-symbols-outlined text-md">delete</span>
+								</button>
+							</div>
+						</td>
+					</tr>
+					<!-- Row 2 -->
+					<tr class="group transition-colors hover:bg-[#1C1F23]">
+						<td class="p-md">
+							<div class="gap-md flex items-center">
+								<div
+									class="bg-surface-container-highest text-primary-fixed flex h-10 w-10 items-center justify-center rounded"
+								>
+									<span class="material-symbols-outlined">restaurant</span>
+								</div>
+								<span class="font-body-lg text-body-lg font-medium">Makanan</span>
+							</div>
+						</td>
+						<td class="p-md">
+							<span class="font-label-mono text-label-mono text-on-surface">86 Items</span>
+						</td>
+						<td class="p-md">
+							<span
+								class="active-pill flex w-fit items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold"
+							>
+								<span class="bg-primary-fixed h-1.5 w-1.5 rounded-full"></span>
+								Aktif
+							</span>
+						</td>
+						<td class="p-md text-right">
+							<div
+								class="gap-sm flex justify-end opacity-60 transition-opacity group-hover:opacity-100"
+							>
+								<button
+									class="hover:bg-surface-container-highest rounded p-2 text-secondary transition-all hover:text-primary"
+								>
+									<span class="material-symbols-outlined text-md">edit</span>
+								</button>
+								<button
+									class="hover:bg-error/10 hover:text-error rounded p-2 text-secondary transition-all"
+								>
+									<span class="material-symbols-outlined text-md">delete</span>
+								</button>
+							</div>
+						</td>
+					</tr>
+					<!-- Row 3 -->
+					<tr class="group transition-colors hover:bg-[#1C1F23]">
+						<td class="p-md">
+							<div class="gap-md flex items-center">
+								<div
+									class="bg-surface-container-highest text-primary-fixed flex h-10 w-10 items-center justify-center rounded"
+								>
+									<span class="material-symbols-outlined">smoking_rooms</span>
+								</div>
+								<span class="font-body-lg text-body-lg font-medium">Rokok</span>
+							</div>
+						</td>
+						<td class="p-md">
+							<span class="font-label-mono text-label-mono text-on-surface">42 Items</span>
+						</td>
+						<td class="p-md">
+							<span
+								class="active-pill flex w-fit items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold"
+							>
+								<span class="bg-primary-fixed h-1.5 w-1.5 rounded-full"></span>
+								Aktif
+							</span>
+						</td>
+						<td class="p-md text-right">
+							<div
+								class="gap-sm flex justify-end opacity-60 transition-opacity group-hover:opacity-100"
+							>
+								<button
+									class="hover:bg-surface-container-highest rounded p-2 text-secondary transition-all hover:text-primary"
+								>
+									<span class="material-symbols-outlined text-md">edit</span>
+								</button>
+								<button
+									class="hover:bg-error/10 hover:text-error rounded p-2 text-secondary transition-all"
+								>
+									<span class="material-symbols-outlined text-md">delete</span>
+								</button>
+							</div>
+						</td>
+					</tr>
+					<!-- Row 4 -->
+					<tr class="group transition-colors hover:bg-[#1C1F23]">
+						<td class="p-md">
+							<div class="gap-md flex items-center">
+								<div
+									class="bg-surface-container-highest text-primary-fixed flex h-10 w-10 items-center justify-center rounded"
+								>
+									<span class="material-symbols-outlined">home</span>
+								</div>
+								<span class="font-body-lg text-body-lg font-medium">Kebutuhan Rumah</span>
+							</div>
+						</td>
+						<td class="p-md">
+							<span class="font-label-mono text-label-mono text-on-surface">215 Items</span>
+						</td>
+						<td class="p-md">
+							<span
+								class="active-pill flex w-fit items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold"
+							>
+								<span class="bg-primary-fixed h-1.5 w-1.5 rounded-full"></span>
+								Aktif
+							</span>
+						</td>
+						<td class="p-md text-right">
+							<div
+								class="gap-sm flex justify-end opacity-60 transition-opacity group-hover:opacity-100"
+							>
+								<button
+									class="hover:bg-surface-container-highest rounded p-2 text-secondary transition-all hover:text-primary"
+								>
+									<span class="material-symbols-outlined text-md">edit</span>
+								</button>
+								<button
+									class="hover:bg-error/10 hover:text-error rounded p-2 text-secondary transition-all"
+								>
+									<span class="material-symbols-outlined text-md">delete</span>
+								</button>
+							</div>
+						</td>
+					</tr>
+					<!-- Row 5 (Inactive Example) -->
+					<tr class="group transition-colors hover:bg-[#1C1F23]">
+						<td class="p-md opacity-50">
+							<div class="gap-md flex items-center">
+								<div
+									class="bg-surface-container-highest flex h-10 w-10 items-center justify-center rounded"
+								>
+									<span class="material-symbols-outlined">archive</span>
+								</div>
+								<span class="font-body-lg text-body-lg font-medium">Arsip Lama</span>
+							</div>
+						</td>
+						<td class="p-md opacity-50">
+							<span class="font-label-mono text-label-mono">0 Items</span>
+						</td>
+						<td class="p-md">
+							<span
+								class="bg-surface-container-highest border-border-subtle flex w-fit items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-bold text-secondary"
+							>
+								<span class="h-1.5 w-1.5 rounded-full bg-secondary"></span>
+								Nonaktif
+							</span>
+						</td>
+						<td class="p-md text-right">
+							<div
+								class="gap-sm flex justify-end opacity-60 transition-opacity group-hover:opacity-100"
+							>
+								<button
+									class="hover:bg-surface-container-highest rounded p-2 text-secondary transition-all hover:text-primary"
+								>
+									<span class="material-symbols-outlined text-md">edit</span>
+								</button>
+								<button
+									class="hover:bg-error/10 hover:text-error rounded p-2 text-secondary transition-all"
+								>
+									<span class="material-symbols-outlined text-md">delete</span>
+								</button>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<!-- Pagination -->
+		<div class="gap-md py-md px-sm flex flex-col items-center justify-between md:flex-row">
+			<span class="text-body-sm font-label-mono text-secondary"
+				>Menampilkan 1-5 dari 12 kategori</span
+			>
+			<div class="gap-xs flex items-center">
+				<button
+					class="border-border-subtle hover:bg-surface-container rounded-lg border p-2 text-secondary transition-all"
+				>
+					<span class="material-symbols-outlined">chevron_left</span>
+				</button>
+				<button
+					class="bg-primary-fixed text-on-primary font-label-mono h-10 w-10 rounded-lg font-bold"
+				>
+					1
+				</button>
+				<button
+					class="border-border-subtle hover:bg-surface-container font-label-mono h-10 w-10 rounded-lg border text-secondary transition-all"
+				>
+					2
+				</button>
+				<button
+					class="border-border-subtle hover:bg-surface-container font-label-mono h-10 w-10 rounded-lg border text-secondary transition-all"
+				>
+					3
+				</button>
+				<button
+					class="border-border-subtle hover:bg-surface-container rounded-lg border p-2 text-secondary transition-all"
+				>
+					<span class="material-symbols-outlined">chevron_right</span>
+				</button>
+			</div>
+		</div>
+	</div>
+</main>

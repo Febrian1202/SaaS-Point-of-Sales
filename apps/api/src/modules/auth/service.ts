@@ -10,6 +10,13 @@ export const verifyUsers = async (userEmail: string, userPassword: string) => {
   const normalizedEmail = userEmail.toLowerCase().trim();
   const user = await db.query.users.findFirst({
     where: and(eq(users.email, normalizedEmail), eq(users.isActive, true)),
+    with: {
+      tenant: {
+        columns: {
+          name: true,
+        },
+      },
+    },
   });
 
   const isMatch = await Bun.password.verify(
@@ -23,6 +30,7 @@ export const verifyUsers = async (userEmail: string, userPassword: string) => {
     id: user.id,
     name: user.name,
     tenantId: user.tenantId,
+    tenantName: user.tenant?.name,
     email: user.email,
     role: user.role,
   };
