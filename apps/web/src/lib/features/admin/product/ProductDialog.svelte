@@ -34,8 +34,8 @@
 	let name = $state('');
 	let barcode = $state('');
 	let categoryId = $state('');
-	let price = $state('');
-	let stock = $state(0);
+	let price: string | number = $state('');
+	let stock: number | string = $state(0);
 	let unit = $state('pcs');
 	let loading = $state(false);
 
