@@ -20,33 +20,32 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	const from = fromDate.toISOString().substring(0, 10);
 	const to = toDate.toISOString().substring(0, 10);
 
-	const dailyResPromise = serverApi.reports.daily.get({
-		$query: { date: today },
-		$headers: headers
-	});
-
-	const rangeResPromise = serverApi.reports['daily-range'].get({
-		$query: { from, to },
-		$headers: headers
-	});
-
-	const transactionsResPromise = serverApi.transactions.get({
-		$query: { page: 1, limit: 3 },
-		$headers: headers
-	});
-
-	const lowStockResPromise = serverApi.products.get({
-		$query: { status: 'OUT_OF_STOCK' },
-		$headers: headers
-	});
+	const [dailyRes, rangeRes, transactionsRes, lowStockRes] = await Promise.all([
+		serverApi.reports.daily.get({
+			$query: { date: today },
+			$headers: headers
+		}),
+		serverApi.reports['daily-range'].get({
+			$query: { from, to },
+			$headers: headers
+		}),
+		serverApi.transactions.get({
+			$query: { page: 1, limit: 3 },
+			$headers: headers
+		}),
+		serverApi.products.get({
+			$query: { status: 'OUT_OF_STOCK' },
+			$headers: headers
+		})
+	]);
 
 	return {
 		title: 'Dasbor | Transa',
-		streamed: {
-			daily: dailyResPromise.then((res) => (res.data?.success ? res.data.data : null)),
-			range: rangeResPromise.then((res) => (res.data?.success ? res.data.data : [])),
-			transactions: transactionsResPromise.then((res) => (res.data?.success ? res.data.data : [])),
-			lowStock: lowStockResPromise.then((res) => (res.data?.success ? res.data.data : []))
+		metrics: {
+			daily: dailyRes.data?.success ? dailyRes.data.data : null,
+			range: rangeRes.data?.success ? rangeRes.data.data : [],
+			transactions: transactionsRes.data?.success ? transactionsRes.data.data : [],
+			lowStock: lowStockRes.data?.success ? lowStockRes.data.data : []
 		}
 	};
 };

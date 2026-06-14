@@ -10,7 +10,7 @@
 </script>
 
 <Sonner
-	theme={'system'}
+	theme="system"
 	class="toaster group"
 	toastOptions={{
 		class:
