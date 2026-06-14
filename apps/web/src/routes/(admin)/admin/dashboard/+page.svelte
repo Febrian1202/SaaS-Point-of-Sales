@@ -2,6 +2,7 @@
 	import { Sparkles, TriangleAlert } from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card';
 	import * as Table from '$lib/components/ui/table';
+	import * as HoverCard from '$lib/components/ui/hover-card';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import type { PageData } from './$types';
@@ -15,24 +16,9 @@
 
 	let activeView = $state<'daily' | 'weekly'>('daily');
 
-	// Helper to resolve range data if it is a promise or array
-	let resolvedRange = $state<
-		Array<{ date: string; retailRevenue: number; brilinkCommission: number; trxCount: number }>
-	>([]);
-
-	$effect(() => {
-		if (data.streamed.range instanceof Promise) {
-			data.streamed.range.then((val) => {
-				resolvedRange = val;
-			});
-		} else if (Array.isArray(data.streamed.range)) {
-			resolvedRange = data.streamed.range;
-		}
-	});
-
 	const chartBars = $derived.by(() => {
-		const rawRange = resolvedRange;
-		if (rawRange.length === 0) return [];
+		const rawRange = data.metrics.range;
+		if (!rawRange || rawRange.length === 0) return [];
 
 		if (activeView === 'daily') {
 			const sorted = [...rawRange].sort((a, b) => a.date.localeCompare(b.date));
@@ -54,19 +40,35 @@
 					.toLocaleDateString('en-US', { weekday: 'short' })
 					.toUpperCase();
 				const dayName = dayNamesMap[englishDay] || englishDay;
+				const formattedDate = new SvelteDate(day.date).toLocaleDateString('id-ID', {
+					day: 'numeric',
+					month: 'short'
+				});
 
 				return {
 					dayName,
+					dateLabel: formattedDate,
 					height: `${Math.max(5, height)}%`,
 					revenue: day.retailRevenue,
-					isToday: day.date === new Date().toISOString().substring(0, 10),
-					tooltip: `${dayName}: ${formatRupiah(day.retailRevenue)}`
+					brilinkCommission: day.brilinkCommission || 0,
+					grossProfit: day.grossProfit || 0,
+					trxCount: day.trxCount || 0,
+					itemsSold: day.itemsSold || 0,
+					isToday: day.date === new Date().toISOString().substring(0, 10)
 				};
 			});
 		} else {
 			const sortedData = [...rawRange].sort((a, b) => a.date.localeCompare(b.date));
-			const weeks: Array<{ name: string; revenue: number; isCurrent: boolean; dateRange: string }> =
-				[];
+			const weeks: Array<{
+				name: string;
+				revenue: number;
+				brilinkCommission: number;
+				grossProfit: number;
+				trxCount: number;
+				itemsSold: number;
+				isCurrent: boolean;
+				dateRange: string;
+			}> = [];
 
 			for (let i = 0; i < 4; i++) {
 				const startIdx = i * 7;
@@ -75,6 +77,11 @@
 
 				if (weekDays.length > 0) {
 					const totalRevenue = weekDays.reduce((sum, d) => sum + d.retailRevenue, 0);
+					const totalBrilink = weekDays.reduce((sum, d) => sum + (d.brilinkCommission || 0), 0);
+					const totalGrossProfit = weekDays.reduce((sum, d) => sum + (d.grossProfit || 0), 0);
+					const totalTrxCount = weekDays.reduce((sum, d) => sum + (d.trxCount || 0), 0);
+					const totalItemsSold = weekDays.reduce((sum, d) => sum + (d.itemsSold || 0), 0);
+
 					const isCurrent = i === 3;
 
 					const startDate = new SvelteDate(weekDays[0].date);
@@ -89,6 +96,10 @@
 					weeks.push({
 						name: `MINGGU ${i + 1}`,
 						revenue: totalRevenue,
+						brilinkCommission: totalBrilink,
+						grossProfit: totalGrossProfit,
+						trxCount: totalTrxCount,
+						itemsSold: totalItemsSold,
 						isCurrent,
 						dateRange: `${startLabel} - ${endLabel}`
 					});
@@ -100,10 +111,14 @@
 				const height = maxRevenue > 1 ? (w.revenue / maxRevenue) * 95 : 5;
 				return {
 					dayName: w.name,
+					dateLabel: w.dateRange,
 					height: `${Math.max(5, height)}%`,
 					revenue: w.revenue,
-					isToday: w.isCurrent,
-					tooltip: `${w.name} (${w.dateRange}): ${formatRupiah(w.revenue)}`
+					brilinkCommission: w.brilinkCommission || 0,
+					grossProfit: w.grossProfit || 0,
+					trxCount: w.trxCount || 0,
+					itemsSold: w.itemsSold || 0,
+					isToday: w.isCurrent
 				};
 			});
 		}
@@ -121,7 +136,7 @@
 	{@render header(user?.name || 'Admin')}
 
 	<!-- Stats Grid (Graphite Card Surfaces) -->
-	<DashboardStats promiseDaily={data.streamed.daily} />
+	<DashboardStats daily={data.metrics.daily} />
 
 	<!-- Revenue Chart Area -->
 	<Card.Root class="border-border bg-card p-6">
@@ -160,18 +175,14 @@
 			</div>
 		</div>
 
-		{#await data.streamed.range}
-			<div class="flex h-64 w-full items-end justify-between gap-2 px-2">
-				{#each Array(activeView === 'daily' ? 7 : 4) as _, i (i)}
-					<div class="h-32 w-full animate-pulse rounded bg-border/40" data-val={_}></div>
-				{/each}
+		{#if chartBars.length === 0}
+			<div
+				class="flex h-64 flex-col items-center justify-center rounded-lg border border-border bg-background/50 p-6 text-center"
+			>
+				<p class="text-sm font-semibold text-foreground">Belum ada data pendapatan</p>
+				<p class="mt-1 text-xs text-muted-foreground">Silakan tunggu hingga ada transaksi masuk</p>
 			</div>
-			<div class="mt-4 flex justify-between px-2">
-				{#each Array(activeView === 'daily' ? 7 : 4) as _, i (i)}
-					<div class="h-4 w-8 animate-pulse rounded bg-border/40" data-val={_}></div>
-				{/each}
-			</div>
-		{:then}
+		{:else}
 			{#key activeView}
 				<div class="relative h-64 w-full animate-in overflow-hidden duration-300 fade-in">
 					<!-- Chart Bars -->
@@ -179,13 +190,71 @@
 						class="absolute bottom-0 left-0 flex h-full w-full items-end justify-between gap-2 px-2"
 					>
 						{#each chartBars as bar (bar.dayName)}
-							<div
-								class="w-full rounded-t-sm transition-all duration-500 {bar.isToday
-									? 'border-t-4 border-primary bg-primary/30'
-									: 'border-t-2 border-primary bg-primary/20'}"
-								style="height: {bar.height};"
-								title={bar.tooltip}
-							></div>
+							<HoverCard.Root openDelay={0} closeDelay={100}>
+								<HoverCard.Trigger>
+									{#snippet child({ props })}
+										<div
+											{...props}
+											class="w-full cursor-pointer rounded-t-sm transition-all duration-300 hover:brightness-125 {bar.isToday
+												? 'border-t-4 border-primary bg-primary/30'
+												: 'border-t-2 border-primary bg-primary/20'}"
+											style="height: {bar.height};"
+										></div>
+									{/snippet}
+								</HoverCard.Trigger>
+								<HoverCard.Content
+									class="z-50 w-64 rounded-xl border border-border bg-[#17191C] p-4 text-[#ECEDEE] shadow-xl"
+									side="top"
+									align="center"
+									sideOffset={10}
+								>
+									<div class="mb-3 border-b border-border/50 pb-2">
+										<h4 class="font-mono text-xs font-bold text-[#ECEDEE]">{bar.dayName}</h4>
+										<p class="font-mono text-[10px] text-muted-foreground">{bar.dateLabel}</p>
+									</div>
+									<div class="grid grid-cols-2 gap-x-2 gap-y-3">
+										<!-- Metrik 1: Retail -->
+										<div class="space-y-0.5">
+											<span class="block font-mono text-[9px] text-muted-foreground uppercase"
+												>Omzet Retail</span
+											>
+											<span class="block font-tight text-sm font-semibold"
+												>{formatRupiah(bar.revenue)}</span
+											>
+										</div>
+										<!-- Metrik 2: Laba -->
+										<div class="space-y-0.5">
+											<span class="block font-mono text-[9px] text-muted-foreground uppercase"
+												>Laba Kotor</span
+											>
+											<span class="block font-tight text-sm font-semibold text-[#B4FF39]"
+												>{formatRupiah(bar.grossProfit)}</span
+											>
+										</div>
+										<!-- Metrik 3: Brilink -->
+										<div class="space-y-0.5">
+											<span class="block font-mono text-[9px] text-muted-foreground uppercase"
+												>Brilink</span
+											>
+											<span class="block font-tight text-sm font-semibold"
+												>{formatRupiah(bar.brilinkCommission)}</span
+											>
+										</div>
+										<!-- Metrik 4: Transaksi & Items -->
+										<div class="space-y-0.5">
+											<span class="block font-mono text-[9px] text-muted-foreground uppercase"
+												>Transaksi / Item</span
+											>
+											<span class="block font-tight text-sm font-semibold"
+												>{bar.trxCount}
+												<span class="text-xs font-normal text-muted-foreground"
+													>/ {bar.itemsSold}</span
+												></span
+											>
+										</div>
+									</div>
+								</HoverCard.Content>
+							</HoverCard.Root>
 						{/each}
 					</div>
 					<!-- Grid Lines -->
@@ -211,14 +280,7 @@
 					{/each}
 				</div>
 			{/key}
-		{:catch error}
-			<div
-				class="flex h-64 flex-col items-center justify-center rounded-lg border border-destructive/20 bg-destructive/10 p-6 text-center"
-			>
-				<p class="text-sm font-semibold text-destructive">Gagal memuat tren pendapatan</p>
-				<p class="mt-1 text-xs text-muted-foreground">{error?.message || 'Terjadi kesalahan'}</p>
-			</div>
-		{/await}
+		{/if}
 	</Card.Root>
 
 	<!-- Data Columns (Table and Warnings) -->
@@ -259,68 +321,42 @@
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
-						{#await data.streamed.transactions}
-							{#each Array(3) as _, i (i)}
-								<Table.Row class="border-b border-border/50" data-val={_}>
-									<Table.Cell class="px-4 py-3"
-										><div class="h-4 w-16 animate-pulse rounded bg-border/40"></div></Table.Cell
-									>
-									<Table.Cell class="px-4 py-3"
-										><div class="h-4 w-32 animate-pulse rounded bg-border/40"></div></Table.Cell
-									>
-									<Table.Cell class="px-4 py-3"
-										><div class="h-4 w-20 animate-pulse rounded bg-border/40"></div></Table.Cell
-									>
-									<Table.Cell class="px-4 py-3"
-										><div class="h-5 w-12 animate-pulse rounded bg-border/40"></div></Table.Cell
-									>
-								</Table.Row>
-							{/each}
-						{:then transactions}
-							{#if transactions.length === 0}
-								<Table.Row>
-									<Table.Cell colspan={4} class="py-8 text-center text-sm text-muted-foreground">
-										Belum ada transaksi hari ini.
-									</Table.Cell>
-								</Table.Row>
-							{:else}
-								{#each transactions as trx (trx.id)}
-									<Table.Row class="border-b border-border/50 transition-colors hover:bg-border/10">
-										<Table.Cell class="px-4 py-3 font-mono text-xs text-foreground"
-											>{trx.trxNumber}</Table.Cell
-										>
-										<Table.Cell class="px-4 py-3 text-sm text-foreground"
-											>{getProductDisplay(trx.items)}</Table.Cell
-										>
-										<Table.Cell class="px-4 py-3 font-mono text-xs text-foreground"
-											>{formatRupiah(trx.totalAmount)}</Table.Cell
-										>
-										<Table.Cell class="px-4 py-3">
-											<Badge
-												class="rounded-sm border-transparent bg-primary/10 px-1.5 py-0.5 font-mono text-[9px] font-bold text-primary select-none"
-											>
-												<span class="mr-1.5 h-1.5 w-1.5 animate-pulse rounded-full bg-primary"
-												></span>
-												{trx.status.toUpperCase()}
-											</Badge>
-										</Table.Cell>
-									</Table.Row>
-								{/each}
-							{/if}
-						{:catch error}
+						{#if data.metrics.transactions.length === 0}
 							<Table.Row>
-								<Table.Cell colspan={4} class="py-8 text-center text-sm text-destructive">
-									Gagal memuat transaksi: {error?.message || 'Terjadi kesalahan'}
+								<Table.Cell colspan={4} class="py-8 text-center text-sm text-muted-foreground">
+									Belum ada transaksi hari ini.
 								</Table.Cell>
 							</Table.Row>
-						{/await}
+						{:else}
+							{#each data.metrics.transactions as trx (trx.id)}
+								<Table.Row class="border-b border-border/50 transition-colors hover:bg-border/10">
+									<Table.Cell class="px-4 py-3 font-mono text-xs text-foreground"
+										>{trx.trxNumber}</Table.Cell
+									>
+									<Table.Cell class="px-4 py-3 text-sm text-foreground"
+										>{getProductDisplay(trx.items)}</Table.Cell
+									>
+									<Table.Cell class="px-4 py-3 font-mono text-xs text-foreground"
+										>{formatRupiah(trx.totalAmount)}</Table.Cell
+									>
+									<Table.Cell class="px-4 py-3">
+										<Badge
+											class="rounded-sm border-transparent bg-primary/10 px-1.5 py-0.5 font-mono text-[9px] font-bold text-primary select-none"
+										>
+											<span class="mr-1.5 h-1.5 w-1.5 animate-pulse rounded-full bg-primary"></span>
+											{trx.status.toUpperCase()}
+										</Badge>
+									</Table.Cell>
+								</Table.Row>
+							{/each}
+						{/if}
 					</Table.Body>
 				</Table.Root>
 			</Card.Content>
 		</Card.Root>
 
 		<!-- Stock Warnings (Graphite Surfaces) -->
-		<Card.Root class="gap-0 overflow-hidden border-border bg-card pt-0">
+		<Card.Root class="flex flex-col gap-0 overflow-hidden border-border bg-card pt-0">
 			<Card.Header
 				class="flex flex-row items-center justify-between border-b border-border bg-background/30 p-4 [.border-b]:pb-4"
 			>
@@ -332,33 +368,14 @@
 					KRITIS
 				</Badge>
 			</Card.Header>
-			<Card.Content class="space-y-4 p-4">
-				{#await data.streamed.lowStock}
-					{#each Array(2) as _, i (i)}
-						<div
-							class="flex animate-pulse items-center justify-between rounded-lg border border-border bg-background p-4"
-							data-val={_}
-						>
-							<div class="flex items-center gap-3">
-								<div class="h-12 w-12 rounded border border-border bg-card"></div>
-								<div class="space-y-2">
-									<div class="h-4 w-32 rounded bg-border/40"></div>
-									<div class="h-3 w-20 rounded bg-border/40"></div>
-								</div>
-							</div>
-							<div class="space-y-2 text-right">
-								<div class="ml-auto h-4 w-12 rounded bg-border/40"></div>
-								<div class="ml-auto h-3 w-10 rounded bg-border/40"></div>
-							</div>
-						</div>
-					{/each}
-				{:then lowStock}
-					{#if lowStock.length === 0}
-						<div class="py-8 text-center text-sm text-muted-foreground">
-							Semua produk memiliki stok yang aman.
-						</div>
-					{:else}
-						{#each lowStock as product (product.id)}
+			<Card.Content class="flex flex-1 flex-col p-4">
+				{#if data.metrics.lowStock.length === 0}
+					<div class="flex flex-1 items-center justify-center py-8 text-center text-sm text-muted-foreground">
+						Semua produk memiliki stok yang aman.
+					</div>
+				{:else}
+					<div class="space-y-4">
+						{#each data.metrics.lowStock as product (product.id)}
 							<div
 								class="flex items-center justify-between rounded-lg border border-border bg-background p-4"
 							>
@@ -391,12 +408,8 @@
 								</div>
 							</div>
 						{/each}
-					{/if}
-				{:catch error}
-					<div class="py-8 text-center text-sm text-destructive">
-						Gagal memuat data stok: {error?.message || 'Terjadi kesalahan'}
 					</div>
-				{/await}
+				{/if}
 			</Card.Content>
 		</Card.Root>
 	</div>
