@@ -15,11 +15,16 @@ const mockValues = mock().mockReturnValue({ returning: mockReturning });
 const mockInsert = mock().mockReturnValue({ values: mockValues });
 
 const mockWhere = mock().mockReturnValue({ returning: mockReturning });
-const mockSet = mock().mockReturnValue({ set: mock().mockReturnValue({ where: mockWhere }), where: mockWhere });
+const mockSet = mock().mockReturnValue({
+  set: mock().mockReturnValue({ where: mockWhere }),
+  where: mockWhere,
+});
 const mockUpdate = mock().mockReturnValue({ set: mockSet });
 
 const mockSelectResult = mock().mockResolvedValue([]);
-const mockLimit = mock().mockReturnValue({ offset: mock().mockReturnValue(Promise.resolve([])) });
+const mockLimit = mock().mockReturnValue({
+  offset: mock().mockReturnValue(Promise.resolve([])),
+});
 const mockOrderBy = mock().mockReturnValue({ limit: mockLimit });
 const mockSelectWhere = mock();
 mockSelectWhere.mockImplementation(() => {
@@ -92,10 +97,16 @@ describe("Transaction Service Unit Testing", () => {
 
     it("should successfully create a transaction (Happy Path)", async () => {
       mockReturning
-        .mockResolvedValueOnce([{ id: mockTransactionId, trxNumber: "TRX-2024-TEST" }]) // transaction insert
+        .mockResolvedValueOnce([
+          { id: mockTransactionId, trxNumber: "TRX-2024-TEST" },
+        ]) // transaction insert
         .mockResolvedValueOnce([]); // items insert
 
-      const result = await createTransaction(mockTenantId, mockCashierId, validArgs);
+      const result = await createTransaction(
+        mockTenantId,
+        mockCashierId,
+        validArgs,
+      );
 
       expect(result.trxNumber).toBeDefined();
       expect(result.totalAmount).toBe(20000);
@@ -107,15 +118,17 @@ describe("Transaction Service Unit Testing", () => {
     it("should throw ConflictError if amount paid is less than total amount (Edge Case: Insufficient Funds)", async () => {
       const invalidArgs = { ...validArgs, amountPaid: 15000 };
 
-      expect(createTransaction(mockTenantId, mockCashierId, invalidArgs))
-        .rejects.toThrow(ConflictError);
+      expect(
+        createTransaction(mockTenantId, mockCashierId, invalidArgs),
+      ).rejects.toThrow(ConflictError);
     });
 
     it("should throw ConflictError if database fails to return new transaction (Edge Case: DB Failure)", async () => {
       mockReturning.mockResolvedValue([]);
 
-      expect(createTransaction(mockTenantId, mockCashierId, validArgs))
-        .rejects.toThrow(ConflictError);
+      expect(
+        createTransaction(mockTenantId, mockCashierId, validArgs),
+      ).rejects.toThrow(ConflictError);
     });
 
     it("should handle items with zero quantity or price (Edge Case: Invalid Numerics)", async () => {
@@ -126,14 +139,22 @@ describe("Transaction Service Unit Testing", () => {
       };
       mockReturning.mockResolvedValue([{ id: "id", trxNumber: "TRX-ZERO" }]);
 
-      const result = await createTransaction(mockTenantId, mockCashierId, zeroQtyArgs);
+      const result = await createTransaction(
+        mockTenantId,
+        mockCashierId,
+        zeroQtyArgs,
+      );
       expect(result.totalAmount).toBe(0);
       expect(result.changeAmount).toBe(1000);
     });
 
     it("should generate a random transaction number with TRX prefix", async () => {
       mockReturning.mockResolvedValue([{ id: "id", trxNumber: "TRX-RAND" }]);
-      const result = await createTransaction(mockTenantId, mockCashierId, validArgs);
+      const result = await createTransaction(
+        mockTenantId,
+        mockCashierId,
+        validArgs,
+      );
       expect(result.trxNumber).toMatch(/^TRX-/);
     });
   });
@@ -142,7 +163,9 @@ describe("Transaction Service Unit Testing", () => {
     const query = { limit: 10, page: 1 };
 
     it("should return list of transactions with pagination meta (Happy Path)", async () => {
-      (db.query.transactions.findMany as any).mockResolvedValue([{ id: "1", trxNumber: "TRX-1" }]);
+      (db.query.transactions.findMany as any).mockResolvedValue([
+        { id: "1", trxNumber: "TRX-1" },
+      ]);
       mockSelectResult.mockResolvedValueOnce([{ totalData: 15 }]);
 
       const result = await getTransactions(mockTenantId, query);
@@ -168,7 +191,11 @@ describe("Transaction Service Unit Testing", () => {
     });
 
     it("should handle date range (from/to) filtering correctly", async () => {
-      await getTransactions(mockTenantId, { ...query, from: "2024-05-01", to: "2024-05-31" });
+      await getTransactions(mockTenantId, {
+        ...query,
+        from: "2024-05-01",
+        to: "2024-05-31",
+      });
       const callArgs = (db.query.transactions.findMany as any).mock.calls[0][0];
       expect(callArgs.where).toBeDefined();
     });
@@ -179,15 +206,18 @@ describe("Transaction Service Unit Testing", () => {
       const mockTrx = { id: mockTransactionId, trxNumber: "TRX-DET" };
       (db.query.transactions.findFirst as any).mockResolvedValue(mockTrx);
 
-      const result = await getTransactionDetail(mockTenantId, { id: mockTransactionId });
+      const result = await getTransactionDetail(mockTenantId, {
+        id: mockTransactionId,
+      });
       expect(result.trxNumber).toBe("TRX-DET");
     });
 
     it("should throw TransactionNotFoundError if data not found or belongs to another tenant (Multi-Tenant)", async () => {
       (db.query.transactions.findFirst as any).mockResolvedValue(null);
 
-      expect(getTransactionDetail(mockTenantId, { id: "not-my-id" }))
-        .rejects.toThrow(TransactionNotFoundError);
+      expect(
+        getTransactionDetail(mockTenantId, { id: "not-my-id" }),
+      ).rejects.toThrow(TransactionNotFoundError);
     });
   });
 
@@ -197,7 +227,10 @@ describe("Transaction Service Unit Testing", () => {
         id: mockTransactionId,
         status: "success",
         trxNumber: "TRX-VOID",
-        items: [{ productId: "p1", qty: 2 }, { productId: "p2", qty: 3 }],
+        items: [
+          { productId: "p1", qty: 2 },
+          { productId: "p2", qty: 3 },
+        ],
       };
       (mockTx.query.transactions.findFirst as any).mockResolvedValue(mockTrx);
 
@@ -210,15 +243,19 @@ describe("Transaction Service Unit Testing", () => {
     it("should throw TransactionNotFoundError if transaction not found for the tenant (Multi-Tenant)", async () => {
       (mockTx.query.transactions.findFirst as any).mockResolvedValue(null);
 
-      expect(voidTransaction(mockOtherTenantId, mockTransactionId))
-        .rejects.toThrow(TransactionNotFoundError);
+      expect(
+        voidTransaction(mockOtherTenantId, mockTransactionId),
+      ).rejects.toThrow(TransactionNotFoundError);
     });
 
     it("should throw ConflictError if transaction is already void (Edge Case)", async () => {
-      (mockTx.query.transactions.findFirst as any).mockResolvedValue({ status: "void" });
+      (mockTx.query.transactions.findFirst as any).mockResolvedValue({
+        status: "void",
+      });
 
-      expect(voidTransaction(mockTenantId, mockTransactionId))
-        .rejects.toThrow(ConflictError);
+      expect(voidTransaction(mockTenantId, mockTransactionId)).rejects.toThrow(
+        ConflictError,
+      );
     });
 
     it("should correctly increment stock when voiding (Data Integrity)", async () => {
@@ -230,7 +267,7 @@ describe("Transaction Service Unit Testing", () => {
       (mockTx.query.transactions.findFirst as any).mockResolvedValue(mockTrx);
 
       await voidTransaction(mockTenantId, "trx-1");
-      
+
       const stockUpdateCall = (mockTx.update as any).mock.calls[1][0];
       expect(stockUpdateCall).toBeDefined();
     });

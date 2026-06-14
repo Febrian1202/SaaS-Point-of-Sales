@@ -20,7 +20,7 @@ export const registerCashier = async (
     where: eq(users.email, data.email),
   });
 
-  if (existingUser) throw new ConflictError("Email already registered!");
+  if (existingUser) throw new ConflictError("Email sudah terdaftar!");
 
   // Hash password kasir
   const hashedPassword = await Bun.password.hash(data.password, {
@@ -47,7 +47,7 @@ export const registerCashier = async (
       tenantId: users.tenantId,
     });
 
-  if (!newCashier) throw new RegisterError("Failed to register new cashier!");
+  if (!newCashier) throw new RegisterError("Gagal mendaftarkan kasir baru!");
 
   return {
     id: newCashier.id,
@@ -96,7 +96,7 @@ export const getUser = async (userId: string) => {
     },
   });
 
-  if (!user) throw new SessionError("User not found!");
+  if (!user) throw new SessionError("Pengguna tidak ditemukan!");
 
   return {
     id: user.id,
@@ -146,7 +146,7 @@ export const updateCashier = async (
       tenantId: users.tenantId,
     });
 
-  if (!updatedUser) throw new UserNotFoundError("Cashier not found!");
+  if (!updatedUser) throw new UserNotFoundError("Kasir tidak ditemukan!");
 
   return {
     id: updatedUser.id,
@@ -176,7 +176,7 @@ export const deleteCashier = async (id: string, tenantId: string) => {
       id: users.id,
     });
 
-  if (!deletedCashier) throw new UserNotFoundError("Cashier not found!");
+  if (!deletedCashier) throw new UserNotFoundError("Kasir tidak ditemukan!");
 
   return deletedCashier;
 };
@@ -218,7 +218,7 @@ export const updateOwnProfile = async (
       tenantId: users.tenantId,
     });
 
-  if (!updatedProfile) throw new UserNotFoundError("Cashier not found!");
+  if (!updatedProfile) throw new UserNotFoundError("Kasir tidak ditemukan!");
 
   return {
     id: updatedProfile.id,

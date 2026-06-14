@@ -38,7 +38,7 @@ export const createTransaction = async (
   // validasi pembayaran
   if (args.amountPaid < totalAmount)
     throw new ConflictError(
-      `Insufficient funds! Total amount ${totalAmount}, Amount paid ${args.amountPaid}`,
+      `Uang tidak cukup! Total belanja ${totalAmount}, Uang dibayar ${args.amountPaid}`,
     );
   const changeAmount = args.amountPaid - totalAmount;
 
@@ -65,7 +65,7 @@ export const createTransaction = async (
         trxNumber: transactions.trxNumber,
       });
 
-    if (!newTransaction) throw new ConflictError("Failed creating transaction");
+    if (!newTransaction) throw new ConflictError("Gagal membuat transaksi");
 
     // Inject id transaction ke item
     const finalItemsToInsert = itemsToInsert.map((item) => ({
@@ -206,9 +206,7 @@ export const getTransactionDetail = async (
   });
 
   if (!data)
-    throw new TransactionNotFoundError(
-      "Failed, data transaction doesn't exist",
-    );
+    throw new TransactionNotFoundError("Gagal, data transaksi tidak ditemukan");
 
   return data;
 };
@@ -228,9 +226,9 @@ export const voidTransaction = async (
     });
 
     if (!transaction)
-      throw new TransactionNotFoundError("Transaction not found!");
+      throw new TransactionNotFoundError("Transaksi tidak ditemukan!");
     if (transaction.status === "void")
-      throw new ConflictError("This transaction already cancelled!");
+      throw new ConflictError("Transaksi ini sudah dibatalkan!");
 
     // Ubah status transaksi menjadi void
     await tx

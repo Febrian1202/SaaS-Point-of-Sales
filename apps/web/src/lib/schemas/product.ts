@@ -4,8 +4,8 @@ export const productSchema = z.object({
 	name: z.string().min(1, 'Nama produk tidak boleh kosong'),
 	barcode: z.string().optional(),
 	categoryId: z.string().optional(),
-	sellingPrice: z.string().min(1, 'Harga tidak boleh kosong'),
-	stockQty: z.number().min(0, 'Stok tidak boleh negatif'),
+	sellingPrice: z.number({ error: 'Harga harus angka' }).min(1, 'Harga tidak boleh kosong'),
+	stockQty: z.number({ error: 'Stok harus angka' }).min(0, 'Stok tidak boleh negatif'),
 	unit: z.string().min(1, 'Satuan/unit wajib diisi')
 });
 

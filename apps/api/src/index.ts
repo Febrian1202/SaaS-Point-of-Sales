@@ -27,11 +27,14 @@ const app = new Elysia()
       ? rateLimit({
           duration: 60000,
           max: 120,
-          errorResponse: new Response("Too many request. Please wait a moment", {
-            status: 429,
-          }),
+          errorResponse: new Response(
+            "Too many request. Please wait a moment",
+            {
+              status: 429,
+            },
+          ),
         })
-      : (app) => app
+      : (app) => app,
   )
   .use(corsPlugin)
   .error({

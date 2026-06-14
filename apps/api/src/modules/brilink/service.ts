@@ -23,7 +23,7 @@ export const createBrilinkTransaction = async (
   });
 
   if (existedTransaction)
-    throw new ConflictError("Brilink Transaction already exist!");
+    throw new ConflictError("Transaksi Brilink sudah ada!");
 
   const [result] = await db
     .insert(brilinkTransactions)
@@ -47,7 +47,7 @@ export const createBrilinkTransaction = async (
       status: brilinkTransactions.status,
     });
 
-  if (!result) throw new ConflictError("Creating Brilink Transaction failed!");
+  if (!result) throw new ConflictError("Gagal membuat Transaksi Brilink!");
 
   return result;
 };
@@ -165,7 +165,7 @@ export const getBrilinkTransactionDetail = async (
   });
 
   if (!data)
-    throw new BrilinkNotFoundError("Failed, Brilink transaction not found!");
+    throw new BrilinkNotFoundError("Gagal, transaksi Brilink tidak ditemukan!");
 
   return data;
 };
@@ -184,11 +184,11 @@ export const voidBrilink = async (
   });
 
   if (!transaction)
-    throw new BrilinkNotFoundError("Brilink transaction not found!");
+    throw new BrilinkNotFoundError("Transaksi Brilink tidak ditemukan!");
 
   if (transaction.status === "void" || transaction.status === "failed") {
     throw new ConflictError(
-      `This transaction is already ${transaction.status}`,
+      `Gagal, transaksi ini sudah berstatus ${transaction.status}`,
     );
   }
 

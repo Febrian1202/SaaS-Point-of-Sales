@@ -29,14 +29,14 @@ export const authRoutes = new Elysia({
   .use(
     Bun.env.NODE_ENV === "production"
       ? rateLimit({
-        duration: 60000,
-        max: 5,
-        errorResponse: new Response(
-          "Too many login attempts. Please wait 1 minute.",
-          { status: 429 },
-        ),
-      })
-      : (app) => app
+          duration: 60000,
+          max: 5,
+          errorResponse: new Response(
+            "Too many login attempts. Please wait 1 minute.",
+            { status: 429 },
+          ),
+        })
+      : (app) => app,
   )
   .error({
     LOGIN_ERROR: LoginError,
@@ -174,17 +174,17 @@ export const authRoutes = new Elysia({
     "/refresh",
     async ({ refreshJwt, accessJwt, cookie: { refreshToken } }) => {
       if (!refreshToken.value)
-        throw new SessionError("Session is not valid, or session expired");
+        throw new SessionError("Sesi tidak valid, atau sesi telah berakhir");
 
       const payload = await refreshJwt.verify(refreshToken.value);
 
       if (!payload)
-        throw new SessionError("Session is not valid, or session expired");
+        throw new SessionError("Sesi tidak valid, atau sesi telah berakhir");
 
       const user = await getUser(payload.sub as string);
 
       if (refreshToken.value !== user.refreshToken) {
-        throw new SessionError("Session ended (logged out).");
+        throw new SessionError("Sesi telah berakhir (logout).");
       }
 
       const newAccessToken = await accessJwt.sign({

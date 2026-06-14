@@ -83,12 +83,8 @@
           "name": "brilink_transactions_tenant_id_multi-tenant_id_fk",
           "tableFrom": "brilink_transactions",
           "tableTo": "multi-tenant",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -96,12 +92,8 @@
           "name": "brilink_transactions_cashier_id_users_id_fk",
           "tableFrom": "brilink_transactions",
           "tableTo": "users",
-          "columnsFrom": [
-            "cashier_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cashier_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -148,12 +140,8 @@
           "name": "categories_tenant_id_multi-tenant_id_fk",
           "tableFrom": "categories",
           "tableTo": "multi-tenant",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -163,9 +151,7 @@
         "categories_slug_unique": {
           "name": "categories_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -245,12 +231,8 @@
           "name": "daily_summaries_tenant_id_multi-tenant_id_fk",
           "tableFrom": "daily_summaries",
           "tableTo": "multi-tenant",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -260,10 +242,7 @@
         "unique_tenant_date": {
           "name": "unique_tenant_date",
           "nullsNotDistinct": false,
-          "columns": [
-            "tenant_id",
-            "summary_date"
-          ]
+          "columns": ["tenant_id", "summary_date"]
         }
       },
       "policies": {},
@@ -321,9 +300,7 @@
         "multi-tenant_slug_unique": {
           "name": "multi-tenant_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -392,12 +369,8 @@
           "name": "users_tenant_id_multi-tenant_id_fk",
           "tableFrom": "users",
           "tableTo": "multi-tenant",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -482,12 +455,8 @@
           "name": "products_tenant_id_multi-tenant_id_fk",
           "tableFrom": "products",
           "tableTo": "multi-tenant",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -495,12 +464,8 @@
           "name": "products_category_id_categories_id_fk",
           "tableFrom": "products",
           "tableTo": "categories",
-          "columnsFrom": [
-            "category_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["category_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -572,12 +537,8 @@
           "name": "transactions_tenant_id_multi-tenant_id_fk",
           "tableFrom": "transactions",
           "tableTo": "multi-tenant",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -585,12 +546,8 @@
           "name": "transactions_cashier_id_users_id_fk",
           "tableFrom": "transactions",
           "tableTo": "users",
-          "columnsFrom": [
-            "cashier_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cashier_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -600,9 +557,7 @@
         "transactions_trx_number_unique": {
           "name": "transactions_trx_number_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "trx_number"
-          ]
+          "columns": ["trx_number"]
         }
       },
       "policies": {},
@@ -657,12 +612,8 @@
           "name": "transaction_items_transaction_id_transactions_id_fk",
           "tableFrom": "transaction_items",
           "tableTo": "transactions",
-          "columnsFrom": [
-            "transaction_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["transaction_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -670,12 +621,8 @@
           "name": "transaction_items_product_id_products_id_fk",
           "tableFrom": "transaction_items",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

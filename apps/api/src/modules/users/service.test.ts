@@ -11,7 +11,9 @@ const mockSet = mock().mockReturnValue({ where: mockWhere });
 const mockUpdate = mock().mockReturnValue({ set: mockSet });
 
 const mockInsertReturning = mock();
-const mockInsertValues = mock().mockReturnValue({ returning: mockInsertReturning });
+const mockInsertValues = mock().mockReturnValue({
+  returning: mockInsertReturning,
+});
 const mockInsert = mock().mockReturnValue({ values: mockInsertValues });
 
 mock.module("@db", () => ({
@@ -51,42 +53,53 @@ describe("Users Service Unit Tests", () => {
 
     it("should register a new cashier successfully (Happy Path)", async () => {
       (db.query.users.findFirst as any).mockResolvedValue(null);
-      mockInsertReturning.mockResolvedValue([{
-        id: CASHIER_ID,
-        name: validData.name,
-        email: validData.email,
-        role: "cashier",
-        tenantId: TENANT_A
-      }]);
+      mockInsertReturning.mockResolvedValue([
+        {
+          id: CASHIER_ID,
+          name: validData.name,
+          email: validData.email,
+          role: "cashier",
+          tenantId: TENANT_A,
+        },
+      ]);
 
       const result = await service.registerCashier(TENANT_A, validData);
-      
+
       expect(result.id).toBe(CASHIER_ID);
       expect(result.role).toBe("cashier");
       expect(Bun.password.hash).toHaveBeenCalled();
     });
 
     it("should throw ConflictError if email is already used anywhere (Cross-Tenant Uniqueness)", async () => {
-      (db.query.users.findFirst as any).mockResolvedValue({ id: "existing-id", email: validData.email });
-      
-      expect(service.registerCashier(TENANT_A, validData)).rejects.toThrow(ConflictError);
+      (db.query.users.findFirst as any).mockResolvedValue({
+        id: "existing-id",
+        email: validData.email,
+      });
+
+      expect(service.registerCashier(TENANT_A, validData)).rejects.toThrow(
+        ConflictError,
+      );
     });
 
     it("should throw RegisterError if database insertion returns empty (DB Failure Edge Case)", async () => {
       (db.query.users.findFirst as any).mockResolvedValue(null);
       mockInsertReturning.mockResolvedValue([]);
 
-      expect(service.registerCashier(TENANT_A, validData)).rejects.toThrow(RegisterError);
+      expect(service.registerCashier(TENANT_A, validData)).rejects.toThrow(
+        RegisterError,
+      );
     });
   });
 
   describe("getCashier", () => {
     it("should return only active cashiers for the specific tenant (Multi-Tenant & Soft Delete)", async () => {
-      const mockData = [{ id: "1", tenantId: TENANT_A, role: "cashier", isActive: true }];
+      const mockData = [
+        { id: "1", tenantId: TENANT_A, role: "cashier", isActive: true },
+      ];
       (db.query.users.findMany as any).mockResolvedValue(mockData);
 
       const result = await service.getCashier(TENANT_A);
-      
+
       expect(result).toHaveLength(1);
       expect(result[0]?.tenantId).toBe(TENANT_A);
       expect(result[0]?.role).toBe("cashier");
@@ -101,7 +114,10 @@ describe("Users Service Unit Tests", () => {
 
   describe("getUser", () => {
     it("should return active user profile (Happy Path)", async () => {
-      (db.query.users.findFirst as any).mockResolvedValue({ id: CASHIER_ID, isActive: true });
+      (db.query.users.findFirst as any).mockResolvedValue({
+        id: CASHIER_ID,
+        isActive: true,
+      });
       const result = await service.getUser(CASHIER_ID);
       expect(result.id).toBe(CASHIER_ID);
     });
@@ -113,12 +129,22 @@ describe("Users Service Unit Tests", () => {
   });
 
   describe("updateCashier", () => {
-    const updateData = { name: "Jane Updated", email: "jane@upd.com", password: "newpassword" };
+    const updateData = {
+      name: "Jane Updated",
+      email: "jane@upd.com",
+      password: "newpassword",
+    };
 
     it("should update cashier and re-hash password (Happy Path)", async () => {
-      mockReturning.mockResolvedValue([{ id: CASHIER_ID, ...updateData, tenantId: TENANT_A }]);
+      mockReturning.mockResolvedValue([
+        { id: CASHIER_ID, ...updateData, tenantId: TENANT_A },
+      ]);
 
-      const result = await service.updateCashier(CASHIER_ID, TENANT_A, updateData);
+      const result = await service.updateCashier(
+        CASHIER_ID,
+        TENANT_A,
+        updateData,
+      );
       expect(result.name).toBe("Jane Updated");
       expect(Bun.password.hash).toHaveBeenCalled();
     });
@@ -126,7 +152,9 @@ describe("Users Service Unit Tests", () => {
     it("should throw UserNotFoundError if attempting to update user in another tenant (Multi-Tenant Security)", async () => {
       mockReturning.mockResolvedValue([]);
 
-      expect(service.updateCashier(CASHIER_ID, TENANT_B, updateData)).rejects.toThrow(UserNotFoundError);
+      expect(
+        service.updateCashier(CASHIER_ID, TENANT_B, updateData),
+      ).rejects.toThrow(UserNotFoundError);
     });
   });
 
@@ -141,28 +169,39 @@ describe("Users Service Unit Tests", () => {
     it("should throw UserNotFoundError for invalid ID or tenant mismatch (ID Manipulation)", async () => {
       mockReturning.mockResolvedValue([]);
 
-      expect(service.deleteCashier("fake-id", TENANT_A)).rejects.toThrow(UserNotFoundError);
+      expect(service.deleteCashier("fake-id", TENANT_A)).rejects.toThrow(
+        UserNotFoundError,
+      );
     });
   });
 
   describe("updateOwnProfile", () => {
     it("should allow profile update for the logged-in cashier (Happy Path)", async () => {
-      mockReturning.mockResolvedValue([{ id: CASHIER_ID, name: "Self Updated" }]);
+      mockReturning.mockResolvedValue([
+        { id: CASHIER_ID, name: "Self Updated" },
+      ]);
 
-      const result = await service.updateOwnProfile(CASHIER_ID, TENANT_A, { name: "Self Updated" });
+      const result = await service.updateOwnProfile(CASHIER_ID, TENANT_A, {
+        name: "Self Updated",
+      });
       expect(result.name).toBe("Self Updated");
     });
 
     it("should throw UserNotFoundError if profile doesn't exist or role is not cashier (RBAC check)", async () => {
       mockReturning.mockResolvedValue([]);
 
-      expect(service.updateOwnProfile(CASHIER_ID, TENANT_A, { name: "Hack" })).rejects.toThrow(UserNotFoundError);
+      expect(
+        service.updateOwnProfile(CASHIER_ID, TENANT_A, { name: "Hack" }),
+      ).rejects.toThrow(UserNotFoundError);
     });
 
     it("should properly hash password when updating own profile", async () => {
-       mockReturning.mockResolvedValue([{ id: CASHIER_ID, name: "X" }]);
+      mockReturning.mockResolvedValue([{ id: CASHIER_ID, name: "X" }]);
 
-      await service.updateOwnProfile(CASHIER_ID, TENANT_A, { name: "X", password: "new" });
+      await service.updateOwnProfile(CASHIER_ID, TENANT_A, {
+        name: "X",
+        password: "new",
+      });
       expect(Bun.password.hash).toHaveBeenCalled();
     });
   });

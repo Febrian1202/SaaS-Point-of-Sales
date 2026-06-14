@@ -6,7 +6,11 @@ import { ConflictError } from "@/plugins";
 import { slugify } from "@helper";
 import type { ArgsUpdateCategory } from "./schema";
 
-export const getCategory = async (tenantId: string, search?: string, slug?: string) => {
+export const getCategory = async (
+  tenantId: string,
+  search?: string,
+  slug?: string,
+) => {
   const filters = [eq(categories.tenantId, tenantId)];
 
   if (search) filters.push(ilike(categories.name, `%${search}%`));
@@ -34,7 +38,7 @@ export const getCategoryDetail = async (id: string, tenantId: string) => {
     orderBy: desc(categories.updatedAt),
   });
 
-  if (!result) throw new CategoryNotFoundError("Category not found!");
+  if (!result) throw new CategoryNotFoundError("Kategori tidak ditemukan!");
 
   return result;
 };
@@ -42,7 +46,7 @@ export const getCategoryDetail = async (id: string, tenantId: string) => {
 export const postCategory = async (name: string, tenantId: string) => {
   const exist = await existingCategory(name, tenantId);
 
-  if (exist) throw new ConflictError("Failed, category already exist!");
+  if (exist) throw new ConflictError("Gagal, kategori sudah ada!");
 
   const slug = slugify(name);
 
@@ -73,15 +77,14 @@ export const updateCategory = async (
   });
 
   if (!currentCategory)
-    throw new CategoryNotFoundError(`Failed, category not found!`);
+    throw new CategoryNotFoundError(`Gagal, kategori tidak ditemukan!`);
 
   let newSlug: string | undefined = undefined;
 
   if (params.name && params.name !== currentCategory.name) {
     const exist = await existingCategory(params.name, tenantId);
 
-    if (exist)
-      throw new ConflictError(`Category ${params.name} already exist!`);
+    if (exist) throw new ConflictError(`Kategori ${params.name} sudah ada!`);
 
     newSlug = slugify(params.name);
   }
@@ -103,7 +106,8 @@ export const deleteCategory = async (id: string, tenantId: string) => {
     where: and(eq(categories.tenantId, tenantId), eq(categories.id, id)),
   });
 
-  if (!existingCategory) throw new CategoryNotFoundError("Category not found!");
+  if (!existingCategory)
+    throw new CategoryNotFoundError("Kategori tidak ditemukan!");
 
   const existingProduct = await db.query.products.findFirst({
     where: eq(products.categoryId, id),
@@ -111,7 +115,7 @@ export const deleteCategory = async (id: string, tenantId: string) => {
 
   if (existingProduct)
     throw new ConflictError(
-      `Failed! category ${existingCategory.name} is still used by another product and cannot be deleted!`,
+      `Gagal! Kategori ${existingCategory.name} masih digunakan oleh produk lain dan tidak dapat dihapus!`,
     );
 
   await db

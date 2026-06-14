@@ -40,7 +40,15 @@ describe("Category Service - Unit Testing", () => {
 
   describe("getCategory", () => {
     it("Happy Path: should return list of categories for specific tenant", async () => {
-      const mockData = [{ id: "1", name: "Food", slug: "food", createdAt: null, updatedAt: null }];
+      const mockData = [
+        {
+          id: "1",
+          name: "Food",
+          slug: "food",
+          createdAt: null,
+          updatedAt: null,
+        },
+      ];
       (db.query.categories.findMany as any).mockResolvedValue(mockData);
 
       const result = await getCategory(mockTenantId);
@@ -52,21 +60,28 @@ describe("Category Service - Unit Testing", () => {
     it("Edge Case: should apply search filter correctly", async () => {
       await getCategory(mockTenantId, "Snack");
       const callArgs = (db.query.categories.findMany as any).mock.calls[0][0];
-      
+
       expect(callArgs.where).toBeDefined();
     });
 
     it("Edge Case: should only return data for the requested tenantId (Isolation)", async () => {
       await getCategory(mockTenantId);
       const callArgs = (db.query.categories.findMany as any).mock.calls[0][0];
-      
+
       expect(callArgs.where).toBeDefined();
     });
   });
 
   describe("getCategoryDetail", () => {
     it("Happy Path: should return category detail if exists", async () => {
-      const mockData = { id: mockCategoryId, name: "Drink", slug: "drink", createdAt: null, updatedAt: null, tenantId: mockTenantId };
+      const mockData = {
+        id: mockCategoryId,
+        name: "Drink",
+        slug: "drink",
+        createdAt: null,
+        updatedAt: null,
+        tenantId: mockTenantId,
+      };
       (db.query.categories.findFirst as any).mockResolvedValue(mockData);
 
       const result = await getCategoryDetail(mockCategoryId, mockTenantId);
@@ -77,13 +92,17 @@ describe("Category Service - Unit Testing", () => {
     it("Edge Case: should throw CategoryNotFoundError if ID does not exist", async () => {
       (db.query.categories.findFirst as any).mockResolvedValue(null);
 
-      expect(getCategoryDetail(mockCategoryId, mockTenantId)).rejects.toThrow(CategoryNotFoundError);
+      expect(getCategoryDetail(mockCategoryId, mockTenantId)).rejects.toThrow(
+        CategoryNotFoundError,
+      );
     });
 
     it("Edge Case: should throw CategoryNotFoundError if ID exists but belongs to different tenant (Data Leakage Protection)", async () => {
       (db.query.categories.findFirst as any).mockResolvedValue(null);
 
-      expect(getCategoryDetail(mockCategoryId, "wrong-tenant-id")).rejects.toThrow(CategoryNotFoundError);
+      expect(
+        getCategoryDetail(mockCategoryId, "wrong-tenant-id"),
+      ).rejects.toThrow(CategoryNotFoundError);
     });
   });
 
@@ -92,7 +111,9 @@ describe("Category Service - Unit Testing", () => {
       (db.query.categories.findFirst as any).mockResolvedValue(null);
       (db.insert as any).mockReturnValue({
         values: mock(() => ({
-          returning: mock(() => [{ id: "new-id", name: "Fresh Milk", slug: "fresh-milk" }]),
+          returning: mock(() => [
+            { id: "new-id", name: "Fresh Milk", slug: "fresh-milk" },
+          ]),
         })),
       });
 
@@ -103,7 +124,9 @@ describe("Category Service - Unit Testing", () => {
     });
 
     it("Edge Case: should throw ConflictError if category name already exists in same tenant", async () => {
-      (db.query.categories.findFirst as any).mockResolvedValue({ name: "Food" });
+      (db.query.categories.findFirst as any).mockResolvedValue({
+        name: "Food",
+      });
 
       expect(postCategory("Food", mockTenantId)).rejects.toThrow(ConflictError);
     });
@@ -130,12 +153,16 @@ describe("Category Service - Unit Testing", () => {
       (db.update as any).mockReturnValue({
         set: mock(() => ({
           where: mock(() => ({
-            returning: mock(() => [{ id: mockCategoryId, name: "New Name", slug: "new-name" }]),
+            returning: mock(() => [
+              { id: mockCategoryId, name: "New Name", slug: "new-name" },
+            ]),
           })),
         })),
       });
 
-      const result = await updateCategory(mockCategoryId, mockTenantId, { name: "New Name" });
+      const result = await updateCategory(mockCategoryId, mockTenantId, {
+        name: "New Name",
+      });
 
       expect(result?.slug).toBe("new-name");
     });
@@ -145,19 +172,26 @@ describe("Category Service - Unit Testing", () => {
         .mockResolvedValueOnce({ name: "Old Name" })
         .mockResolvedValueOnce({ name: "Existing Name" });
 
-      expect(updateCategory(mockCategoryId, mockTenantId, { name: "Existing Name" })).rejects.toThrow(ConflictError);
+      expect(
+        updateCategory(mockCategoryId, mockTenantId, { name: "Existing Name" }),
+      ).rejects.toThrow(ConflictError);
     });
 
     it("Edge Case: should throw CategoryNotFoundError when updating non-existent category", async () => {
       (db.query.categories.findFirst as any).mockResolvedValue(null);
 
-      expect(updateCategory("invalid-id", mockTenantId, { name: "New" })).rejects.toThrow(CategoryNotFoundError);
+      expect(
+        updateCategory("invalid-id", mockTenantId, { name: "New" }),
+      ).rejects.toThrow(CategoryNotFoundError);
     });
   });
 
   describe("deleteCategory", () => {
     it("Happy Path: should delete category if it has no associated products", async () => {
-      (db.query.categories.findFirst as any).mockResolvedValue({ id: mockCategoryId, name: "Unused" });
+      (db.query.categories.findFirst as any).mockResolvedValue({
+        id: mockCategoryId,
+        name: "Unused",
+      });
       (db.query.products.findFirst as any).mockResolvedValue(null);
       (db.delete as any).mockReturnValue({
         where: mock(() => Promise.resolve()),
@@ -169,22 +203,31 @@ describe("Category Service - Unit Testing", () => {
     });
 
     it("Edge Case: should throw ConflictError if category is still used by products (Relational Integrity)", async () => {
-      (db.query.categories.findFirst as any).mockResolvedValue({ id: mockCategoryId, name: "Used" });
+      (db.query.categories.findFirst as any).mockResolvedValue({
+        id: mockCategoryId,
+        name: "Used",
+      });
       (db.query.products.findFirst as any).mockResolvedValue({ id: "prod-1" });
 
-      expect(deleteCategory(mockCategoryId, mockTenantId)).rejects.toThrow(ConflictError);
+      expect(deleteCategory(mockCategoryId, mockTenantId)).rejects.toThrow(
+        ConflictError,
+      );
     });
 
     it("Edge Case: should throw CategoryNotFoundError if trying to delete from wrong tenant", async () => {
       (db.query.categories.findFirst as any).mockResolvedValue(null);
 
-      expect(deleteCategory(mockCategoryId, "hacker-tenant-id")).rejects.toThrow(CategoryNotFoundError);
+      expect(
+        deleteCategory(mockCategoryId, "hacker-tenant-id"),
+      ).rejects.toThrow(CategoryNotFoundError);
     });
 
     it("Edge Case: should not allow deletion of category even if it exists in DB but not for this tenant", async () => {
       (db.query.categories.findFirst as any).mockResolvedValue(null);
-      
-      await expect(deleteCategory(mockCategoryId, mockTenantId)).rejects.toThrow(CategoryNotFoundError);
+
+      await expect(
+        deleteCategory(mockCategoryId, mockTenantId),
+      ).rejects.toThrow(CategoryNotFoundError);
       expect(db.delete).not.toHaveBeenCalled();
     });
   });

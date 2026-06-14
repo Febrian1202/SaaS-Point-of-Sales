@@ -15,6 +15,7 @@
 	import ProductDialog from '$lib/features/admin/product/ProductDialog.svelte';
 	import DeleteConfirmDialog from '$lib/features/shared/DeleteConfirmDialog.svelte';
 	import { deserialize } from '$app/forms';
+	import { toast } from 'svelte-sonner';
 
 	// Props data
 	let { data } = $props();
@@ -56,7 +57,13 @@
 
 		const result = deserialize(await response.text());
 		if (result.type === 'success') {
+			toast.success(`Produk ${targetName} berhasil dihapus.`);
 			await invalidateAll();
+		} else if (result.type === 'failure') {
+			const data = result.data as { message?: string } | undefined;
+			toast.error(data?.message || 'Gagal menghapus produk.');
+		} else if (result.type === 'error') {
+			toast.error('Terjadi kesalahan pada sistem.');
 		}
 	}
 

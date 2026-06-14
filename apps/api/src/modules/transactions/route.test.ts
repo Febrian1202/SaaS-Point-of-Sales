@@ -56,21 +56,25 @@ describe("Transaction Routes", () => {
     mock.restore();
   });
 
-  const headers = { 
-    "Authorization": "Bearer mock-token",
-    "Content-Type": "application/json"
+  const headers = {
+    Authorization: "Bearer mock-token",
+    "Content-Type": "application/json",
   };
 
   it("GET /transactions should return 200", async () => {
     service.getTransactions.mockResolvedValue({
-      data: [{
-        ...validTrx,
-        cashier: { name: "Cashier" },
-        items: []
-      }],
-      meta: { page: 1, limit: 10, totalData: 1, totalPages: 1 }
+      data: [
+        {
+          ...validTrx,
+          cashier: { name: "Cashier" },
+          items: [],
+        },
+      ],
+      meta: { page: 1, limit: 10, totalData: 1, totalPages: 1 },
     });
-    const response = await app.handle(new Request("http://localhost/transactions", { headers }));
+    const response = await app.handle(
+      new Request("http://localhost/transactions", { headers }),
+    );
     expect(response.status).toBe(200);
   });
 
@@ -78,21 +82,23 @@ describe("Transaction Routes", () => {
     service.getTransactionDetail.mockResolvedValue({
       ...validTrx,
       items: [
-        { 
-          id: "550e8400-e29b-41d4-a716-446655440007", 
-          qty: 1, 
-          unitPrice: "1000", 
-          subtotal: "1000", 
+        {
+          id: "550e8400-e29b-41d4-a716-446655440007",
+          qty: 1,
+          unitPrice: "1000",
+          subtotal: "1000",
           createdAt: new Date(),
-          product: { 
-            id: "550e8400-e29b-41d4-a716-446655440002", 
+          product: {
+            id: "550e8400-e29b-41d4-a716-446655440002",
             name: "Indomie",
-            createdAt: new Date()
-          } 
-        }
-      ]
+            createdAt: new Date(),
+          },
+        },
+      ],
     });
-    const response = await app.handle(new Request(`http://localhost/transactions/${mockTrxId}`, { headers }));
+    const response = await app.handle(
+      new Request(`http://localhost/transactions/${mockTrxId}`, { headers }),
+    );
     expect(response.status).toBe(200);
   });
 
@@ -100,7 +106,7 @@ describe("Transaction Routes", () => {
     service.createTransaction.mockResolvedValue({
       trxNumber: "TRX123",
       totalAmount: 1000,
-      changeAmount: 0
+      changeAmount: 0,
     });
     const response = await app.handle(
       new Request("http://localhost/transactions", {
@@ -109,9 +115,15 @@ describe("Transaction Routes", () => {
         body: JSON.stringify({
           amountPaid: 1000,
           paymentMethod: "cash",
-          items: [{ productId: "550e8400-e29b-41d4-a716-446655440002", qty: 1, unitPrice: 1000 }],
+          items: [
+            {
+              productId: "550e8400-e29b-41d4-a716-446655440002",
+              qty: 1,
+              unitPrice: 1000,
+            },
+          ],
         }),
-      })
+      }),
     );
     expect(response.status).toBe(201);
   });
@@ -119,10 +131,10 @@ describe("Transaction Routes", () => {
   it("POST /transactions/:id/void should return 200", async () => {
     service.voidTransaction.mockResolvedValue({ trxNumber: "TRX123" });
     const response = await app.handle(
-      new Request(`http://localhost/transactions/${mockTrxId}/void`, { 
-        method: "POST", 
-        headers 
-      })
+      new Request(`http://localhost/transactions/${mockTrxId}/void`, {
+        method: "POST",
+        headers,
+      }),
     );
     expect(response.status).toBe(200);
   });

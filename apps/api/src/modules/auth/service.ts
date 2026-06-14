@@ -17,7 +17,7 @@ export const verifyUsers = async (userEmail: string, userPassword: string) => {
     user?.passwordHash || "",
   );
 
-  if (!user || !isMatch) throw new LoginError("Email or password is incorrect");
+  if (!user || !isMatch) throw new LoginError("Email atau password salah");
 
   return {
     id: user.id,
@@ -39,7 +39,7 @@ export const registerBusiness = async (args: ArgsRegister) => {
     where: eq(users.email, normalizedEmail),
   });
 
-  if (existUser) throw new ConflictError("Email already registered!");
+  if (existUser) throw new ConflictError("Email sudah terdaftar!");
 
   // Buat slug, pastikan unique
   let storeSlug = slugify(args.storeName);

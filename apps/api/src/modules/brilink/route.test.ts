@@ -58,17 +58,21 @@ describe("Brilink Routes", () => {
     mock.restore();
   });
 
-  const headers = { 
-    "Authorization": "Bearer mock-token",
-    "Content-Type": "application/json"
+  const headers = {
+    Authorization: "Bearer mock-token",
+    "Content-Type": "application/json",
   };
 
   it("GET /brilink should return 200", async () => {
-    service.getBrilinkTransaction.mockResolvedValue([{
-      ...validBrilink,
-      cashier: { name: "Cashier" }
-    }]);
-    const response = await app.handle(new Request("http://localhost/brilink", { headers }));
+    service.getBrilinkTransaction.mockResolvedValue([
+      {
+        ...validBrilink,
+        cashier: { name: "Cashier" },
+      },
+    ]);
+    const response = await app.handle(
+      new Request("http://localhost/brilink", { headers }),
+    );
     expect(response.status).toBe(200);
   });
 
@@ -78,16 +82,22 @@ describe("Brilink Routes", () => {
       grandTotalTransaction: 1,
       grandTotalCommission: 100,
       breakdown: [
-        { trxType: "transfer", totalTransaction: 1, totalCommission: 100 }
-      ]
+        { trxType: "transfer", totalTransaction: 1, totalCommission: 100 },
+      ],
     });
-    const response = await app.handle(new Request("http://localhost/brilink/summary?date=2024-01-01", { headers }));
+    const response = await app.handle(
+      new Request("http://localhost/brilink/summary?date=2024-01-01", {
+        headers,
+      }),
+    );
     expect(response.status).toBe(200);
   });
 
   it("GET /brilink/:id should return 200", async () => {
     service.getBrilinkTransactionDetail.mockResolvedValue(validBrilink);
-    const response = await app.handle(new Request(`http://localhost/brilink/${mockBrilinkId}`, { headers }));
+    const response = await app.handle(
+      new Request(`http://localhost/brilink/${mockBrilinkId}`, { headers }),
+    );
     expect(response.status).toBe(200);
   });
 
@@ -104,22 +114,22 @@ describe("Brilink Routes", () => {
           agentCommission: 50,
           referenceNumber: "REF123",
         }),
-      })
+      }),
     );
     expect(response.status).toBe(201);
   });
 
   it("POST /brilink/:id/void should return 200", async () => {
-    service.voidBrilink.mockResolvedValue({ 
+    service.voidBrilink.mockResolvedValue({
       id: mockBrilinkId,
       referenceNumber: "REF123",
-      status: "void"
+      status: "void",
     });
     const response = await app.handle(
-      new Request(`http://localhost/brilink/${mockBrilinkId}/void`, { 
+      new Request(`http://localhost/brilink/${mockBrilinkId}/void`, {
         method: "POST",
-        headers 
-      })
+        headers,
+      }),
     );
     expect(response.status).toBe(200);
   });

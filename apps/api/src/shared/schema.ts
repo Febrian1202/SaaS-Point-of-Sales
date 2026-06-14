@@ -48,7 +48,7 @@ export const schemaPagination = t.Object({
 
 export const withSuccessMeta = <T extends TSchema, M extends TSchema>(
   dataSchema: T,
-  metaSchema: M
+  metaSchema: M,
 ) => {
   return t.Object({
     success: t.Boolean({ default: true }),

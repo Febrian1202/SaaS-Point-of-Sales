@@ -1,5 +1,9 @@
 import { describe, it, expect, mock, beforeEach } from "bun:test";
-import { getDailySummary, getMonthlySummary, getDailyRangeSummary } from "./service";
+import {
+  getDailySummary,
+  getMonthlySummary,
+  getDailyRangeSummary,
+} from "./service";
 import { db } from "@db";
 import { ConflictError } from "@/plugins";
 import { InvalidDateRangeError } from "./error";
@@ -49,10 +53,10 @@ describe("Reports Service - getDailySummary", () => {
   });
 
   it("Happy Path: Should return cached summary if exists", async () => {
-    const cachedData = { 
-      id: "1", 
-      tenantId: mockTenantId, 
-      summaryDate: "2024-05-31", 
+    const cachedData = {
+      id: "1",
+      tenantId: mockTenantId,
+      summaryDate: "2024-05-31",
       totalRevenue: "50000",
       retailRevenue: "45000",
       retailCogs: "30000",
@@ -60,7 +64,7 @@ describe("Reports Service - getDailySummary", () => {
       grossProfit: "15000",
       trxCount: 10,
       itemsSold: null,
-      generatedAt: new Date()
+      generatedAt: new Date(),
     };
     (db.query.dailySummaries.findFirst as any).mockResolvedValue(cachedData);
 
@@ -72,25 +76,25 @@ describe("Reports Service - getDailySummary", () => {
 
   it("Happy Path: Should calculate and save new summary if cache miss", async () => {
     (db.query.dailySummaries.findFirst as any).mockResolvedValue(null);
-    
+
     // Mock Retail, Items Sold, & Brilink Result
     mockWhere
       .mockResolvedValueOnce([{ totalRevenue: "100000", totalTrx: 10 }])
       .mockResolvedValueOnce([{ totalItemsSold: "15" }])
       .mockResolvedValueOnce([{ totalCommission: "5000", totalTrx: 5 }]);
 
-    const mockNewSummary = { 
-      id: "2", 
+    const mockNewSummary = {
+      id: "2",
       tenantId: mockTenantId,
       summaryDate: "2024-05-31",
       retailRevenue: "100000",
       retailCogs: "80000",
       brilinkCommission: "5000",
-      totalRevenue: "105000", 
+      totalRevenue: "105000",
       grossProfit: "25000",
       trxCount: 15,
       itemsSold: 15,
-      generatedAt: new Date()
+      generatedAt: new Date(),
     };
     mockReturning.mockResolvedValue([mockNewSummary]);
 
@@ -102,7 +106,7 @@ describe("Reports Service - getDailySummary", () => {
 
   it("Edge Case: Multi-tenant isolation (Zero results for different tenant)", async () => {
     (db.query.dailySummaries.findFirst as any).mockResolvedValue(null);
-    
+
     mockWhere.mockResolvedValue([{ totalRevenue: null, totalTrx: 0 }]);
     mockReturning.mockResolvedValue([{ totalRevenue: "0", trxCount: 0 }]);
 
@@ -113,7 +117,7 @@ describe("Reports Service - getDailySummary", () => {
 
   it("Edge Case: Handle Race Condition (Unique Constraint 23505)", async () => {
     (db.query.dailySummaries.findFirst as any).mockResolvedValueOnce(null); // First check
-    
+
     // Mock calculation queries
     mockWhere.mockResolvedValue([{ totalRevenue: "10", totalTrx: 1 }]);
 
@@ -122,8 +126,8 @@ describe("Reports Service - getDailySummary", () => {
     (error23505 as any).code = "23505";
     mockReturning.mockRejectedValue(error23505);
 
-    const retrySummary = { 
-      id: "99", 
+    const retrySummary = {
+      id: "99",
       summaryDate: "2024-05-31",
       tenantId: mockTenantId,
       retailRevenue: "10",
@@ -132,9 +136,11 @@ describe("Reports Service - getDailySummary", () => {
       totalRevenue: "10",
       grossProfit: "5",
       trxCount: 1,
-      generatedAt: new Date()
+      generatedAt: new Date(),
     };
-    (db.query.dailySummaries.findFirst as any).mockResolvedValueOnce(retrySummary); // Second check in catch
+    (db.query.dailySummaries.findFirst as any).mockResolvedValueOnce(
+      retrySummary,
+    ); // Second check in catch
 
     const result = await getDailySummary(mockTenantId, mockQuery);
 
@@ -147,7 +153,9 @@ describe("Reports Service - getDailySummary", () => {
     mockWhere.mockResolvedValue([]);
     mockReturning.mockRejectedValue(new Error("DB Down"));
 
-    expect(getDailySummary(mockTenantId, mockQuery)).rejects.toThrow(ConflictError);
+    expect(getDailySummary(mockTenantId, mockQuery)).rejects.toThrow(
+      ConflictError,
+    );
   });
 });
 
@@ -156,14 +164,16 @@ describe("Reports Service - getMonthlySummary", () => {
   const mockQuery = { month: "2024-05" };
 
   it("Happy Path: Should aggregate daily summaries for the month", async () => {
-    const mockAggregated = [{
-      totalRetailRevenue: "1000000",
-      totalRetailCogs: "800000",
-      totalBrilinkCommission: "50000",
-      grandTotalRevenue: "1050000",
-      grandTotalProfit: "250000",
-      totalTrxCount: "150"
-    }];
+    const mockAggregated = [
+      {
+        totalRetailRevenue: "1000000",
+        totalRetailCogs: "800000",
+        totalBrilinkCommission: "50000",
+        grandTotalRevenue: "1050000",
+        grandTotalProfit: "250000",
+        totalTrxCount: "150",
+      },
+    ];
 
     mockWhere.mockResolvedValue(mockAggregated);
 
@@ -176,14 +186,16 @@ describe("Reports Service - getMonthlySummary", () => {
   });
 
   it("Edge Case: Should return zero values if no daily summaries found", async () => {
-    const mockEmpty = [{
-      totalRetailRevenue: null,
-      totalRetailCogs: null,
-      totalBrilinkCommission: null,
-      grandTotalRevenue: null,
-      grandTotalProfit: null,
-      totalTrxCount: null
-    }];
+    const mockEmpty = [
+      {
+        totalRetailRevenue: null,
+        totalRetailCogs: null,
+        totalBrilinkCommission: null,
+        grandTotalRevenue: null,
+        grandTotalProfit: null,
+        totalTrxCount: null,
+      },
+    ];
 
     mockWhere.mockResolvedValue(mockEmpty);
 
@@ -195,14 +207,16 @@ describe("Reports Service - getMonthlySummary", () => {
   });
 
   it("Edge Case: Numeric precision check (Handle large numbers/floats)", async () => {
-    const mockLargeData = [{
-      totalRetailRevenue: "999999999.99",
-      totalRetailCogs: "0.01",
-      totalBrilinkCommission: "0",
-      grandTotalRevenue: "999999999.99",
-      grandTotalProfit: "999999999.98",
-      totalTrxCount: "999999"
-    }];
+    const mockLargeData = [
+      {
+        totalRetailRevenue: "999999999.99",
+        totalRetailCogs: "0.01",
+        totalBrilinkCommission: "0",
+        grandTotalRevenue: "999999999.99",
+        grandTotalProfit: "999999999.98",
+        totalTrxCount: "999999",
+      },
+    ];
 
     mockWhere.mockResolvedValue(mockLargeData);
 
@@ -228,7 +242,7 @@ describe("Reports Service - getDailyRangeSummary", () => {
         grossProfit: "1890000.00",
         trxCount: 28,
         itemsSold: 50,
-        generatedAt: new Date()
+        generatedAt: new Date(),
       },
       {
         id: "2",
@@ -240,14 +254,17 @@ describe("Reports Service - getDailyRangeSummary", () => {
         grossProfit: "2210000.00",
         trxCount: 31,
         itemsSold: 60,
-        generatedAt: new Date()
-      }
+        generatedAt: new Date(),
+      },
     ];
 
     (db.query.dailySummaries.findFirst as any).mockClear();
     (db.query.dailySummaries.findMany as any).mockResolvedValue(cachedData);
 
-    const result = await getDailyRangeSummary(mockTenantId, { from: "2026-06-06", to: "2026-06-07" });
+    const result = await getDailyRangeSummary(mockTenantId, {
+      from: "2026-06-06",
+      to: "2026-06-07",
+    });
 
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual({
@@ -273,13 +290,19 @@ describe("Reports Service - getDailyRangeSummary", () => {
 
   it("Edge Case: Should throw InvalidDateRangeError if 'to' is before 'from'", async () => {
     expect(
-      getDailyRangeSummary(mockTenantId, { from: "2026-06-07", to: "2026-06-06" })
+      getDailyRangeSummary(mockTenantId, {
+        from: "2026-06-07",
+        to: "2026-06-06",
+      }),
     ).rejects.toThrow(InvalidDateRangeError);
   });
 
   it("Edge Case: Should throw InvalidDateRangeError if range is > 31 days", async () => {
     expect(
-      getDailyRangeSummary(mockTenantId, { from: "2026-06-01", to: "2026-07-03" })
+      getDailyRangeSummary(mockTenantId, {
+        from: "2026-06-01",
+        to: "2026-07-03",
+      }),
     ).rejects.toThrow(InvalidDateRangeError);
   });
 });

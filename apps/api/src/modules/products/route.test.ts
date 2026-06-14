@@ -35,11 +35,14 @@ describe("Product Routes", () => {
       rateLimit: () => new Elysia(),
     }));
 
-    const mockAuth = new Elysia({ name: "auth" }).derive({ as: "global" }, () => ({
-      userId: mockUserId,
-      tenantId: mockTenantId,
-      role: "admin",
-    }));
+    const mockAuth = new Elysia({ name: "auth" }).derive(
+      { as: "global" },
+      () => ({
+        userId: mockUserId,
+        tenantId: mockTenantId,
+        role: "admin",
+      }),
+    );
 
     mock.module("@plugin", () => ({
       authPlugin: mockAuth,
@@ -57,27 +60,33 @@ describe("Product Routes", () => {
     service.getProduct.mockClear();
   });
 
-  const headers = { 
-    "Authorization": "Bearer mock-token",
-    "Content-Type": "application/json"
+  const headers = {
+    Authorization: "Bearer mock-token",
+    "Content-Type": "application/json",
   };
 
   it("GET /products should return 200", async () => {
-    service.getProduct.mockResolvedValue([{
-      ...validProduct,
-      category: { name: "Food" }
-    }]);
-    const response = await app.handle(new Request("http://localhost/products", { headers }));
+    service.getProduct.mockResolvedValue([
+      {
+        ...validProduct,
+        category: { name: "Food" },
+      },
+    ]);
+    const response = await app.handle(
+      new Request("http://localhost/products", { headers }),
+    );
     expect(response.status).toBe(200);
   });
 
   it("GET /products with stock_lte should return 200", async () => {
-    service.getProduct.mockResolvedValue([{
-      ...validProduct,
-      category: { name: "Food" }
-    }]);
+    service.getProduct.mockResolvedValue([
+      {
+        ...validProduct,
+        category: { name: "Food" },
+      },
+    ]);
     const response = await app.handle(
-      new Request("http://localhost/products?stock_lte=10", { headers })
+      new Request("http://localhost/products?stock_lte=10", { headers }),
     );
     expect(response.status).toBe(200);
     expect(service.getProduct).toHaveBeenCalledWith(
@@ -85,16 +94,18 @@ describe("Product Routes", () => {
       undefined,
       undefined,
       undefined,
-      10
+      10,
     );
   });
 
   it("GET /products/:id should return 200", async () => {
     service.getProductDetail.mockResolvedValue({
       ...validProduct,
-      category: "Food" // service returns string here
+      category: "Food", // service returns string here
     });
-    const response = await app.handle(new Request(`http://localhost/products/${mockProductId}`, { headers }));
+    const response = await app.handle(
+      new Request(`http://localhost/products/${mockProductId}`, { headers }),
+    );
     expect(response.status).toBe(200);
   });
 
@@ -102,7 +113,7 @@ describe("Product Routes", () => {
     service.postProduct.mockResolvedValue({
       id: mockProductId,
       name: "Indomie",
-      slug: "indomie"
+      slug: "indomie",
     });
     const response = await app.handle(
       new Request("http://localhost/products", {
@@ -116,7 +127,7 @@ describe("Product Routes", () => {
           unit: "pcs",
           stockQty: 100,
         }),
-      })
+      }),
     );
     expect(response.status).toBe(201);
   });
@@ -125,14 +136,14 @@ describe("Product Routes", () => {
     service.patchProduct.mockResolvedValue({
       ...validProduct,
       tenantId: mockTenantId,
-      categoryId: "550e8400-e29b-41d4-a716-446655440003"
+      categoryId: "550e8400-e29b-41d4-a716-446655440003",
     });
     const response = await app.handle(
       new Request(`http://localhost/products/${mockProductId}`, {
         method: "PATCH",
         headers,
         body: JSON.stringify({ name: "Indomie Goreng" }),
-      })
+      }),
     );
     expect(response.status).toBe(200);
   });
@@ -140,10 +151,10 @@ describe("Product Routes", () => {
   it("DELETE /products/:id should return 200", async () => {
     service.softDeleteProduct.mockResolvedValue(validProduct);
     const response = await app.handle(
-      new Request(`http://localhost/products/${mockProductId}`, { 
+      new Request(`http://localhost/products/${mockProductId}`, {
         method: "DELETE",
-        headers 
-      })
+        headers,
+      }),
     );
     expect(response.status).toBe(200);
   });

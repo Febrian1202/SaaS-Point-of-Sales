@@ -39,8 +39,19 @@ export const productRoutes = new Elysia({
   })
   .get(
     "/",
-    async ({ query: { search, barcode, category_id, status, page, limit }, tenantId }) => {
-      const result = await getProduct(tenantId, search, barcode, category_id, status, page, limit);
+    async ({
+      query: { search, barcode, category_id, status, page, limit },
+      tenantId,
+    }) => {
+      const result = await getProduct(
+        tenantId,
+        search,
+        barcode,
+        category_id,
+        status,
+        page,
+        limit,
+      );
 
       return {
         success: true,

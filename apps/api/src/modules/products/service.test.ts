@@ -1,10 +1,10 @@
 import { describe, expect, it, mock, beforeEach } from "bun:test";
-import { 
-  getProduct, 
-  getProductDetail, 
-  postProduct, 
-  patchProduct, 
-  softDeleteProduct 
+import {
+  getProduct,
+  getProductDetail,
+  postProduct,
+  patchProduct,
+  softDeleteProduct,
 } from "./service";
 import { db } from "@/db";
 import { products } from "@/db/schema";
@@ -53,10 +53,10 @@ describe("Product Service Unit Testing", () => {
   describe("getProduct", () => {
     it("should return active products for a specific tenant (Happy Path)", async () => {
       const mockData = [
-        { 
-          id: "1", 
-          name: "Product A", 
-          isActive: true, 
+        {
+          id: "1",
+          name: "Product A",
+          isActive: true,
           tenantId: mockTenantId,
           createdAt: null,
           updatedAt: null,
@@ -64,7 +64,7 @@ describe("Product Service Unit Testing", () => {
           sellingPrice: "1000",
           unit: "pcs",
           stockQty: 10,
-          category: null
+          category: null,
         },
       ];
       (db.query.products.findMany as any).mockResolvedValue(mockData);
@@ -79,7 +79,7 @@ describe("Product Service Unit Testing", () => {
       await getProduct(mockTenantId, "search-query", "12345", "cat-1");
 
       const callArgs = (db.query.products.findMany as any).mock.calls[0][0];
-      
+
       // Verify filters contain tenantId, isActive, and others
       // Drizzle filters are complex objects, so we check if the where clause exists
       expect(callArgs.where).toBeDefined();
@@ -118,15 +118,17 @@ describe("Product Service Unit Testing", () => {
       // Mock returns null because filter by (id AND tenantId) fails
       (db.query.products.findFirst as any).mockResolvedValue(null);
 
-      expect(getProductDetail(mockProductId, mockOtherTenantId))
-        .rejects.toThrow(ProductNotFoundError);
+      expect(
+        getProductDetail(mockProductId, mockOtherTenantId),
+      ).rejects.toThrow(ProductNotFoundError);
     });
 
     it("should throw ProductNotFoundError for inactive products (Soft Delete)", async () => {
       (db.query.products.findFirst as any).mockResolvedValue(null);
 
-      expect(getProductDetail(mockProductId, mockTenantId))
-        .rejects.toThrow(ProductNotFoundError);
+      expect(getProductDetail(mockProductId, mockTenantId)).rejects.toThrow(
+        ProductNotFoundError,
+      );
     });
   });
 
@@ -143,11 +145,13 @@ describe("Product Service Unit Testing", () => {
 
     it("should successfully create a product (Happy Path)", async () => {
       (db.query.products.findFirst as any).mockResolvedValue(null);
-      mockReturning.mockResolvedValue([{
-        id: "new-id",
-        name: validArgs.name,
-        slug: "new-product",
-      }]);
+      mockReturning.mockResolvedValue([
+        {
+          id: "new-id",
+          name: validArgs.name,
+          slug: "new-product",
+        },
+      ]);
 
       const result = await postProduct(validArgs);
 
@@ -155,7 +159,9 @@ describe("Product Service Unit Testing", () => {
     });
 
     it("should throw ConflictError if barcode is taken in the same tenant (Uniqueness)", async () => {
-      (db.query.products.findFirst as any).mockResolvedValue({ id: "existing-id" });
+      (db.query.products.findFirst as any).mockResolvedValue({
+        id: "existing-id",
+      });
 
       expect(postProduct(validArgs)).rejects.toThrow(ConflictError);
     });
@@ -164,7 +170,10 @@ describe("Product Service Unit Testing", () => {
       (db.query.products.findFirst as any).mockResolvedValue(null);
       mockReturning.mockResolvedValue([{ id: "new-id" }]);
 
-      const result = await postProduct({ ...validArgs, tenantId: mockOtherTenantId });
+      const result = await postProduct({
+        ...validArgs,
+        tenantId: mockOtherTenantId,
+      });
       expect(result).toBeDefined();
     });
 
@@ -175,7 +184,9 @@ describe("Product Service Unit Testing", () => {
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce({ id: "old-id", slug: "new-product" });
 
-      mockReturning.mockResolvedValue([{ id: "id", slug: "new-product-random" }]);
+      mockReturning.mockResolvedValue([
+        { id: "id", slug: "new-product-random" },
+      ]);
 
       await postProduct(validArgs);
 
@@ -185,34 +196,49 @@ describe("Product Service Unit Testing", () => {
     });
 
     it("should throw error if name is empty", async () => {
-      expect(postProduct({ ...validArgs, name: "" })).rejects.toThrow(ConflictError);
+      expect(postProduct({ ...validArgs, name: "" })).rejects.toThrow(
+        ConflictError,
+      );
     });
   });
 
   describe("patchProduct", () => {
     it("should successfully update product (Happy Path)", async () => {
-      (db.query.products.findFirst as any).mockResolvedValue({ name: "Old", barcode: "111" });
+      (db.query.products.findFirst as any).mockResolvedValue({
+        name: "Old",
+        barcode: "111",
+      });
       mockReturning.mockResolvedValue([{ id: mockProductId }]);
 
-      const result = await patchProduct(mockProductId, mockTenantId, { name: "New" });
+      const result = await patchProduct(mockProductId, mockTenantId, {
+        name: "New",
+      });
       expect(result).toBeDefined();
     });
 
     it("should throw ProductNotFoundError if updating product from another tenant", async () => {
       (db.query.products.findFirst as any).mockResolvedValue(null);
 
-      expect(patchProduct(mockProductId, mockOtherTenantId, { name: "Hack" }))
-        .rejects.toThrow(ProductNotFoundError);
+      expect(
+        patchProduct(mockProductId, mockOtherTenantId, { name: "Hack" }),
+      ).rejects.toThrow(ProductNotFoundError);
     });
 
     it("should throw ConflictError if new barcode is used by another product", async () => {
       // Current product
-      (db.query.products.findFirst as any).mockResolvedValueOnce({ name: "A", barcode: "111" });
+      (db.query.products.findFirst as any).mockResolvedValueOnce({
+        name: "A",
+        barcode: "111",
+      });
       // Existing barcode check
-      (db.query.products.findFirst as any).mockResolvedValueOnce({ id: "other-id", barcode: "222" });
+      (db.query.products.findFirst as any).mockResolvedValueOnce({
+        id: "other-id",
+        barcode: "222",
+      });
 
-      expect(patchProduct(mockProductId, mockTenantId, { barcode: "222" }))
-        .rejects.toThrow(ConflictError);
+      expect(
+        patchProduct(mockProductId, mockTenantId, { barcode: "222" }),
+      ).rejects.toThrow(ConflictError);
     });
   });
 
@@ -229,7 +255,9 @@ describe("Product Service Unit Testing", () => {
     it("should throw ProductNotFoundError if product not found for that tenant", async () => {
       mockReturning.mockResolvedValue([]);
 
-      expect(softDeleteProduct(mockProductId, mockTenantId)).rejects.toThrow(ProductNotFoundError);
+      expect(softDeleteProduct(mockProductId, mockTenantId)).rejects.toThrow(
+        ProductNotFoundError,
+      );
     });
   });
 });

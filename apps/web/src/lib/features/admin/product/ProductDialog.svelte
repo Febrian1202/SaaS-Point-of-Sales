@@ -7,6 +7,7 @@
 	import { enhance } from '$app/forms';
 	import { productSchema } from '$lib/schemas';
 	import type { SubmitFunction } from '@sveltejs/kit';
+	import { toast } from 'svelte-sonner';
 
 	type ProductItem = {
 		id: string;
@@ -140,10 +141,21 @@
 		return async ({ result, update }) => {
 			loading = false;
 			if (result.type === 'success' || result.type === 'redirect') {
+				toast.success(isEdit ? 'Produk berhasil diperbarui!' : 'Produk baru berhasil ditambahkan!');
 				open = false;
 				resetForm();
 				update(); // Reset form DOM
 			} else {
+				if (result.type === 'failure') {
+					const data = result.data as { message?: string } | undefined;
+					if (data?.message) {
+						toast.error(data.message);
+					} else {
+						toast.error(isEdit ? 'Gagal memperbarui produk.' : 'Gagal menambahkan produk.');
+					}
+				} else if (result.type === 'error') {
+					toast.error('Terjadi kesalahan pada sistem.');
+				}
 				update({ reset: false }); // Biarkan isian pengguna jika gagal validasi
 			}
 		};

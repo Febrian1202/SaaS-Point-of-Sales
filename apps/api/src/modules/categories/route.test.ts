@@ -48,20 +48,24 @@ describe("Category Routes", () => {
     mock.restore();
   });
 
-  const headers = { 
-    "Authorization": "Bearer mock-token",
-    "Content-Type": "application/json"
+  const headers = {
+    Authorization: "Bearer mock-token",
+    "Content-Type": "application/json",
   };
 
   it("GET /category should return 200", async () => {
     service.getCategory.mockResolvedValue([validCategory]);
-    const response = await app.handle(new Request("http://localhost/category", { headers }));
+    const response = await app.handle(
+      new Request("http://localhost/category", { headers }),
+    );
     expect(response.status).toBe(200);
   });
 
   it("GET /category/:id should return 200", async () => {
     service.getCategoryDetail.mockResolvedValue(validCategory);
-    const response = await app.handle(new Request(`http://localhost/category/${mockCategoryId}`, { headers }));
+    const response = await app.handle(
+      new Request(`http://localhost/category/${mockCategoryId}`, { headers }),
+    );
     expect(response.status).toBe(200);
   });
 
@@ -72,7 +76,7 @@ describe("Category Routes", () => {
         method: "POST",
         headers,
         body: JSON.stringify({ name: "New Category" }),
-      })
+      }),
     );
     expect(response.status).toBe(201);
   });
@@ -84,7 +88,7 @@ describe("Category Routes", () => {
         method: "PATCH",
         headers,
         body: JSON.stringify({ name: "Updated Category" }),
-      })
+      }),
     );
     expect(response.status).toBe(200);
   });
@@ -92,10 +96,10 @@ describe("Category Routes", () => {
   it("DELETE /category/:id should return 200", async () => {
     service.deleteCategory.mockResolvedValue(undefined);
     const response = await app.handle(
-      new Request(`http://localhost/category/${mockCategoryId}`, { 
+      new Request(`http://localhost/category/${mockCategoryId}`, {
         method: "DELETE",
-        headers 
-      })
+        headers,
+      }),
     );
     expect(response.status).toBe(200);
   });

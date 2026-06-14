@@ -49,7 +49,8 @@ export const getProduct = async (
     limit: limit ?? 10,
     offset: offset,
     where: and(...filters, eq(products.isActive, true)),
-    orderBy: status !== undefined ? asc(products.stockQty) : desc(products.createdAt),
+    orderBy:
+      status !== undefined ? asc(products.stockQty) : desc(products.createdAt),
     with: {
       category: {
         columns: {
@@ -61,7 +62,7 @@ export const getProduct = async (
 
   // Hitung seluruh total data yang sesuai dengan filter
   const countResult = await db
-    .select({totalData: count()})
+    .select({ totalData: count() })
     .from(products)
     .where(and(...filters, eq(products.isActive, true)));
 
@@ -107,7 +108,8 @@ export const getProductDetail = async (id: string, tenantId: string) => {
     },
   });
 
-  if (!product) throw new ProductNotFoundError("Product detail not found!");
+  if (!product)
+    throw new ProductNotFoundError("Detail produk tidak ditemukan!");
 
   return {
     id: product.id,
@@ -134,11 +136,11 @@ export const postProduct = async (args: ArgsProduct) => {
 
     if (existingBarcode)
       throw new ConflictError(
-        `Failed, Barcode ${args.barcode} is taken by another product!`,
+        `Gagal, Barcode ${args.barcode} sudah digunakan oleh produk lain!`,
       );
   }
 
-  if (!args.name) throw new ConflictError("Failed, name cannot empty!");
+  if (!args.name) throw new ConflictError("Gagal, nama tidak boleh kosong!");
 
   let slug = slugify(args.name);
 
@@ -182,7 +184,7 @@ export const patchProduct = async (
   });
 
   if (!currentProduct)
-    throw new ProductNotFoundError("Data product not found!");
+    throw new ProductNotFoundError("Data produk tidak ditemukan!");
 
   let newSlug: string | undefined = undefined;
 
@@ -210,7 +212,7 @@ export const patchProduct = async (
 
     if (existingBarcode && existingBarcode.id !== id)
       throw new ConflictError(
-        `Barcode ${args.barcode} is used by another product!`,
+        `Barcode ${args.barcode} sudah digunakan oleh produk lain!`,
       );
   }
 
@@ -241,7 +243,7 @@ export const softDeleteProduct = async (id: string, tenantId: string) => {
     .returning();
 
   if (!deletedProduct)
-    throw new ProductNotFoundError("Data product not found!");
+    throw new ProductNotFoundError("Data produk tidak ditemukan!");
 
   return deletedProduct;
 };

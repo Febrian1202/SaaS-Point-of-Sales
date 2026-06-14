@@ -40,7 +40,11 @@ describe("Auth Routes", () => {
 
     const mockJwt = {
       sign: mock(async () => "mock-token"),
-      verify: mock(async () => ({ sub: mockUserId, tenantId: mockTenantId, role: "admin" })),
+      verify: mock(async () => ({
+        sub: mockUserId,
+        tenantId: mockTenantId,
+        role: "admin",
+      })),
     };
 
     const mockAuthPlugin = new Elysia({ name: "auth" }).derive(() => ({
@@ -83,8 +87,11 @@ describe("Auth Routes", () => {
         new Request("http://localhost/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: "test@example.com", password: "password123" }),
-        })
+          body: JSON.stringify({
+            email: "test@example.com",
+            password: "password123",
+          }),
+        }),
       );
 
       const body = await response.json();
@@ -111,7 +118,7 @@ describe("Auth Routes", () => {
             password: "password123",
             storeName: "My Store",
           }),
-        })
+        }),
       );
 
       expect(response.status).toBe(201);
@@ -128,8 +135,8 @@ describe("Auth Routes", () => {
       const response = await app.handle(
         new Request("http://localhost/auth/refresh", {
           method: "POST",
-          headers: { "Cookie": "refreshToken=valid-token" },
-        })
+          headers: { Cookie: "refreshToken=valid-token" },
+        }),
       );
 
       expect(response.status).toBe(200);
@@ -143,11 +150,11 @@ describe("Auth Routes", () => {
       const response = await app.handle(
         new Request("http://localhost/auth/logout", {
           method: "POST",
-          headers: { 
-            "Authorization": "Bearer token",
-            "Cookie": "refreshToken=token"
+          headers: {
+            Authorization: "Bearer token",
+            Cookie: "refreshToken=token",
           },
-        })
+        }),
       );
 
       expect(response.status).toBe(200);

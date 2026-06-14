@@ -55,14 +55,16 @@ describe("User Routes", () => {
     mock.restore();
   });
 
-  const headers = { 
-    "Authorization": "Bearer mock-token",
-    "Content-Type": "application/json"
+  const headers = {
+    Authorization: "Bearer mock-token",
+    "Content-Type": "application/json",
   };
 
   it("GET /users/me should return 200", async () => {
     service.getUser.mockResolvedValue(validUser);
-    const response = await app.handle(new Request("http://localhost/users/me", { headers }));
+    const response = await app.handle(
+      new Request("http://localhost/users/me", { headers }),
+    );
     expect(response.status).toBe(200);
   });
 
@@ -73,14 +75,16 @@ describe("User Routes", () => {
         method: "PATCH",
         headers,
         body: JSON.stringify({ name: "New Name" }),
-      })
+      }),
     );
     expect(response.status).toBe(200);
   });
 
   it("GET /users should return 200", async () => {
     service.getCashier.mockResolvedValue([validUser]);
-    const response = await app.handle(new Request("http://localhost/users", { headers }));
+    const response = await app.handle(
+      new Request("http://localhost/users", { headers }),
+    );
     expect(response.status).toBe(200);
   });
 
@@ -95,7 +99,7 @@ describe("User Routes", () => {
           email: "staff@example.com",
           password: "password123",
         }),
-      })
+      }),
     );
     expect(response.status).toBe(201);
   });
@@ -103,10 +107,10 @@ describe("User Routes", () => {
   it("DELETE /users/:id should return 200", async () => {
     service.deleteCashier.mockResolvedValue({ id: mockUserId });
     const response = await app.handle(
-      new Request(`http://localhost/users/${mockUserId}`, { 
+      new Request(`http://localhost/users/${mockUserId}`, {
         method: "DELETE",
-        headers 
-      })
+        headers,
+      }),
     );
     expect(response.status).toBe(200);
   });

@@ -62,8 +62,8 @@ const schemaSafeUser = t.Object({
 const schemaSafeTenant = t.Object({
   id: t.String({ format: "uuid" }),
   name: t.String(),
-  slug: t.String()
-})
+  slug: t.String(),
+});
 
 export const schemaResponseLogin = withSuccess(
   t.Object({

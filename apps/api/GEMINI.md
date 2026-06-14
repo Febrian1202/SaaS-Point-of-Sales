@@ -3,12 +3,13 @@
 This is the backend API for **Kios Sheza**, a multi-tenant Point of Sale (POS) and inventory management system. It provides RESTful endpoints for managing authentication, products, categories, transactions (retail and Brilink), and generating reports.
 
 **Core Technologies:**
-*   **Runtime:** [Bun](https://bun.sh/)
-*   **Framework:** [ElysiaJS](https://elysiajs.com/) (TypeScript)
-*   **Database ORM:** [Drizzle ORM](https://orm.drizzle.team/)
-*   **Database Engine:** PostgreSQL (via `pg`/`postgres` driver)
-*   **Validation & Schemas:** TypeBox (via `elysia` and `drizzle-typebox`)
-*   **Documentation:** Swagger / OpenAPI (via `@elysiajs/swagger`)
+
+- **Runtime:** [Bun](https://bun.sh/)
+- **Framework:** [ElysiaJS](https://elysiajs.com/) (TypeScript)
+- **Database ORM:** [Drizzle ORM](https://orm.drizzle.team/)
+- **Database Engine:** PostgreSQL (via `pg`/`postgres` driver)
+- **Validation & Schemas:** TypeBox (via `elysia` and `drizzle-typebox`)
+- **Documentation:** Swagger / OpenAPI (via `@elysiajs/swagger`)
 
 ---
 
@@ -17,26 +18,29 @@ This is the backend API for **Kios Sheza**, a multi-tenant Point of Sale (POS) a
 The project relies on Bun for dependency management and task execution.
 
 ### Dependencies
+
 ```bash
 bun install
 ```
 
 ### Starting the Server
-*   **Development (Watch Mode):**
-    ```bash
-    bun run dev
-    ```
-*   **Production:**
-    ```bash
-    bun run start
-    ```
+
+- **Development (Watch Mode):**
+  ```bash
+  bun run dev
+  ```
+- **Production:**
+  ```bash
+  bun run start
+  ```
 
 ### Database Management (Drizzle Kit)
-*   **Generate Migrations:** `bun run db:generate`
-*   **Run Migrations:** `bun run db:migrate`
-*   **Reset & Migrate:** `bun run db:fresh`
-*   **Seed Database:** `bun run db:seed`
-*   **Open Drizzle Studio:** `bun run db:studio`
+
+- **Generate Migrations:** `bun run db:generate`
+- **Run Migrations:** `bun run db:migrate`
+- **Reset & Migrate:** `bun run db:fresh`
+- **Seed Database:** `bun run db:seed`
+- **Open Drizzle Studio:** `bun run db:studio`
 
 ---
 
@@ -45,44 +49,54 @@ bun install
 When modifying or adding features to this codebase, adhere strictly to the following conventions:
 
 ## 1. Architecture & Modularity
+
 The application follows a highly modular structure inside the `src/` directory. Features are grouped by domain under `src/modules/<domain>/`.
 Each module MUST contain:
-*   `route.ts`: Defines the Elysia endpoints, request validation, and Swagger documentation.
-*   `service.ts`: Contains the core business logic and database queries.
-*   `schema.ts`: Defines TypeBox schemas for Request (body, query, params) and Response structures.
-*   `error.ts`: Defines custom error classes (e.g., `NotFoundError`, `ConflictError`).
+
+- `route.ts`: Defines the Elysia endpoints, request validation, and Swagger documentation.
+- `service.ts`: Contains the core business logic and database queries.
+- `schema.ts`: Defines TypeBox schemas for Request (body, query, params) and Response structures.
+- `error.ts`: Defines custom error classes (e.g., `NotFoundError`, `ConflictError`).
 
 ## 2. Schema and Validation (`schema.ts`)
-*   **Constants First:** Define regular expressions, constants, and enums at the top of the file using `UPPER_SNAKE_CASE`.
-*   **Drizzle-Typebox:** Use `createInsertSchema` and `createSelectSchema` from `drizzle-typebox` to generate base schemas directly from the database schema.
-*   **Validation:** Use Elysia's `t` and `validationDetail` to provide human-readable, grammatically correct error messages.
-*   **Response Formatting:** All successful API responses MUST be wrapped using the `withSuccess` or `withSuccessMeta` helpers from `@/shared`.
-*   **Grouping:** Clearly separate `// --- Request Schemas ---` and `// --- Response Schemas ---`.
+
+- **Constants First:** Define regular expressions, constants, and enums at the top of the file using `UPPER_SNAKE_CASE`.
+- **Drizzle-Typebox:** Use `createInsertSchema` and `createSelectSchema` from `drizzle-typebox` to generate base schemas directly from the database schema.
+- **Validation:** Use Elysia's `t` and `validationDetail` to provide human-readable, grammatically correct error messages.
+- **Response Formatting:** All successful API responses MUST be wrapped using the `withSuccess` or `withSuccessMeta` helpers from `@/shared`.
+- **Grouping:** Clearly separate `// --- Request Schemas ---` and `// --- Response Schemas ---`.
 
 ## 3. Routing & Swagger Documentation (`route.ts`)
-*   **Type Safety:** Bind the schemas defined in `schema.ts` to the route's `body`, `query`, `params`, and `response` properties.
-*   **Swagger Details:** EVERY endpoint MUST have a `detail` block containing a `summary` and `description` to automatically generate high-quality Swagger/OpenAPI documentation.
-*   **Guards:** Apply `authPlugin` for routes requiring login. Apply `adminGuard` for sensitive operations (e.g., creating users, modifying settings, voiding transactions).
+
+- **Type Safety:** Bind the schemas defined in `schema.ts` to the route's `body`, `query`, `params`, and `response` properties.
+- **Swagger Details:** EVERY endpoint MUST have a `detail` block containing a `summary` and `description` to automatically generate high-quality Swagger/OpenAPI documentation.
+- **Guards:** Apply `authPlugin` for routes requiring login. Apply `adminGuard` for sensitive operations (e.g., creating users, modifying settings, voiding transactions).
 
 ## 4. Service Layer & Database (`service.ts`)
-*   **Tenant Isolation:** This is a multi-tenant system. Almost every database query MUST include a filter on `tenantId` (e.g., `eq(table.tenantId, tenantId)`) to ensure data is strictly isolated between tenants/stores.
-*   **Error Handling:** Do NOT throw generic HTTP errors in the service. Throw custom domain errors defined in `error.ts` (e.g., `ProductNotFoundError`). These are mapped to proper HTTP status codes in the route's `.onError` handler.
-*   **Soft Deletes:** Never delete master data (like products) physically if they are referenced by transactions. Update the `isActive` flag to `false` instead.
+
+- **Tenant Isolation:** This is a multi-tenant system. Almost every database query MUST include a filter on `tenantId` (e.g., `eq(table.tenantId, tenantId)`) to ensure data is strictly isolated between tenants/stores.
+- **Error Handling:** Do NOT throw generic HTTP errors in the service. Throw custom domain errors defined in `error.ts` (e.g., `ProductNotFoundError`). These are mapped to proper HTTP status codes in the route's `.onError` handler.
+- **Soft Deletes:** Never delete master data (like products) physically if they are referenced by transactions. Update the `isActive` flag to `false` instead.
 
 ## 5. Security Practices
-*   Passwords must be hashed using `Bun.password.hash(..., { algorithm: "bcrypt" })`.
-*   Sensitive tokens (`refreshToken`) must be stored in `HttpOnly`, `secure`, and `sameSite: 'strict'` cookies.
-*   Sensitive operations must be protected with appropriate Rate Limiting (`elysia-rate-limit`).
+
+- Passwords must be hashed using `Bun.password.hash(..., { algorithm: "bcrypt" })`.
+- Sensitive tokens (`refreshToken`) must be stored in `HttpOnly`, `secure`, and `sameSite: 'strict'` cookies.
+- Sensitive operations must be protected with appropriate Rate Limiting (`elysia-rate-limit`).
 
 ## 6. Testing Standards
+
 ### Unit Testing Routes (Transport Layer)
+
 Untuk menghindari error 422 (Validation) dan 500 (Plugin Clashes) saat menguji route Elysia:
-*   **Dynamic Import:** Gunakan `beforeAll` dengan `await import("./route")` agar `mock.module` dieksekusi sebelum module dimuat.
-*   **Stable Mocks:** Jangan gunakan nested mock factory. Gunakan objek mock stabil (misal `const mockReturning = mock()`) yang di-reuse di seluruh rantai `.insert().values().returning()`.
-*   **Auth Bypass:** Mock `@/plugins` menggunakan `.decorate()` (bukan `.derive()`) untuk menyuntikkan `accessJwt` dan `refreshJwt` agar tidak crash saat memanggil `.sign()` atau `.verify()`.
-*   **Isolation:** Gunakan `path.resolve(__dirname, "service.ts")` (absolute path) pada `mock.module` untuk mencegah kebocoran mock antar file test.
-*   **Cleanup:** Selalu panggil `.mockClear()` pada semua objek mock di dalam `beforeEach`.
+
+- **Dynamic Import:** Gunakan `beforeAll` dengan `await import("./route")` agar `mock.module` dieksekusi sebelum module dimuat.
+- **Stable Mocks:** Jangan gunakan nested mock factory. Gunakan objek mock stabil (misal `const mockReturning = mock()`) yang di-reuse di seluruh rantai `.insert().values().returning()`.
+- **Auth Bypass:** Mock `@/plugins` menggunakan `.decorate()` (bukan `.derive()`) untuk menyuntikkan `accessJwt` dan `refreshJwt` agar tidak crash saat memanggil `.sign()` atau `.verify()`.
+- **Isolation:** Gunakan `path.resolve(__dirname, "service.ts")` (absolute path) pada `mock.module` untuk mencegah kebocoran mock antar file test.
+- **Cleanup:** Selalu panggil `.mockClear()` pada semua objek mock di dalam `beforeEach`.
 
 ### Unit Testing Services (Logic Layer)
-*   **Drizzle Mocks:** Pastikan rantai query Drizzle (`db.query...`) di-mock secara lengkap sesuai dengan kolom yang diminta di service.
-*   **Tenant Isolation:** Wajib menguji bahwa query menyertakan filter `eq(table.tenantId, tenantId)`.
+
+- **Drizzle Mocks:** Pastikan rantai query Drizzle (`db.query...`) di-mock secara lengkap sesuai dengan kolom yang diminta di service.
+- **Tenant Isolation:** Wajib menguji bahwa query menyertakan filter `eq(table.tenantId, tenantId)`.

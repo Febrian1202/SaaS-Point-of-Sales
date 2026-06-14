@@ -5,6 +5,7 @@
 Backend API untuk **Kios Sheza**, sistem Point of Sale (POS) dan manajemen inventori **multi-tenant**. Menyediakan endpoint RESTful untuk autentikasi, produk, kategori, transaksi (retail & Brilink), dan laporan.
 
 **Tech Stack:**
+
 - **Runtime:** Bun
 - **Framework:** ElysiaJS (TypeScript)
 - **ORM:** Drizzle ORM
@@ -84,16 +85,16 @@ src/
 
 ### Path Aliases (tsconfig.json)
 
-| Alias | Maps To |
-|---|---|
-| `@/*` | `src/*` |
-| `@schema/*` | `src/db/schema/*` |
-| `@db` | `src/db/index.ts` |
-| `@modules/*` | `src/modules/*` |
-| `@plugin` | `src/plugins/index.ts` |
-| `@shared` | `src/shared/index.ts` |
-| `@helper` | `src/helper/index.ts` |
-| `@jobs` | `src/jobs/index.ts` |
+| Alias        | Maps To                |
+| ------------ | ---------------------- |
+| `@/*`        | `src/*`                |
+| `@schema/*`  | `src/db/schema/*`      |
+| `@db`        | `src/db/index.ts`      |
+| `@modules/*` | `src/modules/*`        |
+| `@plugin`    | `src/plugins/index.ts` |
+| `@shared`    | `src/shared/index.ts`  |
+| `@helper`    | `src/helper/index.ts`  |
+| `@jobs`      | `src/jobs/index.ts`    |
 
 ---
 
@@ -121,11 +122,11 @@ Semua response sukses WAJIB dibungkus menggunakan helper dari `@shared`:
 import { withSuccess, withSuccessMeta } from "@shared";
 
 // Single data
-withSuccess(dataSchema)
+withSuccess(dataSchema);
 // → { success: true, message: string, data: T }
 
 // Paginated data
-withSuccessMeta(dataSchema, schemaPagination)
+withSuccessMeta(dataSchema, schemaPagination);
 // → { success: true, message: string, data: T[], meta: { page, limit, totalData, totalPages } }
 ```
 
@@ -198,9 +199,7 @@ export class ProductNotFoundError extends Error {
 
 ```ts
 // Jangan hapus fisik data master yang direferensi transaksi
-await db.update(products)
-  .set({ isActive: false })
-  .where(eq(products.id, id));
+await db.update(products).set({ isActive: false }).where(eq(products.id, id));
 ```
 
 ### 7. Security
@@ -260,6 +259,7 @@ describe("Product Routes", () => {
 ```
 
 **Key rules:**
+
 - Gunakan `dynamic import` di `beforeAll` agar mock aktif sebelum modul dimuat
 - Gunakan `path.resolve(__dirname, "service.ts")` (absolute path) untuk mencegah mock leakage
 - Mock `@/plugins` dengan `.decorate()` untuk bypass auth
@@ -272,7 +272,7 @@ describe("Product Routes", () => {
 expect(mockDb.query.products.findMany).toHaveBeenCalledWith(
   expect.objectContaining({
     where: expect.any(Function), // memastikan ada filter tenantId
-  })
+  }),
 );
 ```
 

@@ -52,8 +52,8 @@ export const schemaResponseDailyRange = withSuccess(
       itemsSold: t.Number(),
       totalRevenue: t.Number(),
       grossProfit: t.Number(),
-    })
-  )
+    }),
+  ),
 );
 
 export const schemaResponseMonthly = withSuccess(

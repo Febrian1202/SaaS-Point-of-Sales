@@ -9,7 +9,11 @@ import {
   schemaResponseMonthly,
   schemaResponseDailyRange,
 } from "./schema";
-import { getDailySummary, getMonthlySummary, getDailyRangeSummary } from "./service";
+import {
+  getDailySummary,
+  getMonthlySummary,
+  getDailyRangeSummary,
+} from "./service";
 import { schemaResponseError } from "@/shared";
 
 export const reportRoutes = new Elysia({

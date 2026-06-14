@@ -1,7 +1,16 @@
 import { and, count, eq, gte, lte, sum } from "drizzle-orm";
-import type { ArgsQueryDailySummary, ArgsQueryMonthlySummary, ArgsQueryDailyRange } from "./schema";
+import type {
+  ArgsQueryDailySummary,
+  ArgsQueryMonthlySummary,
+  ArgsQueryDailyRange,
+} from "./schema";
 import { db } from "@db";
-import { brilinkTransactions, dailySummaries, transactionItems, transactions } from "@/db/schema";
+import {
+  brilinkTransactions,
+  dailySummaries,
+  transactionItems,
+  transactions,
+} from "@/db/schema";
 import { ConflictError } from "@/plugins";
 import { InvalidDateRangeError } from "./error";
 
@@ -42,16 +51,20 @@ export const getDailySummary = async (
     );
 
   // Barang terjual harian
-  const itemsSoldResult = await db.select({ totalItemsSold: sum(transactionItems.qty) })
+  const itemsSoldResult = await db
+    .select({ totalItemsSold: sum(transactionItems.qty) })
     .from(transactionItems)
-    .innerJoin(transactions, eq(transactionItems.transactionId, transactions.id))
+    .innerJoin(
+      transactions,
+      eq(transactionItems.transactionId, transactions.id),
+    )
     .where(
       and(
         eq(transactions.tenantId, tenantId),
         eq(transactions.status, "success"),
         gte(transactions.createdAt, startDate),
         lte(transactions.createdAt, endDate),
-      )
+      ),
     );
 
   // Transaksi Brilink
@@ -96,16 +109,18 @@ export const getDailySummary = async (
     grossProfit: grossProfit.toString(),
     trxCount: trxCount,
     itemsSold: itemsSold,
-  }
+  };
 
   // Pengecekan Tanggal
   const today = new Date();
 
   // Menyesuaikan dengan timezone
-  const todayStr = today.toLocaleDateString("en-CA", { timeZone: "Asia/Makassar" });
+  const todayStr = today.toLocaleDateString("en-CA", {
+    timeZone: "Asia/Makassar",
+  });
 
   if (todayStr && date >= todayStr) {
-    return { ...resultData, id: crypto.randomUUID(), generatedAt: new Date(), }
+    return { ...resultData, id: crypto.randomUUID(), generatedAt: new Date() };
   }
 
   // Simpan ke cache dan return
@@ -129,7 +144,7 @@ export const getDailySummary = async (
       return retrySummary;
     }
 
-    throw new ConflictError("Failed to generate daily summary");
+    throw new ConflictError("Gagal membuat ringkasan harian");
   }
 };
 
@@ -189,20 +204,24 @@ export const getDailyRangeSummary = async (
     endM === undefined ||
     endD === undefined
   ) {
-    throw new InvalidDateRangeError("Invalid date format");
+    throw new InvalidDateRangeError("Format tanggal tidak valid");
   }
 
   const startDate = new Date(Date.UTC(startY, startM - 1, startD));
   const endDate = new Date(Date.UTC(endY, endM - 1, endD));
 
   if (endDate < startDate) {
-    throw new InvalidDateRangeError("'to' date cannot be before 'from' date");
+    throw new InvalidDateRangeError(
+      "Tanggal 'sampai' tidak boleh sebelum tanggal 'dari'",
+    );
   }
 
   const diffTime = endDate.getTime() - startDate.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
   if (diffDays > 31) {
-    throw new InvalidDateRangeError("Date range cannot exceed 31 days");
+    throw new InvalidDateRangeError(
+      "Rentang waktu tidak boleh lebih dari 31 hari",
+    );
   }
 
   const existingSummaries = await db.query.dailySummaries.findMany({
@@ -213,9 +232,7 @@ export const getDailyRangeSummary = async (
     ),
   });
 
-  const cachedMap = new Map(
-    existingSummaries.map((s) => [s.summaryDate, s])
-  );
+  const cachedMap = new Map(existingSummaries.map((s) => [s.summaryDate, s]));
 
   const dates: string[] = [];
   const currentDate = new Date(startDate);
@@ -231,7 +248,7 @@ export const getDailyRangeSummary = async (
         return cache;
       }
       return await getDailySummary(tenantId, { date: dateStr });
-    })
+    }),
   );
 
   return results

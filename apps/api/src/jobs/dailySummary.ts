@@ -30,14 +30,14 @@ export const startDailySummaryJob = () => {
           // Menggunakan structured logging
           log.info(
             { tenantId: tenant.id, date: dateString },
-            `[CRON] Daily recap for ${tenant.name} success!`
+            `[CRON] Daily recap for ${tenant.name} success!`,
           );
         } catch (e) {
           // Melempar object error agar Pino bisa merekam stack trace-nya
           const errorMessage = e instanceof Error ? e.message : String(e);
           log.error(
             { tenantId: tenant.id, err: errorMessage },
-            `[CRON] Failed processing recap for ${tenant.name}`
+            `[CRON] Failed processing recap for ${tenant.name}`,
           );
         }
       }

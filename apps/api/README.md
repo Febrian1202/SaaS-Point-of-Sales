@@ -5,13 +5,13 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-v15+-blue?logo=postgresql)](https://www.postgresql.org/)
 [![Drizzle ORM](https://img.shields.io/badge/Drizzle%20ORM-latest-green?logo=drizzle)](https://orm.drizzle.team/)
 
-API Backend untuk **Kios Sheza**, sebuah sistem Point of Sale (POS) dan manajemen inventaris multi-tenant yang dirancang untuk skala SaaS. Dibangun menggunakan Bun dan ElysiaJS dengan fokus pada *type safety*, arsitektur modular, dan isolasi data antar tenant yang ketat.
+API Backend untuk **Kios Sheza**, sebuah sistem Point of Sale (POS) dan manajemen inventaris multi-tenant yang dirancang untuk skala SaaS. Dibangun menggunakan Bun dan ElysiaJS dengan fokus pada _type safety_, arsitektur modular, dan isolasi data antar tenant yang ketat.
 
 ## 🚀 Fitur Utama
 
 - **Isolasi Multi-Tenant**: Dirancang khusus untuk SaaS. Semua data difilter secara ketat menggunakan `tenantId` untuk mencegah kebocoran data antar toko/tenant.
 - **Role-Based Access Control (RBAC)**: Izin akses yang presisi dengan role `admin` dan `cashier`, dilindungi oleh middleware guard khusus.
-- **Autentikasi Aman**: Menggunakan JWT dengan fitur rotasi *access* & *refresh token* otomatis melalui cookie `HttpOnly` yang aman.
+- **Autentikasi Aman**: Menggunakan JWT dengan fitur rotasi _access_ & _refresh token_ otomatis melalui cookie `HttpOnly` yang aman.
 - **Desain Domain Modular**: Pemisahan tanggung jawab yang bersih dengan route, service, schema, dan penanganan error khusus untuk setiap modul.
 - **Pelaporan Otomatis**: Ringkasan keuangan harian dan bulanan (pendapatan, laba kotor, komisi agen) yang di-generate otomatis via Cron Job setiap tengah malam.
 - **Mekanisme Soft Delete**: Data master (produk, kategori, user) tidak dihapus permanen jika sudah memiliki riwayat transaksi, guna menjaga integritas data.
@@ -37,22 +37,28 @@ API Backend untuk **Kios Sheza**, sebuah sistem Point of Sale (POS) dan manajeme
 ## 🏁 Memulai
 
 ### 1. Clone Repositori
+
 ```bash
 git clone https://github.com/username-anda/kios-sheza-api.git
 cd kios-sheza-api
 ```
 
 ### 2. Instal Dependensi
+
 ```bash
 bun install
 ```
 
 ### 3. Konfigurasi Environment
+
 Buat file `.env` berdasarkan contoh yang ada:
+
 ```bash
 cp .env.example .env
 ```
+
 Isi kredensial database dan secret JWT Anda:
+
 ```env
 DATABASE_URL=postgres://user:password@localhost:5432/kios_sheza
 JWT_ACCESS_SECRET=rahasia_access_token_anda
@@ -61,7 +67,9 @@ PORT=3000
 ```
 
 ### 4. Setup Database
+
 Generate dan jalankan migrasi, lalu masukkan data awal (seeding):
+
 ```bash
 # Generate file migrasi
 bun run db:generate
@@ -74,6 +82,7 @@ bun run db:seed
 ```
 
 ### 5. Jalankan Aplikasi
+
 ```bash
 # Mode pengembangan dengan hot reload
 bun run dev
@@ -104,6 +113,7 @@ src/
 ```
 
 Setiap modul di dalam `src/modules/` biasanya berisi:
+
 - `route.ts`: Definisi endpoint dan logika validasi.
 - `service.ts`: Logika bisnis dan interaksi database.
 - `schema.ts`: Skema request dan response (Drizzle/TypeBox).
@@ -130,4 +140,5 @@ Setelah server berjalan, Anda dapat mengakses dokumentasi interaktif Swagger UI 
 UI ini menyediakan gambaran detail mengenai semua endpoint, payload permintaan, dan struktur respons.
 
 ---
+
 Dibuat dengan ❤️ untuk Kios Sheza.

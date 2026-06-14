@@ -52,14 +52,18 @@ describe("Report Routes", () => {
     mock.restore();
   });
 
-  const headers = { 
-    "Authorization": "Bearer mock-token",
-    "Content-Type": "application/json"
+  const headers = {
+    Authorization: "Bearer mock-token",
+    "Content-Type": "application/json",
   };
 
   it("GET /reports/daily should return 200", async () => {
     service.getDailySummary.mockResolvedValue(validSummary);
-    const response = await app.handle(new Request("http://localhost/reports/daily?date=2024-05-31", { headers }));
+    const response = await app.handle(
+      new Request("http://localhost/reports/daily?date=2024-05-31", {
+        headers,
+      }),
+    );
     expect(response.status).toBe(200);
   });
 
@@ -73,7 +77,11 @@ describe("Report Routes", () => {
       grossProfit: 400,
       trxCount: 10,
     });
-    const response = await app.handle(new Request("http://localhost/reports/monthly?month=2024-05", { headers }));
+    const response = await app.handle(
+      new Request("http://localhost/reports/monthly?month=2024-05", {
+        headers,
+      }),
+    );
     expect(response.status).toBe(200);
   });
 
@@ -99,7 +107,10 @@ describe("Report Routes", () => {
       },
     ]);
     const response = await app.handle(
-      new Request("http://localhost/reports/daily-range?from=2024-05-30&to=2024-05-31", { headers })
+      new Request(
+        "http://localhost/reports/daily-range?from=2024-05-30&to=2024-05-31",
+        { headers },
+      ),
     );
     expect(response.status).toBe(200);
   });
