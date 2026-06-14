@@ -1,5 +1,5 @@
 import { products } from "@/db/schema";
-import { schemaResponseSuccess, withSuccess } from "@/shared";
+import { schemaPagination, schemaResponseSuccess, withSuccess, withSuccessMeta } from "@/shared";
 import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
 import { validationDetail, t, type Static } from "elysia";
 
@@ -19,8 +19,20 @@ export const schemaQueryProduct = t.Object({
   category_id: t.Optional(
     t.String({ error: validationDetail("Category ID must be a string") }),
   ),
-  stock_lte: t.Optional(
-    t.Numeric({ error: validationDetail("Stock limit must be a number") }),
+  status: t.Optional(
+    t.Union(
+      [
+        t.Literal("AVAILABLE"),
+        t.Literal("LOW_STOCK"),
+        t.Literal("OUT_OF_STOCK")
+      ],
+      { error: validationDetail("Status must be AVAILABLE, LOW_STOCK, or OUT_OF_STOCK") }),
+  ),
+  page: t.Optional(
+    t.Numeric({ default: 1,error: validationDetail("Page must be a number") }),
+  ),
+  limit: t.Optional(
+    t.Numeric({ default: 10, error: validationDetail("Limit must be a number") }),
   ),
 });
 
@@ -82,7 +94,7 @@ const productWithCategory = t.Composite([
   }),
 ]);
 
-export const schemaResponseGet = withSuccess(t.Array(productWithCategory));
+export const schemaResponseGet = withSuccessMeta(t.Array(productWithCategory), schemaPagination);
 
 const productPlusCategory = t.Composite([
   t.Omit(baseProduct, ["tenantId", "categoryId"]),

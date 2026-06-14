@@ -9,6 +9,7 @@ export const schemaQueryCategory = t.Object({
   search: t.Optional(
     t.String({ error: validationDetail("Search must be a string") }),
   ),
+  slug: t.Optional(t.String({error: validationDetail("Slug must be a string")}))
 });
 
 export const schemaParamsId = t.Object({

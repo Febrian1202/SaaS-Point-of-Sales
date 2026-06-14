@@ -28,8 +28,8 @@ export const categoriesRoutes = new Elysia({
   .use(authPlugin)
   .get(
     "/",
-    async ({ tenantId, query: { search } }) => {
-      const result = await getCategory(tenantId, search);
+    async ({ tenantId, query: { search, slug } }) => {
+      const result = await getCategory(tenantId, search, slug);
 
       return {
         success: true,

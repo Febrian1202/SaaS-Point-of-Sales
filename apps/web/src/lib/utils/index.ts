@@ -1,2 +1,3 @@
-export * from './number';
-export * from './admin';
+export * from './number.ts';
+export * from './admin.ts';
+export * from './shared.ts';

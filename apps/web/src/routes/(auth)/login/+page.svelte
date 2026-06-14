@@ -48,7 +48,7 @@
 </script>
 
 <svelte:head>
-	<title>Masuk | Kios Sheza</title>
+	<title>Masuk | Transa</title>
 </svelte:head>
 
 <main

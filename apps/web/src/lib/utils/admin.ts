@@ -6,3 +6,7 @@ export function getProductDisplay(items: Array<{ product?: { name: string } }>) 
 	}
 	return firstName;
 }
+
+export function isBarcode(query: string): boolean {
+	return /^\d{3,15}$/.test(query);
+}

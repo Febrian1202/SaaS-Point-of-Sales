@@ -6,10 +6,12 @@ import { ConflictError } from "@/plugins";
 import { slugify } from "@helper";
 import type { ArgsUpdateCategory } from "./schema";
 
-export const getCategory = async (tenantId: string, search?: string) => {
+export const getCategory = async (tenantId: string, search?: string, slug?: string) => {
   const filters = [eq(categories.tenantId, tenantId)];
 
   if (search) filters.push(ilike(categories.name, `%${search}%`));
+
+  if (slug) filters.push(ilike(categories.slug, slug));
 
   const result = await db.query.categories.findMany({
     columns: {

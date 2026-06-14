@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { Plus, Sparkles, TriangleAlert } from 'lucide-svelte';
+	import { Sparkles, TriangleAlert } from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card';
 	import * as Table from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import type { PageData } from './$types';
 	import { SvelteDate } from 'svelte/reactivity';
-	import { base } from '$app/paths';
 	import { getProductDisplay, formatRupiah } from '$lib/utils/index';
 	import DashboardStats from '$lib/features/admin/dashboard/DashboardStats.svelte';
 
@@ -111,6 +110,8 @@
 	});
 </script>
 
+<!-- TODO: refactor kalau ada kesempatan -->
+<!-- Bagi section jadi component component-->
 <svelte:head>
 	<title>Dashboard Admin | Kios Sheza</title>
 </svelte:head>
@@ -411,15 +412,5 @@
 				Berikut adalah ringkasan operasional toko Anda hari ini.
 			</p>
 		</div>
-
-		<!-- The Sole Tertiary Accent Button (CTA) for the screen -->
-		<a href="{base}/dashboard">
-			<Button
-				class="h-11 rounded-md bg-primary font-tight text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98]"
-			>
-				<Plus class="mr-2 size-4" />
-				TRANSAKSI BARU
-			</Button>
-		</a>
 	</div>
 {/snippet}

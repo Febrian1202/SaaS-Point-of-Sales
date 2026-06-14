@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, lte, asc } from "drizzle-orm";
+import { and, desc, eq, ilike, lte, asc, gte, count } from "drizzle-orm";
 import { slugify } from "@helper";
 import { products } from "@/db/schema";
 import { db } from "@/db";
@@ -11,7 +11,9 @@ export const getProduct = async (
   search?: string,
   barcode?: string,
   categoryId?: string,
-  stockLte?: number,
+  status?: string,
+  page?: number,
+  limit?: number,
 ) => {
   const filters = [eq(products.tenantId, tenantId)];
 
@@ -21,11 +23,21 @@ export const getProduct = async (
 
   if (categoryId) filters.push(eq(products.categoryId, categoryId));
 
-  if (stockLte !== undefined) filters.push(lte(products.stockQty, stockLte));
+  if (status === "AVAILABLE") {
+    filters.push(gte(products.stockQty, 0));
+  } else if (status === "LOW_STOCK") {
+    filters.push(lte(products.stockQty, 5));
+  } else if (status === "OUT_OF_STOCK") {
+    filters.push(lte(products.stockQty, 0));
+  }
+
+  const offset = ((page ?? 1) - 1) * (limit ?? 10);
 
   const result = await db.query.products.findMany({
     columns: {
       id: true,
+      slug: true,
+      isActive: true,
       name: true,
       barcode: true,
       sellingPrice: true,
@@ -34,8 +46,10 @@ export const getProduct = async (
       createdAt: true,
       updatedAt: true,
     },
+    limit: limit ?? 10,
+    offset: offset,
     where: and(...filters, eq(products.isActive, true)),
-    orderBy: stockLte !== undefined ? asc(products.stockQty) : desc(products.createdAt),
+    orderBy: status !== undefined ? asc(products.stockQty) : desc(products.createdAt),
     with: {
       category: {
         columns: {
@@ -45,7 +59,25 @@ export const getProduct = async (
     },
   });
 
-  return result;
+  // Hitung seluruh total data yang sesuai dengan filter
+  const countResult = await db
+    .select({totalData: count()})
+    .from(products)
+    .where(and(...filters, eq(products.isActive, true)));
+
+  const totalData = countResult[0]?.totalData ?? 0;
+
+  const totalPages = Math.ceil(totalData / (limit ?? 10));
+
+  return {
+    data: result,
+    meta: {
+      page: page,
+      limit: limit,
+      totalData: totalData,
+      totalPages: totalPages,
+    },
+  };
 };
 
 export const getProductDetail = async (id: string, tenantId: string) => {

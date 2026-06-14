@@ -86,21 +86,34 @@ export const getDailySummary = async (
   const retailCogs = 0;
   const grossProfit = totalRevenue - retailCogs;
 
+  const resultData = {
+    tenantId,
+    summaryDate: date,
+    retailRevenue: retailRevenue.toString(),
+    retailCogs: retailCogs.toString(),
+    brilinkCommission: brilinkCommission.toString(),
+    totalRevenue: totalRevenue.toString(),
+    grossProfit: grossProfit.toString(),
+    trxCount: trxCount,
+    itemsSold: itemsSold,
+  }
+
+  // Pengecekan Tanggal
+  const today = new Date();
+
+  // Menyesuaikan dengan timezone
+  const todayStr = today.toLocaleDateString("en-CA", { timeZone: "Asia/Makassar" });
+
+  if (todayStr && date >= todayStr) {
+    return { ...resultData, id: crypto.randomUUID(), generatedAt: new Date(), }
+  }
+
   // Simpan ke cache dan return
   try {
+    // Hapus generatedAt dari resultData untuk insert ke database
     const [newSummary] = await db
       .insert(dailySummaries)
-      .values({
-        tenantId: tenantId,
-        summaryDate: date,
-        retailRevenue: retailRevenue.toString(),
-        retailCogs: retailCogs.toString(),
-        brilinkCommission: brilinkCommission.toString(),
-        totalRevenue: totalRevenue.toString(),
-        grossProfit: grossProfit.toString(),
-        trxCount: trxCount,
-        itemsSold: itemsSold,
-      })
+      .values(resultData)
       .returning();
 
     return newSummary;

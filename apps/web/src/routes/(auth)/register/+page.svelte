@@ -76,7 +76,7 @@
 </script>
 
 <svelte:head>
-	<title>Registrasi Toko Baru | Kios Sheza</title>
+	<title>Registrasi Toko Baru | Transa</title>
 </svelte:head>
 
 <main
