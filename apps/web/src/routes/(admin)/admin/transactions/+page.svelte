@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Search, RefreshCw, Eye, Ban } from 'lucide-svelte';
+	import { Search, RefreshCw, Eye, Ban, CalendarIcon } from 'lucide-svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import { createSvelteTable, FlexRender } from '$lib/components/ui/data-table/index.js';
@@ -7,10 +7,13 @@
 	import { renderSnippet } from '$lib/components/ui/data-table/render-helpers.js';
 	import * as Table from '$lib/components/ui/table';
 	import * as HoverCard from '$lib/components/ui/hover-card';
+	import * as Popover from '$lib/components/ui/popover';
+	import { RangeCalendar } from '$lib/components/ui/range-calendar';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Badge } from '$lib/components/ui/badge';
 	import { formatRupiah } from '$lib/utils/index';
+	import { cn } from '$lib/utils';
 	import { getVisiblePages } from '$lib/utils/shared';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { Skeleton } from '$lib/components/ui/skeleton';
@@ -18,13 +21,56 @@
 	import TransactionDetailDialog from '$lib/features/admin/transactions/TransactionDetailDialog.svelte';
 	import { deserialize } from '$app/forms';
 	import { toast } from 'svelte-sonner';
+	import {
+		DateFormatter,
+		type DateValue,
+		getLocalTimeZone,
+		parseDate
+	} from '@internationalized/date';
 
 	let { data } = $props();
 
 	const currentUser = $derived(data?.user);
 
+	// Formatter untuk date
+	const df = new DateFormatter('id-ID', {
+		dateStyle: 'medium'
+	});
+
 	// State pencarian
 	let searchQuery = $state(page.url.searchParams.get('search') || '');
+
+	// State filter range calendar
+	let openDateRange = $state(false);
+
+	let initFrom = page.url.searchParams.get('from');
+	let initTo = page.url.searchParams.get('to');
+
+	let dateRange = $state({
+		start: initFrom ? parseDate(initFrom) : undefined,
+		end: initTo ? parseDate(initTo) : undefined
+	});
+
+	// Handle Date Range Change
+	function handleDateRangeChange(range: { start?: DateValue; end?: DateValue }) {
+		dateRange = range;
+		const urlParams = new SvelteURLSearchParams(page.url.searchParams);
+
+		if (range.start) {
+			urlParams.set('from', range.start.toString());
+		} else {
+			urlParams.delete('from');
+		}
+
+		if (range.end) {
+			urlParams.set('to', range.end.toString());
+		} else {
+			urlParams.delete('to');
+		}
+
+		urlParams.delete('page');
+		goto(`?${urlParams.toString()}`, { keepFocus: true, noScroll: true });
+	}
 
 	// State dialog void
 	let showVoid = $state(false);
@@ -69,6 +115,7 @@
 	// Reset pencarian
 	function resetFilters() {
 		searchQuery = '';
+		dateRange = { start: undefined, end: undefined };
 		goto('?', { keepFocus: true, noScroll: true });
 	}
 
@@ -315,14 +362,45 @@
 	<div
 		class="flex flex-wrap items-end gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm"
 	>
-		<!-- Date Range Placeholder -->
-		<div class="min-w-50 flex-1 space-y-1.5">
+		<!-- Date Range Calendar -->
+		<div class="min-w-64 flex-1 space-y-1.5">
 			<span class="font-mono text-xs text-secondary-foreground uppercase">Rentang Waktu</span>
-			<div
-				class="flex h-10 w-full items-center rounded-md border border-border bg-muted/30 px-3 py-2 font-mono text-sm text-muted-foreground select-none"
-			>
-				Hari Ini
-			</div>
+			<Popover.Root bind:open={openDateRange}>
+				<Popover.Trigger>
+					{#snippet child({ props })}
+						<Button
+							variant="outline"
+							class={cn(
+								'w-full justify-start text-left font-mono font-normal',
+								!dateRange.start && 'text-muted-foreground'
+							)}
+							{...props}
+						>
+							<CalendarIcon class="mr-2 h-4 w-4" />
+							{#if dateRange.start}
+								{#if dateRange.end}
+									{df.format(dateRange.start.toDate(getLocalTimeZone()))} - {df.format(
+										dateRange.end.toDate(getLocalTimeZone())
+									)}
+								{:else}
+									{df.format(dateRange.start.toDate(getLocalTimeZone()))}
+								{/if}
+							{:else}
+								Pilih Rentang Tanggal
+							{/if}
+						</Button>
+					{/snippet}
+				</Popover.Trigger>
+				<Popover.Content class="w-auto p-0" align="start">
+					<RangeCalendar
+						value={dateRange}
+						onValueChange={handleDateRangeChange}
+						initialFocus
+						numberOfMonths={2}
+						placeholder={dateRange?.start}
+					/>
+				</Popover.Content>
+			</Popover.Root>
 		</div>
 
 		<!-- Search by Invoice -->

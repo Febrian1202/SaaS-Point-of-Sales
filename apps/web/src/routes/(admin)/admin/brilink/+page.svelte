@@ -26,14 +26,31 @@
 	import DeleteConfirmDialog from '$lib/features/shared/DeleteConfirmDialog.svelte';
 	import { deserialize } from '$app/forms';
 	import { toast } from 'svelte-sonner';
+	import { Calendar as CalendarUI } from '$lib/components/ui/calendar';
+	import {
+		DateFormatter,
+		type DateValue,
+		getLocalTimeZone,
+		parseDate
+	} from '@internationalized/date';
+	import { cn } from '$lib/utils';
 
 	// Props data
 	let { data } = $props();
 
+	// Formatter untuk date
+	const df = new DateFormatter('id-ID', {
+		dateStyle: 'medium'
+	});
+
 	// State filter
-	let selectedDate = $state(page.url.searchParams.get('date') ?? '');
+	let selectedDateStr = $state(page.url.searchParams.get('date') ?? '');
+	let selectedDateValue = $state<DateValue | undefined>(
+		selectedDateStr ? parseDate(selectedDateStr) : undefined
+	);
 	let selectedType = $state(page.url.searchParams.get('type') ?? '');
 
+	let openDate = $state(false);
 	let openType = $state(false);
 
 	// State Dialog Void
@@ -68,7 +85,8 @@
 		const currentUrl = page.url.toString();
 		if (currentUrl !== prevUrl) {
 			prevUrl = currentUrl;
-			selectedDate = page.url.searchParams.get('date') ?? '';
+			selectedDateStr = page.url.searchParams.get('date') ?? '';
+			selectedDateValue = selectedDateStr ? parseDate(selectedDateStr) : undefined;
 			selectedType = page.url.searchParams.get('type') ?? '';
 		}
 	});
@@ -77,7 +95,7 @@
 	function handleFilterChange(patch: { date?: string; type?: string } = {}) {
 		const urlParams = new SvelteURLSearchParams(page.url.searchParams);
 
-		const dt = 'date' in patch ? patch.date : selectedDate;
+		const dt = 'date' in patch ? patch.date : selectedDateStr;
 		const tp = 'type' in patch ? patch.type : selectedType;
 
 		if (dt) urlParams.set('date', dt);
@@ -92,7 +110,8 @@
 	}
 
 	function resetFilters() {
-		selectedDate = '';
+		selectedDateStr = '';
+		selectedDateValue = undefined;
 		selectedType = '';
 		goto('?', { keepFocus: true, noScroll: true });
 	}
@@ -380,17 +399,39 @@
 		class="flex flex-wrap items-end gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm"
 	>
 		<!-- Date Filter -->
-		<div class="min-w-50 flex-1 space-y-1.5">
+		<div class="min-w-64 flex-1 space-y-1.5">
 			<span class="font-mono text-xs text-secondary-foreground">Pilih Tanggal</span>
-			<div class="relative">
-				<Calendar class="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
-				<input
-					type="date"
-					value={selectedDate}
-					onchange={(e) => handleFilterChange({ date: e.currentTarget.value })}
-					class="w-full rounded-md border border-input bg-transparent py-2 pr-3 pl-9 font-mono text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-				/>
-			</div>
+			<Popover.Root bind:open={openDate}>
+				<Popover.Trigger>
+					{#snippet child({ props })}
+						<Button
+							variant="outline"
+							class={cn(
+								'w-full justify-start text-left font-mono font-normal',
+								!selectedDateValue && 'text-muted-foreground'
+							)}
+							{...props}
+						>
+							<Calendar class="mr-2 h-4 w-4" />
+							{selectedDateValue
+								? df.format(selectedDateValue.toDate(getLocalTimeZone()))
+								: 'Pilih Tanggal'}
+						</Button>
+					{/snippet}
+				</Popover.Trigger>
+				<Popover.Content class="w-auto p-0" align="start">
+					<CalendarUI.Root
+						value={selectedDateValue}
+						onValueChange={(val) => {
+							selectedDateValue = val;
+							selectedDateStr = val ? val.toString() : '';
+							handleFilterChange({ date: selectedDateStr });
+							openDate = false;
+						}}
+						initialFocus
+					/>
+				</Popover.Content>
+			</Popover.Root>
 		</div>
 
 		<!-- Type Filter -->
