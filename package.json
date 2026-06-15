@@ -7,10 +7,14 @@
   ],
   "scripts": {
     "changeset": "changeset",
-    "version": "changeset version && bun apps/mobile/sync-version.js"
+    "version": "changeset version && bun apps/mobile/sync-version.js",
+    "dev:api": "bun run --cwd apps/api dev",
+    "dev:web": "bun run --cwd apps/web dev",
+    "dev": "concurrently -c \"cyan.bold,magenta.bold\" -n \"API,WEB\" \"bun run dev:api\" \"bun run dev:web\""
   },
   "devDependencies": {
-    "@changesets/cli": "^2.31.0"
+    "@changesets/cli": "^2.31.0",
+    "concurrently": "^10.0.3"
   },
   "dependencies": {
     "web": "^0.0.2",

@@ -93,6 +93,11 @@ describe("Brilink Service Unit Tests", () => {
   describe("getBrilinkTransaction", () => {
     it("should filter transactions by tenantId and date range", async () => {
       (db.query.brilinkTransactions.findMany as any).mockResolvedValue([]);
+      (db.select as any).mockReturnValue({
+        from: mock().mockReturnValue({
+          where: mock().mockResolvedValue([{ totalData: 0 }]),
+        }),
+      });
 
       await getBrilinkTransaction(mockTenantId, { date: "2024-01-01" });
 

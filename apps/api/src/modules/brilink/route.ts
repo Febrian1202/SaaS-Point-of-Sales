@@ -45,7 +45,8 @@ export const brilinkRoutes = new Elysia({
       return {
         success: true,
         message: "Get Brilink Transaction data success",
-        data: result,
+        data: result.data,
+        meta: result.meta,
       };
     },
     {
@@ -110,18 +111,20 @@ export const brilinkRoutes = new Elysia({
     },
   )
   .use(
-    rateLimit({
-      duration: 10000,
-      max: 2,
-      errorResponse: new Response(
-        JSON.stringify({
-          success: false,
-          message:
-            "The transaction is being processed. Please wait a moment to avoid duplicate data.",
-        }),
-        { status: 429, headers: { "Content-Type": "application/json" } },
-      ),
-    }),
+    Bun.env.NODE_ENV === "production"
+      ? rateLimit({
+          duration: 10000,
+          max: 2,
+          errorResponse: new Response(
+            JSON.stringify({
+              success: false,
+              message:
+                "The transaction is being processed. Please wait a moment to avoid duplicate data.",
+            }),
+            { status: 429, headers: { "Content-Type": "application/json" } },
+          ),
+        })
+      : (app) => app,
   )
   .post(
     "/",

@@ -56,7 +56,7 @@ export const getBrilinkTransaction = async (
   tenantId: string,
   query: ArgsGetBrilink,
 ) => {
-  const { date, type } = query;
+  const { date, type, page, limit } = query;
   let filters = [eq(brilinkTransactions.tenantId, tenantId)];
 
   if (date) {
@@ -71,6 +71,8 @@ export const getBrilinkTransaction = async (
     filters.push(eq(brilinkTransactions.trxType, type));
   }
 
+  const offset = ((page ?? 1) - 1) * (limit ?? 10);
+
   const data = await db.query.brilinkTransactions.findMany({
     columns: {
       id: true,
@@ -82,6 +84,7 @@ export const getBrilinkTransaction = async (
       status: true,
       notes: true,
       createdAt: true,
+      cashierId: true,
     },
     with: {
       cashier: {
@@ -90,11 +93,29 @@ export const getBrilinkTransaction = async (
         },
       },
     },
+    limit: limit ?? 10,
+    offset: offset,
     where: and(...filters),
     orderBy: desc(brilinkTransactions.createdAt),
   });
 
-  return data;
+  const countResult = await db
+    .select({ totalData: count() })
+    .from(brilinkTransactions)
+    .where(and(...filters));
+
+  const totalData = countResult[0]?.totalData ?? 0;
+  const totalPages = Math.ceil(totalData / (limit ?? 10));
+
+  return {
+    data: data,
+    meta: {
+      page: page ?? 1,
+      limit: limit ?? 10,
+      totalData: totalData,
+      totalPages: totalPages,
+    },
+  };
 };
 
 export const getBrilinkSummary = async (
@@ -113,6 +134,7 @@ export const getBrilinkSummary = async (
       trxType: brilinkTransactions.trxType,
       totalTransaction: count(),
       totalCommission: sum(brilinkTransactions.agentCommission),
+      totalVolume: sum(brilinkTransactions.customerAmount),
     })
     .from(brilinkTransactions)
     .where(
@@ -128,18 +150,22 @@ export const getBrilinkSummary = async (
   // Hitung grand total
   let grandTotalCommission = 0;
   let grandTotalTransaction = 0;
+  let grandTotalVolume = 0;
 
   const breakdown = summary.map((item) => {
     const commission = Number(item.totalCommission || 0);
     const transaction = Number(item.totalTransaction || 0);
+    const volume = Number(item.totalVolume || 0);
 
     grandTotalCommission += commission;
     grandTotalTransaction += transaction;
+    grandTotalVolume += volume;
 
     return {
       trxType: item.trxType,
       totalTransaction: transaction,
       totalCommission: commission,
+      totalVolume: volume,
     };
   });
 
@@ -147,6 +173,7 @@ export const getBrilinkSummary = async (
     date: date,
     grandTotalCommission,
     grandTotalTransaction,
+    grandTotalVolume,
     breakdown,
   };
 };

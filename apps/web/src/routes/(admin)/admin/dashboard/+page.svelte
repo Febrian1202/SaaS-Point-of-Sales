@@ -295,7 +295,7 @@
 					variant="link"
 					class="h-auto p-0 font-mono text-xs tracking-wider text-primary uppercase hover:underline"
 				>
-					Lihat Semua
+					<a href="/admin/transactions"> Lihat Semua </a>
 				</Button>
 			</Card.Header>
 			<Card.Content class="p-0">
@@ -370,7 +370,9 @@
 			</Card.Header>
 			<Card.Content class="flex flex-1 flex-col p-4">
 				{#if data.metrics.lowStock.length === 0}
-					<div class="flex flex-1 items-center justify-center py-8 text-center text-sm text-muted-foreground">
+					<div
+						class="flex flex-1 items-center justify-center py-8 text-center text-sm text-muted-foreground"
+					>
 						Semua produk memiliki stok yang aman.
 					</div>
 				{:else}

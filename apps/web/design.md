@@ -79,5 +79,5 @@ The palette is built around high-contrast neutrals and a single accent that driv
 
 1. **Ikonografi:** Selalu gunakan Lucide Icon jika membutuhkan ikon atau mengganti ikon dari template yang diberikan.
 2. **Komponen UI:** Selalu pertimbangkan untuk menggunakan komponen dari Shadcn UI (`shadcn-svelte`) jika ada komponen yang dibutuhkan. Pasang (install) jika diperlukan dan belum tersedia di proyek.
-3. **Runtime & Package Manager:** Selalu gunakan `bun` untuk segala keperluan, baik itu untuk menjalankan test, memeriksa linter, memasang dependensi (install dependency), atau perintah apa pun.
+3. **Runtime & Package Manager:** Selalu gunakan `bun` untuk segala keperluan, baik itu untuk menjalankan test, memeriksa linter, memasang dependensi (install dependency), atau perintah apa pun. PASTIKAN selalu menjalankan pengecekan linter (`bun run lint`) dan pengecekan TypeScript (`bun run check`) setiap kali selesai melakukan perubahan pada kode.
 4. **Scrollbar Kustom:** Selalu gunakan scrollbar kustom bertema Graphite dengan mendefinisikannya pada stylesheet global (`layout.css`). Scrollbar tidak boleh menggunakan warna bawaan browser yang mencolok. Track harus dibuat transparan, sedangkan thumb menggunakan warna border (`var(--border)`) yang bertransisi ke warna foreground sekunder (`var(--secondary-foreground)`) saat di-hover.

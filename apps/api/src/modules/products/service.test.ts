@@ -30,6 +30,7 @@ mock.module("@/db", () => ({
     },
     insert: mockInsert,
     update: mockUpdate,
+    select: mock(),
   },
 }));
 
@@ -68,14 +69,26 @@ describe("Product Service Unit Testing", () => {
         },
       ];
       (db.query.products.findMany as any).mockResolvedValue(mockData);
+      (db.select as any).mockReturnValue({
+        from: mock().mockReturnValue({
+          where: mock().mockResolvedValue([{ totalData: 1 }]),
+        }),
+      });
 
       const result = await getProduct(mockTenantId);
 
-      expect(result).toEqual(mockData);
+      expect(result.data).toEqual(mockData);
+      expect(result.meta.totalData).toBe(1);
       expect(db.query.products.findMany).toHaveBeenCalled();
     });
 
     it("should strictly filter by tenantId and isActive: true (Multi-Tenant & Soft Delete)", async () => {
+      (db.query.products.findMany as any).mockResolvedValue([]);
+      (db.select as any).mockReturnValue({
+        from: mock().mockReturnValue({
+          where: mock().mockResolvedValue([{ totalData: 0 }]),
+        }),
+      });
       await getProduct(mockTenantId, "search-query", "12345", "cat-1");
 
       const callArgs = (db.query.products.findMany as any).mock.calls[0][0];
@@ -86,7 +99,13 @@ describe("Product Service Unit Testing", () => {
     });
 
     it("should apply stockLte filter and sort by stockQty asc", async () => {
-      await getProduct(mockTenantId, undefined, undefined, undefined, 10);
+      (db.query.products.findMany as any).mockResolvedValue([]);
+      (db.select as any).mockReturnValue({
+        from: mock().mockReturnValue({
+          where: mock().mockResolvedValue([{ totalData: 0 }]),
+        }),
+      });
+      await getProduct(mockTenantId, undefined, undefined, undefined, "LOW_STOCK");
 
       const callArgs = (db.query.products.findMany as any).mock.calls[0][0];
       expect(callArgs.where).toBeDefined();
@@ -118,9 +137,9 @@ describe("Product Service Unit Testing", () => {
       // Mock returns null because filter by (id AND tenantId) fails
       (db.query.products.findFirst as any).mockResolvedValue(null);
 
-      expect(
-        getProductDetail(mockProductId, mockOtherTenantId),
-      ).rejects.toThrow(ProductNotFoundError);
+      expect(getProductDetail(mockProductId, mockOtherTenantId)).rejects.toThrow(
+        ProductNotFoundError,
+      );
     });
 
     it("should throw ProductNotFoundError for inactive products (Soft Delete)", async () => {

@@ -1,5 +1,5 @@
 import { edenTreaty } from '@elysiajs/eden';
-import type { App } from '../../../../api/src/index.ts';
+import type { App } from '@';
 import { PUBLIC_API_URL } from '$env/static/public';
 
 // Helper untuk mengambil cookie di sisi client
@@ -12,12 +12,12 @@ function getCookie(name: string) {
 }
 
 export const api = edenTreaty<App>(PUBLIC_API_URL, {
-	fetcher: ((url: string, options: any) => {
+	fetcher: ((url: string, options) => {
 		const token = getCookie('accessToken');
 		const headers = new Headers(options?.headers);
 		if (token) {
 			headers.set('Authorization', `Bearer ${token}`);
 		}
 		return fetch(url, { ...options, headers });
-	}) as any
+	}) as typeof fetch
 });

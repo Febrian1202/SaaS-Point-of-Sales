@@ -293,8 +293,7 @@
 												align="center"
 												sideOffset={5}
 											>
-												<span
-													class="font-mono text-[10px] tracking-wider text-primary uppercase"
+												<span class="font-mono text-[10px] tracking-wider text-primary uppercase"
 													>Lihat Detail</span
 												>
 											</HoverCard.Content>
@@ -316,7 +315,9 @@
 																showVoid = true;
 															}}
 														>
-															<Ban class="h-4 w-4 transition-colors group-hover/btn:text-destructive" />
+															<Ban
+																class="h-4 w-4 transition-colors group-hover/btn:text-destructive"
+															/>
 														</Button>
 													{/snippet}
 												</HoverCard.Trigger>

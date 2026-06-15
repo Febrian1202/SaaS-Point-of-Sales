@@ -6,6 +6,7 @@ import {
   categories,
   transactions,
   transactionItems,
+  brilinkTransactions,
   dailySummaries,
 } from "@schema/index";
 
@@ -16,6 +17,7 @@ const main = async () => {
     // Bersihkan dulu isi database
     await db.delete(transactionItems);
     await db.delete(transactions);
+    await db.delete(brilinkTransactions);
     await db.delete(dailySummaries);
     await db.delete(products);
     await db.delete(categories);
@@ -587,6 +589,168 @@ const main = async () => {
 
     console.log("Seeding transactions success!");
 
+    console.log("Seeding Brilink transactions data!");
+    const generateRefNumber = (date: Date, index: number) => {
+      const dateStr = formatDate(date).replace(/-/g, "");
+      return `BRILINK-${dateStr}-${index.toString().padStart(4, "0")}`;
+    };
+
+    const threeDaysAgo = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000);
+    const fourDaysAgo = new Date(today.getTime() - 4 * 24 * 60 * 60 * 1000);
+    const fiveDaysAgo = new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000);
+    const sixDaysAgo = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+
+    const brilinkData = [
+      // H-0 (Hari Ini) - Target Komisi: 25.000
+      {
+        tenantId: newTenant.id,
+        cashierId: cashier.id,
+        trxType: "tarik_tunai",
+        customerAmount: "1500000",
+        adminFeeCharged: "15000",
+        agentCommission: "15000",
+        referenceNumber: generateRefNumber(today, 1),
+        status: "success",
+        createdAt: today,
+      },
+      {
+        tenantId: newTenant.id,
+        cashierId: cashier.id,
+        trxType: "e-wallet",
+        customerAmount: "100000",
+        adminFeeCharged: "2000",
+        agentCommission: "2000",
+        referenceNumber: generateRefNumber(today, 2),
+        status: "success",
+        createdAt: today,
+      },
+      {
+        tenantId: newTenant.id,
+        cashierId: cashier.id,
+        trxType: "pembayaran",
+        customerAmount: "350000",
+        adminFeeCharged: "8000",
+        agentCommission: "8000",
+        referenceNumber: generateRefNumber(today, 3),
+        status: "success",
+        createdAt: today,
+      },
+
+      // H-1 (Kemarin) - Target Komisi: 15.000
+      {
+        tenantId: newTenant.id,
+        cashierId: cashier.id,
+        trxType: "transfer",
+        customerAmount: "500000",
+        adminFeeCharged: "10000",
+        agentCommission: "10000",
+        referenceNumber: generateRefNumber(yesterday, 1),
+        status: "success",
+        createdAt: yesterday,
+      },
+      {
+        tenantId: newTenant.id,
+        cashierId: cashier.id,
+        trxType: "e-wallet",
+        customerAmount: "200000",
+        adminFeeCharged: "5000",
+        agentCommission: "5000",
+        referenceNumber: generateRefNumber(yesterday, 2),
+        status: "success",
+        createdAt: yesterday,
+      },
+
+      // H-2 (Lusa) - Target Komisi: 30.000
+      {
+        tenantId: newTenant.id,
+        cashierId: cashier.id,
+        trxType: "tarik_tunai",
+        customerAmount: "2000000",
+        adminFeeCharged: "20000",
+        agentCommission: "20000",
+        referenceNumber: generateRefNumber(twoDaysAgo, 1),
+        status: "success",
+        createdAt: twoDaysAgo,
+      },
+      {
+        tenantId: newTenant.id,
+        cashierId: cashier.id,
+        trxType: "transfer",
+        customerAmount: "500000",
+        adminFeeCharged: "10000",
+        agentCommission: "10000",
+        referenceNumber: generateRefNumber(twoDaysAgo, 2),
+        status: "success",
+        createdAt: twoDaysAgo,
+      },
+
+      // H-3 (3 hari lalu) - Target Komisi: 5.000
+      {
+        tenantId: newTenant.id,
+        cashierId: cashier.id,
+        trxType: "e-wallet",
+        customerAmount: "150000",
+        adminFeeCharged: "5000",
+        agentCommission: "5000",
+        referenceNumber: generateRefNumber(threeDaysAgo, 1),
+        status: "success",
+        createdAt: threeDaysAgo,
+      },
+
+      // H-4 (4 hari lalu) - Target Komisi: 15.000
+      {
+        tenantId: newTenant.id,
+        cashierId: cashier.id,
+        trxType: "transfer",
+        customerAmount: "1000000",
+        adminFeeCharged: "15000",
+        agentCommission: "15000",
+        referenceNumber: generateRefNumber(fourDaysAgo, 1),
+        status: "success",
+        createdAt: fourDaysAgo,
+      },
+
+      // H-5 (5 hari lalu) - Target Komisi: 10.000
+      {
+        tenantId: newTenant.id,
+        cashierId: cashier.id,
+        trxType: "tarik_tunai",
+        customerAmount: "500000",
+        adminFeeCharged: "10000",
+        agentCommission: "10000",
+        referenceNumber: generateRefNumber(fiveDaysAgo, 1),
+        status: "success",
+        createdAt: fiveDaysAgo,
+      },
+
+      // H-6 (6 hari lalu) - Target Komisi: 25.000
+      {
+        tenantId: newTenant.id,
+        cashierId: cashier.id,
+        trxType: "pembayaran",
+        customerAmount: "180000",
+        adminFeeCharged: "5000",
+        agentCommission: "5000",
+        referenceNumber: generateRefNumber(sixDaysAgo, 1),
+        status: "success",
+        createdAt: sixDaysAgo,
+      },
+      {
+        tenantId: newTenant.id,
+        cashierId: cashier.id,
+        trxType: "transfer",
+        customerAmount: "2000000",
+        adminFeeCharged: "20000",
+        agentCommission: "20000",
+        referenceNumber: generateRefNumber(sixDaysAgo, 2),
+        status: "success",
+        createdAt: sixDaysAgo,
+      },
+    ];
+
+    await db.insert(brilinkTransactions).values(brilinkData);
+    console.log("Seeding Brilink transactions success!");
+
     console.log("Seeding daily summaries data!");
 
     // Update daily summaries berdasarkan data transaksi di atas
@@ -596,10 +760,10 @@ const main = async () => {
         summaryDate: formatDate(today),
         retailRevenue: "71000", // 10500 + 37000 + 23500
         retailCogs: "55000", // Asumsi HPP
-        brilinkCommission: "0",
-        totalRevenue: "71000",
-        grossProfit: "16000", // 71000 - 55000
-        trxCount: 3,
+        brilinkCommission: "25000",
+        totalRevenue: "96000", // 71000 + 25000
+        grossProfit: "41000", // (71000 - 55000) + 25000
+        trxCount: 6, // 3 retail + 3 brilink
         itemsSold: 7, // 3 + 2 + 2
       },
       {
@@ -607,10 +771,10 @@ const main = async () => {
         summaryDate: formatDate(yesterday),
         retailRevenue: "27500", // 15000 + 12500
         retailCogs: "20000", // Asumsi HPP
-        brilinkCommission: "0",
-        totalRevenue: "27500",
-        grossProfit: "7500", // 27500 - 20000
-        trxCount: 2,
+        brilinkCommission: "15000",
+        totalRevenue: "42500", // 27500 + 15000
+        grossProfit: "22500", // (27500 - 20000) + 15000
+        trxCount: 4, // 2 retail + 2 brilink
         itemsSold: 15, // 10 + 5
       },
       {
@@ -618,55 +782,55 @@ const main = async () => {
         summaryDate: formatDate(twoDaysAgo),
         retailRevenue: "104000", // 70000 + 34000
         retailCogs: "85000", // Asumsi HPP
-        brilinkCommission: "0",
-        totalRevenue: "104000",
-        grossProfit: "19000", // 104000 - 85000
-        trxCount: 2,
+        brilinkCommission: "30000",
+        totalRevenue: "134000", // 104000 + 30000
+        grossProfit: "49000", // (104000 - 85000) + 30000
+        trxCount: 4, // 2 retail + 2 brilink
         itemsSold: 21, // 20 + 1
       },
       // ====== TAMBAHAN DATA SUMMARY LAMA UNTUK CHART ======
       {
         tenantId: newTenant.id,
-        summaryDate: formatDate(new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000)), // 3 hari lalu
+        summaryDate: formatDate(threeDaysAgo), // 3 hari lalu
         retailRevenue: "150000",
         retailCogs: "120000",
         brilinkCommission: "5000",
         totalRevenue: "155000",
         grossProfit: "35000",
-        trxCount: 15,
+        trxCount: 16, // 15 retail + 1 brilink
         itemsSold: 32,
       },
       {
         tenantId: newTenant.id,
-        summaryDate: formatDate(new Date(today.getTime() - 4 * 24 * 60 * 60 * 1000)), // 4 hari lalu
+        summaryDate: formatDate(fourDaysAgo), // 4 hari lalu
         retailRevenue: "210000",
         retailCogs: "165000",
         brilinkCommission: "15000",
         totalRevenue: "225000",
         grossProfit: "60000",
-        trxCount: 22,
+        trxCount: 23, // 22 retail + 1 brilink
         itemsSold: 45,
       },
       {
         tenantId: newTenant.id,
-        summaryDate: formatDate(new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000)), // 5 hari lalu
+        summaryDate: formatDate(fiveDaysAgo), // 5 hari lalu
         retailRevenue: "85000",
         retailCogs: "65000",
-        brilinkCommission: "0",
-        totalRevenue: "85000",
-        grossProfit: "20000",
-        trxCount: 8,
+        brilinkCommission: "10000", // updated from 0
+        totalRevenue: "95000", // updated from 85000
+        grossProfit: "30000", // updated from 20000
+        trxCount: 9, // 8 retail + 1 brilink
         itemsSold: 12,
       },
       {
         tenantId: newTenant.id,
-        summaryDate: formatDate(new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000)), // 6 hari lalu
+        summaryDate: formatDate(sixDaysAgo), // 6 hari lalu
         retailRevenue: "320000",
         retailCogs: "250000",
         brilinkCommission: "25000",
         totalRevenue: "345000",
         grossProfit: "95000",
-        trxCount: 35,
+        trxCount: 37, // 35 retail + 2 brilink
         itemsSold: 70,
       },
     ] as any);

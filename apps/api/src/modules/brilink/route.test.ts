@@ -64,12 +64,20 @@ describe("Brilink Routes", () => {
   };
 
   it("GET /brilink should return 200", async () => {
-    service.getBrilinkTransaction.mockResolvedValue([
-      {
-        ...validBrilink,
-        cashier: { name: "Cashier" },
+    service.getBrilinkTransaction.mockResolvedValue({
+      data: [
+        {
+          ...validBrilink,
+          cashier: { name: "Cashier" },
+        },
+      ],
+      meta: {
+        page: 1,
+        limit: 10,
+        totalData: 1,
+        totalPages: 1,
       },
-    ]);
+    });
     const response = await app.handle(
       new Request("http://localhost/brilink", { headers }),
     );
@@ -81,8 +89,9 @@ describe("Brilink Routes", () => {
       date: "2024-01-01",
       grandTotalTransaction: 1,
       grandTotalCommission: 100,
+      grandTotalVolume: 1000,
       breakdown: [
-        { trxType: "transfer", totalTransaction: 1, totalCommission: 100 },
+        { trxType: "transfer", totalTransaction: 1, totalCommission: 100, totalVolume: 1000 },
       ],
     });
     const response = await app.handle(

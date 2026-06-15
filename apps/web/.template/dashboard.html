@@ -1,262 +1,258 @@
-<main class="ml-64 min-h-screen bg-background pt-16">
-	<div class="p-margin mx-auto max-w-7xl">
-		<!-- Page Title Section -->
-		<div class="mb-lg gap-md flex flex-col justify-between md:flex-row md:items-end">
-			<div>
-				<h2 class="font-headline-lg text-headline-lg mb-xs text-primary">Riwayat Transaksi</h2>
-				<p class="font-body-sm text-body-sm text-secondary">
-					Monitoring and auditing system for sales records.
+<main class="px-margin min-h-screen pt-24 pb-20 pl-0 md:pb-8 md:pl-64">
+	<div class="space-y-gutter mx-auto max-w-300">
+		<!-- Header for Page -->
+		<div class="mb-lg">
+			<h2 class="font-headline-lg text-headline-lg text-primary">Brilink Management</h2>
+			<p class="text-secondary opacity-60">Overview and transaction logs for BRI Link services</p>
+		</div>
+		<!-- Summary Header / Bento Grid -->
+		<div class="gap-gutter grid grid-cols-1 md:grid-cols-3">
+			<!-- Commission Card -->
+			<div
+				class="p-margin border-border-subtle group relative overflow-hidden rounded-xl border bg-surface"
+			>
+				<div class="p-md absolute top-0 right-0 opacity-20">
+					<span class="material-symbols-outlined text-primary-fixed text-4xl">payments</span>
+				</div>
+				<p class="font-label-mono text-label-mono mb-xs tracking-wider text-secondary uppercase">
+					Total Komisi Bulan Ini
 				</p>
-			</div>
-			<div class="gap-xs flex items-center">
-				<span class="bg-primary-fixed h-2 w-2 rounded-full"></span>
-				<span class="font-label-mono text-label-mono text-primary-fixed">SYSTEM ACTIVE</span>
-			</div>
-		</div>
-		<!-- Filter Controls -->
-		<div class="gap-md mb-lg grid grid-cols-1 md:grid-cols-12">
-			<div class="md:col-span-4 lg:col-span-3">
-				<label class="font-label-mono text-label-mono mb-xs block text-secondary">DATE RANGE</label>
-				<div
-					class="border-border-subtle px-md py-sm focus-within:border-primary-fixed flex items-center rounded-lg border bg-surface transition-colors"
-				>
-					<span class="material-symbols-outlined mr-sm scale-90 text-secondary"
-						>calendar_today</span
-					>
-					<span class="font-label-mono text-label-mono text-tertiary"
-						>31/05/2026 s/d 31/05/2026</span
-					>
+				<h3 class="font-headline-lg text-headline-lg text-primary-fixed">Rp 1.250.000</h3>
+				<div class="mt-md flex items-center gap-2">
+					<span class="text-primary-fixed font-label-mono flex items-center text-xs">
+						<span class="material-symbols-outlined text-sm">trending_up</span> +12.4%
+					</span>
+					<span class="font-label-mono text-xs text-secondary opacity-50">vs last month</span>
 				</div>
 			</div>
-			<div class="md:col-span-6 lg:col-span-7">
-				<label class="font-label-mono text-label-mono mb-xs block text-secondary"
-					>SEARCH BY INVOICE</label
-				>
-				<div
-					class="border-border-subtle px-md py-sm focus-within:border-primary-fixed flex items-center rounded-lg border bg-surface transition-colors"
-				>
-					<span class="material-symbols-outlined mr-sm scale-90 text-secondary">search</span>
-					<input
-						class="font-label-mono text-label-mono placeholder:text-surface-variant w-full border-none bg-transparent p-0 text-tertiary focus:ring-0"
-						placeholder="No. Struk..."
-						type="text"
-					/>
+			<!-- Volume Card -->
+			<div
+				class="p-margin border-border-subtle group relative overflow-hidden rounded-xl border bg-surface"
+			>
+				<div class="p-md absolute top-0 right-0 opacity-20">
+					<span class="material-symbols-outlined text-primary-fixed text-4xl"
+						>account_balance_wallet</span
+					>
+				</div>
+				<p class="font-label-mono text-label-mono mb-xs tracking-wider text-secondary uppercase">
+					Total Volume Transaksi
+				</p>
+				<h3 class="font-headline-lg text-headline-lg text-primary">Rp 45.800.000</h3>
+				<div class="mt-md flex items-center gap-2">
+					<span class="text-primary-fixed font-label-mono flex items-center text-xs">
+						<span class="material-symbols-outlined text-sm">analytics</span> 28 Active Days
+					</span>
 				</div>
 			</div>
-			<div class="flex items-end md:col-span-2 lg:col-span-2">
-				<button
-					class="bg-surface-container-high border-border-subtle hover:border-primary-fixed font-label-mono text-label-mono w-full rounded-lg border py-[11px] text-tertiary transition-all"
-				>
-					EXPORT CSV
-				</button>
+			<!-- Transaction Count Card -->
+			<div
+				class="p-margin border-border-subtle group relative overflow-hidden rounded-xl border bg-surface"
+			>
+				<div class="p-md absolute top-0 right-0 opacity-20">
+					<span class="material-symbols-outlined text-primary-fixed text-4xl">swap_horiz</span>
+				</div>
+				<p class="font-label-mono text-label-mono mb-xs tracking-wider text-secondary uppercase">
+					Jumlah Transaksi
+				</p>
+				<h3 class="font-headline-lg text-headline-lg text-primary">156</h3>
+				<div class="mt-md flex items-center gap-2">
+					<span class="text-primary-fixed font-label-mono flex items-center text-xs">
+						<span class="material-symbols-outlined text-sm">speed</span> High Capacity
+					</span>
+				</div>
 			</div>
 		</div>
-		<!-- Transaction Table Container -->
+		<!-- Management Tools Area -->
 		<div class="border-border-subtle overflow-hidden rounded-xl border bg-surface">
-			<div class="overflow-x-auto">
-				<table class="w-full border-collapse text-left">
+			<div
+				class="p-margin border-border-subtle gap-md flex flex-col justify-between border-b md:flex-row md:items-center"
+			>
+				<div>
+					<h4 class="font-headline-md text-headline-md text-primary">Riwayat Transaksi Brilink</h4>
+					<p class="font-body-sm text-body-sm text-secondary opacity-60">
+						Log transaksi agen real-time
+					</p>
+				</div>
+				<div class="gap-sm flex flex-wrap items-center">
+					<!-- Date Filter -->
+					<div class="border-border-subtle px-sm flex items-center rounded-lg border bg-background">
+						<span class="material-symbols-outlined mr-xs text-sm text-secondary"
+							>calendar_today</span
+						>
+						<select
+							class="text-label-mono font-label-mono border-none bg-transparent py-2 pr-8 text-secondary focus:ring-0"
+						>
+							<option>Mei 2024</option>
+							<option>April 2024</option>
+						</select>
+					</div>
+					<!-- Type Filter -->
+					<div class="border-border-subtle px-sm flex items-center rounded-lg border bg-background">
+						<span class="material-symbols-outlined mr-xs text-sm text-secondary">filter_list</span>
+						<select
+							class="text-label-mono font-label-mono border-none bg-transparent py-2 pr-8 text-secondary focus:ring-0"
+						>
+							<option>Semua Jenis</option>
+							<option>Transfer</option>
+							<option>Tarik Tunai</option>
+							<option>Setor</option>
+						</select>
+					</div>
+					<!-- Export Button -->
+					<button
+						class="hover:bg-surface-container-highest border-border-subtle rounded-lg border bg-background p-2 text-secondary transition-all"
+					>
+						<span class="material-symbols-outlined">download</span>
+					</button>
+				</div>
+			</div>
+			<!-- Data Table -->
+			<div class="custom-scrollbar overflow-x-auto">
+				<table class="w-full min-w-250 border-collapse text-left">
 					<thead>
-						<tr class="bg-surface-container-low border-border-subtle border-b">
-							<th
-								class="px-md py-md font-label-mono text-label-mono tracking-wider text-secondary uppercase"
-							>
-								No. Struk
-							</th>
-							<th
-								class="px-md py-md font-label-mono text-label-mono tracking-wider text-secondary uppercase"
-							>
-								Kasir
-							</th>
-							<th
-								class="px-md py-md font-label-mono text-label-mono tracking-wider text-secondary uppercase"
-							>
-								Total
-							</th>
-							<th
-								class="px-md py-md font-label-mono text-label-mono tracking-wider text-secondary uppercase"
-							>
-								Item
-							</th>
-							<th
-								class="px-md py-md font-label-mono text-label-mono tracking-wider text-secondary uppercase"
-							>
-								Tgl &amp; Waktu
-							</th>
-							<th
-								class="px-md py-md font-label-mono text-label-mono text-right tracking-wider text-secondary uppercase"
-							>
-								Aksi
-							</th>
+						<tr
+							class="font-label-caps text-label-caps bg-surface tracking-wider text-secondary uppercase"
+						>
+							<th class="px-margin py-md border-border-subtle border-b">Waktu</th>
+							<th class="px-margin py-md border-border-subtle border-b">No. Referensi</th>
+							<th class="px-margin py-md border-border-subtle border-b">Jenis</th>
+							<th class="px-margin py-md border-border-subtle border-b">Nominal</th>
+							<th class="px-margin py-md border-border-subtle border-b">Admin</th>
+							<th class="px-margin py-md border-border-subtle border-b">Komisi</th>
+							<th class="px-margin py-md border-border-subtle border-b">Kasir</th>
+							<th class="px-margin py-md border-border-subtle border-b">Status</th>
+							<th class="px-margin py-md border-border-subtle border-b text-right">Aksi</th>
 						</tr>
 					</thead>
-					<tbody class="divide-border-subtle divide-y">
-						<!-- TRX-0034 -->
-						<tr class="hover:bg-surface-container-high/30 group transition-colors">
-							<td class="px-md py-md font-label-mono text-label-mono text-primary-fixed">
-								TRX-0034
+					<tbody class="divide-border-subtle font-label-mono text-label-mono divide-y">
+						<!-- Row 1 -->
+						<tr class="transition-colors hover:bg-background/50">
+							<td class="px-margin py-md text-secondary">31/05 14:22</td>
+							<td class="px-margin py-md font-bold text-primary">BRIL-9901</td>
+							<td class="px-margin py-md">
+								<span
+									class="rounded border border-blue-400/20 bg-blue-900/20 px-2 py-0.5 text-[10px] font-bold tracking-tight text-blue-400 uppercase"
+									>Transfer</span
+								>
 							</td>
-							<td class="px-md py-md font-body-sm text-body-sm text-tertiary">Budi</td>
-							<td class="px-md py-md font-label-mono text-label-mono text-tertiary">Rp 35.000</td>
-							<td class="px-md py-md font-label-mono text-label-mono text-secondary">3</td>
-							<td class="px-md py-md font-label-mono text-label-mono text-secondary">
-								31/05 14:22
-							</td>
-							<td class="px-md py-md text-right">
-								<div class="gap-sm flex items-center justify-end">
-									<button
-										class="bg-surface-container hover:bg-primary-container hover:text-on-primary-container flex h-8 w-8 items-center justify-center rounded transition-all"
-										title="Lihat Detail"
-									>
-										<span class="material-symbols-outlined text-[18px]">visibility</span>
-									</button>
-									<button
-										class="bg-surface-container hover:bg-error-container flex h-8 w-8 items-center justify-center rounded transition-all hover:text-white"
-										title="Void"
-									>
-										<span class="material-symbols-outlined text-[18px]">block</span>
-									</button>
+							<td class="px-margin py-md text-primary">Rp 2.500.000</td>
+							<td class="px-margin py-md text-secondary">Rp 15.000</td>
+							<td class="px-margin py-md text-primary-fixed">Rp 3.000</td>
+							<td class="px-margin py-md text-secondary">Budi</td>
+							<td class="px-margin py-md">
+								<div class="text-primary-fixed flex items-center gap-1.5">
+									<span class="bg-primary-fixed h-1.5 w-1.5 rounded-full"></span>
+									Berhasil
 								</div>
+							</td>
+							<td class="px-margin py-md text-right">
+								<button
+									class="border-primary-fixed/30 hover:bg-primary-fixed hover:text-on-primary text-primary-fixed rounded-lg border px-3 py-1 text-xs font-bold uppercase transition-all active:scale-95"
+									onclick="confirmVoid('BRIL-9901')"
+								>
+									Void
+								</button>
 							</td>
 						</tr>
-						<!-- TRX-0033 -->
-						<tr class="hover:bg-surface-container-high/30 group transition-colors">
-							<td class="px-md py-md font-label-mono text-label-mono text-primary-fixed">
-								TRX-0033
+						<!-- Row 2 -->
+						<tr class="transition-colors hover:bg-background/50">
+							<td class="px-margin py-md text-secondary">31/05 13:05</td>
+							<td class="px-margin py-md font-bold text-primary">BRIL-9900</td>
+							<td class="px-margin py-md">
+								<span
+									class="rounded border border-purple-400/20 bg-purple-900/20 px-2 py-0.5 text-[10px] font-bold tracking-tight text-purple-400 uppercase"
+									>Tarik Tunai</span
+								>
 							</td>
-							<td class="px-md py-md font-body-sm text-body-sm text-tertiary">Sari</td>
-							<td class="px-md py-md font-label-mono text-label-mono text-tertiary">Rp 12.500</td>
-							<td class="px-md py-md font-label-mono text-label-mono text-secondary">1</td>
-							<td class="px-md py-md font-label-mono text-label-mono text-secondary">
-								31/05 13:05
-							</td>
-							<td class="px-md py-md text-right">
-								<div class="gap-sm flex items-center justify-end">
-									<button
-										class="bg-surface-container hover:bg-primary-container hover:text-on-primary-container flex h-8 w-8 items-center justify-center rounded transition-all"
-										title="Lihat Detail"
-									>
-										<span class="material-symbols-outlined text-[18px]">visibility</span>
-									</button>
-									<button
-										class="bg-surface-container hover:bg-error-container flex h-8 w-8 items-center justify-center rounded transition-all hover:text-white"
-										title="Void"
-									>
-										<span class="material-symbols-outlined text-[18px]">block</span>
-									</button>
+							<td class="px-margin py-md text-primary">Rp 500.000</td>
+							<td class="px-margin py-md text-secondary">Rp 5.000</td>
+							<td class="px-margin py-md text-primary-fixed">Rp 1.000</td>
+							<td class="px-margin py-md text-secondary">Sari</td>
+							<td class="px-margin py-md">
+								<div class="text-primary-fixed flex items-center gap-1.5">
+									<span class="bg-primary-fixed h-1.5 w-1.5 rounded-full"></span>
+									Berhasil
 								</div>
+							</td>
+							<td class="px-margin py-md text-right">
+								<button
+									class="border-primary-fixed/30 hover:bg-primary-fixed hover:text-on-primary text-primary-fixed rounded-lg border px-3 py-1 text-xs font-bold uppercase transition-all active:scale-95"
+									onclick="confirmVoid('BRIL-9900')"
+								>
+									Void
+								</button>
 							</td>
 						</tr>
-						<!-- TRX-0032 -->
-						<tr class="hover:bg-surface-container-high/30 group transition-colors">
-							<td class="px-md py-md font-label-mono text-label-mono text-primary-fixed">
-								TRX-0032
+						<!-- Row 3 -->
+						<tr class="transition-colors hover:bg-background/50">
+							<td class="px-margin py-md text-secondary">31/05 11:45</td>
+							<td class="px-margin py-md font-bold text-primary">BRIL-9899</td>
+							<td class="px-margin py-md">
+								<span
+									class="rounded border border-green-400/20 bg-green-900/20 px-2 py-0.5 text-[10px] font-bold tracking-tight text-green-400 uppercase"
+									>Setor</span
+								>
 							</td>
-							<td class="px-md py-md font-body-sm text-body-sm text-tertiary">Budi</td>
-							<td class="px-md py-md font-label-mono text-label-mono text-tertiary">Rp 8.000</td>
-							<td class="px-md py-md font-label-mono text-label-mono text-secondary">2</td>
-							<td class="px-md py-md font-label-mono text-label-mono text-secondary">
-								31/05 11:30
-							</td>
-							<td class="px-md py-md text-right">
-								<div class="gap-sm flex items-center justify-end">
-									<button
-										class="bg-surface-container hover:bg-primary-container hover:text-on-primary-container flex h-8 w-8 items-center justify-center rounded transition-all"
-										title="Lihat Detail"
-									>
-										<span class="material-symbols-outlined text-[18px]">visibility</span>
-									</button>
-									<!-- Void Disabled or Hidden for Older Items -->
-									<div class="h-8 w-8"></div>
+							<td class="px-margin py-md text-primary">Rp 10.000.000</td>
+							<td class="px-margin py-md text-secondary">Rp 20.000</td>
+							<td class="px-margin py-md text-primary-fixed">Rp 5.000</td>
+							<td class="px-margin py-md text-secondary">Budi</td>
+							<td class="px-margin py-md">
+								<div class="text-primary-fixed flex items-center gap-1.5">
+									<span class="bg-primary-fixed h-1.5 w-1.5 rounded-full"></span>
+									Berhasil
 								</div>
+							</td>
+							<td class="px-margin py-md text-right">
+								<button
+									class="border-primary-fixed/30 hover:bg-primary-fixed hover:text-on-primary text-primary-fixed rounded-lg border px-3 py-1 text-xs font-bold uppercase transition-all active:scale-95"
+									onclick="confirmVoid('BRIL-9899')"
+								>
+									Void
+								</button>
 							</td>
 						</tr>
 					</tbody>
 				</table>
 			</div>
-			<!-- Pagination/Footer -->
+			<!-- Pagination -->
 			<div
-				class="px-md py-md bg-surface-container-low gap-md border-border-subtle flex flex-col items-center justify-between border-t md:flex-row"
+				class="p-md border-border-subtle font-label-mono text-label-mono flex items-center justify-between border-t text-secondary"
 			>
-				<div class="gap-lg flex">
-					<div class="gap-xs flex items-center">
-						<span class="material-symbols-outlined text-primary-fixed text-[14px]">visibility</span>
-						<span class="font-label-mono text-[10px] text-secondary">Lihat Detail</span>
-					</div>
-					<div class="gap-xs flex items-center">
-						<span class="material-symbols-outlined text-error text-[14px]">block</span>
-						<span class="font-label-mono text-[10px] text-secondary">Void (Admin Only)</span>
-					</div>
-				</div>
-				<div class="gap-md flex items-center">
-					<span class="font-label-mono text-label-mono text-secondary"
-						>Menampilkan 1-3 dari 124 Transaksi</span
-					>
-					<div class="gap-xs flex">
-						<button
-							class="border-border-subtle hover:text-primary-fixed flex h-8 w-8 items-center justify-center rounded border text-secondary transition-colors"
-						>
-							<span class="material-symbols-outlined">chevron_left</span>
-						</button>
-						<button
-							class="border-primary-fixed text-primary-fixed bg-surface-container-high font-label-mono text-label-mono flex h-8 w-8 items-center justify-center rounded border"
-						>
-							1
-						</button>
-						<button
-							class="border-border-subtle hover:border-primary-fixed font-label-mono text-label-mono flex h-8 w-8 items-center justify-center rounded border text-secondary transition-colors"
-						>
-							2
-						</button>
-						<button
-							class="border-border-subtle hover:text-primary-fixed flex h-8 w-8 items-center justify-center rounded border text-secondary transition-colors"
-						>
-							<span class="material-symbols-outlined">chevron_right</span>
-						</button>
-					</div>
+				<p class="text-xs">Showing 1 to 3 of 156 transactions</p>
+				<div class="flex items-center gap-2">
+					<button class="hover:text-primary-fixed p-1 transition-colors">
+						<span class="material-symbols-outlined">chevron_left</span>
+					</button>
+					<span class="text-primary-fixed px-2 font-bold">1</span>
+					<button class="hover:text-primary-fixed p-1 transition-colors">
+						<span class="material-symbols-outlined">chevron_right</span>
+					</button>
 				</div>
 			</div>
 		</div>
-		<!-- Bento Status Section -->
-		<div class="gap-md mt-lg grid grid-cols-1 md:grid-cols-3">
-			<div
-				class="p-md bg-surface-container-low border-border-subtle flex flex-col justify-between rounded-xl border"
-			>
-				<span class="font-label-caps text-label-caps text-secondary uppercase"
-					>TOTAL OMSET HARI INI</span
-				>
-				<div class="mt-md">
-					<h3 class="font-label-mono text-headline-md text-primary-fixed">Rp 1.250.000</h3>
-					<p class="text-on-surface-variant mt-xs font-label-mono text-[10px]">+12.5% vs Kemarin</p>
+		<!-- Footer Meta Info -->
+		<div class="gap-gutter grid grid-cols-1 md:grid-cols-2">
+			<div class="border-border-subtle p-md gap-md flex items-center rounded-xl border bg-surface">
+				<div class="bg-primary-container/10 p-sm rounded-lg">
+					<span class="material-symbols-outlined text-primary-fixed">shield_person</span>
+				</div>
+				<div>
+					<p class="font-label-mono text-label-mono text-primary">Privileged Admin Access</p>
+					<p class="font-body-sm text-body-sm text-xs text-secondary">
+						Voiding transactions requires secondary authentication and logs user ID.
+					</p>
 				</div>
 			</div>
-			<div
-				class="p-md bg-surface-container-low border-border-subtle flex flex-col justify-between rounded-xl border"
-			>
-				<span class="font-label-caps text-label-caps text-secondary uppercase"
-					>TRANSAKSI BERHASIL</span
-				>
-				<div class="mt-md">
-					<h3 class="font-label-mono text-headline-md text-tertiary">348</h3>
-					<p class="text-on-surface-variant mt-xs font-label-mono text-[10px]">0.5% Void Rate</p>
+			<div class="border-border-subtle p-md gap-md flex items-center rounded-xl border bg-surface">
+				<div class="bg-tertiary-container/10 p-sm rounded-lg">
+					<span class="material-symbols-outlined text-tertiary-fixed">update</span>
 				</div>
-			</div>
-			<div
-				class="p-md bg-surface-container-low border-border-subtle relative flex flex-col justify-between overflow-hidden rounded-xl border"
-			>
-				<div class="relative z-10">
-					<span class="font-label-caps text-label-caps text-secondary uppercase"
-						>SYSTEM HEALTH</span
-					>
-					<div class="mt-md gap-sm flex items-center">
-						<div class="bg-primary-fixed h-3 w-3 animate-pulse rounded-full"></div>
-						<h3 class="font-label-mono text-headline-md text-tertiary">OPERATIONAL</h3>
-					</div>
-				</div>
-				<!-- Decorative Element -->
-				<div class="absolute -right-4 -bottom-4 opacity-10">
-					<span class="material-symbols-outlined text-primary-fixed text-[120px]"
-						>settings_input_component</span
-					>
+				<div>
+					<p class="font-label-mono text-label-mono text-primary">System Last Sync</p>
+					<p class="font-body-sm text-body-sm text-xs text-secondary">
+						Connected to BRI Host: <span class="text-primary-fixed">Online</span> (Latency: 42ms)
+					</p>
 				</div>
 			</div>
 		</div>

@@ -1,5 +1,5 @@
 import { brilinkTransactions } from "@/db/schema";
-import { withSuccess } from "@/shared";
+import { withSuccess, schemaPagination, withSuccessMeta } from "@/shared";
 import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
 import { t, validationDetail, type Static } from "elysia";
 
@@ -67,6 +67,20 @@ export const schemaQueryBrilink = t.Object({
     t.String({ format: "date", error: validationDetail("Date invalid!") }),
   ),
   type: t.Optional(createTrxTypeSchema("Type invalid!")),
+  page: t.Optional(
+    t.Numeric({
+      minimum: 1,
+      default: 1,
+      error: validationDetail("Page number must be greater than 0"),
+    }),
+  ),
+  limit: t.Optional(
+    t.Numeric({
+      minimum: 1,
+      default: 10,
+      error: validationDetail("Limit must be greater than 0"),
+    }),
+  ),
 });
 
 export type ArgsGetBrilink = Static<typeof schemaQueryBrilink>;
@@ -93,24 +107,31 @@ const baseBrilink = createSelectSchema(brilinkTransactions);
 const brilinkWithCashier = t.Composite([
   t.Omit(baseBrilink, ["tenantId"]),
   t.Object({
-    cashier: t.Object({
-      name: t.String(),
-    }),
+    cashier: t.Nullable(
+      t.Object({
+        name: t.String(),
+      })
+    ),
   }),
 ]);
 
-export const schemaResponseGet = withSuccess(t.Array(brilinkWithCashier));
+export const schemaResponseGet = withSuccessMeta(
+  t.Array(brilinkWithCashier),
+  schemaPagination,
+);
 
 export const schemaResponseGetSummary = withSuccess(
   t.Object({
     date: t.String({ format: "date" }),
     grandTotalCommission: t.Number(),
     grandTotalTransaction: t.Number(),
+    grandTotalVolume: t.Number(),
     breakdown: t.Array(
       t.Object({
         trxType,
         totalTransaction: t.Number(),
         totalCommission: t.Number(),
+        totalVolume: t.Number(),
       }),
     ),
   }),

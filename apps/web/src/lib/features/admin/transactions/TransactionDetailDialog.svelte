@@ -5,7 +5,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { api } from '$lib/api/client';
 	import { formatRupiah } from '$lib/utils/index';
-	import { X, Calendar, User, CreditCard, Receipt } from 'lucide-svelte';
+	import { Receipt } from 'lucide-svelte';
 
 	let {
 		open = $bindable(false),
@@ -49,6 +49,7 @@
 		detail = null;
 
 		try {
+			// Cast the result to any to bypass Eden Treaty complex path index typing issues in SvelteKit
 			const res = await api.transactions[id].get();
 			if (res.data?.success) {
 				detail = res.data.data as unknown as TrxDetail;
@@ -56,6 +57,7 @@
 				errorMsg = res.data?.message || 'Gagal memuat detail transaksi.';
 			}
 		} catch (err) {
+			console.error(err);
 			errorMsg = 'Terjadi kesalahan jaringan atau server.';
 		} finally {
 			loading = false;
@@ -82,7 +84,7 @@
 </script>
 
 <Dialog.Root bind:open>
-	<Dialog.Content class="sm:max-w-[500px] border-border bg-card p-6 text-foreground shadow-2xl">
+	<Dialog.Content class="border-border bg-card p-6 text-foreground shadow-2xl sm:max-w-125">
 		<Dialog.Header class="space-y-1">
 			<Dialog.Title class="flex items-center gap-2 font-tight text-xl font-semibold">
 				<Receipt class="size-5 text-primary" />
@@ -108,19 +110,26 @@
 		{:else if errorMsg}
 			<div class="flex flex-col items-center justify-center gap-2 py-8 text-center">
 				<span class="font-mono text-sm text-destructive">{errorMsg}</span>
-				<Button variant="outline" size="sm" onclick={() => fetchDetail(transactionId)}>Coba Lagi</Button>
+				<Button variant="outline" size="sm" onclick={() => fetchDetail(transactionId)}
+					>Coba Lagi</Button
+				>
 			</div>
 		{:else if detail}
 			<div class="space-y-6 py-4">
 				<!-- Metadata Grid -->
-				<div class="grid grid-cols-2 gap-4 rounded-lg border border-border bg-background/50 p-4 font-mono text-xs text-secondary-foreground">
+				<div
+					class="grid grid-cols-2 gap-4 rounded-lg border border-border bg-background/50 p-4 font-mono text-xs text-secondary-foreground"
+				>
 					<div class="space-y-1">
 						<span class="block text-[10px] text-muted-foreground uppercase">No. Struk</span>
 						<span class="font-semibold text-foreground">{detail.trxNumber}</span>
 					</div>
 					<div class="space-y-1 text-right">
 						<span class="block text-[10px] text-muted-foreground uppercase">Metode Pembayaran</span>
-						<Badge variant="outline" class="border-border bg-background text-[10px] font-bold uppercase">
+						<Badge
+							variant="outline"
+							class="border-border bg-background text-[10px] font-bold uppercase"
+						>
 							{detail.paymentMethod}
 						</Badge>
 					</div>
@@ -136,7 +145,9 @@
 					<div class="max-h-48 overflow-y-auto rounded-lg border border-border bg-background/25">
 						<table class="w-full border-collapse text-left text-xs">
 							<thead>
-								<tr class="border-b border-border bg-muted/20 font-mono text-muted-foreground uppercase">
+								<tr
+									class="border-b border-border bg-muted/20 font-mono text-muted-foreground uppercase"
+								>
 									<th class="p-3">Produk</th>
 									<th class="p-3 text-center">Qty</th>
 									<th class="p-3 text-right">Harga</th>
@@ -146,10 +157,11 @@
 							<tbody class="divide-y divide-border/50">
 								{#each detail.items as item (item.id)}
 									<tr class="text-secondary-foreground hover:bg-muted/30">
-										<td class="p-3 font-medium text-foreground">{item.product?.name || 'Produk'}</td>
+										<td class="p-3 font-medium text-foreground">{item.product?.name || 'Produk'}</td
+										>
 										<td class="p-3 text-center font-mono">{item.qty}</td>
 										<td class="p-3 text-right font-mono">{formatRupiah(item.unitPrice)}</td>
-										<td class="p-3 text-right font-mono text-foreground font-semibold">
+										<td class="p-3 text-right font-mono font-semibold text-foreground">
 											{formatRupiah(item.subtotal)}
 										</td>
 									</tr>
@@ -160,16 +172,19 @@
 				</div>
 
 				<!-- Payment Details Summary -->
-				<div class="space-y-2 rounded-lg border border-border bg-background/30 p-4 font-mono text-xs">
+				<div
+					class="space-y-2 rounded-lg border border-border bg-background/30 p-4 font-mono text-xs"
+				>
 					<div class="flex justify-between py-1">
 						<span class="text-muted-foreground">TOTAL BELANJA</span>
-						<span class="font-bold text-foreground text-sm">{formatRupiah(detail.totalAmount)}</span>
+						<span class="text-sm font-bold text-foreground">{formatRupiah(detail.totalAmount)}</span
+						>
 					</div>
 					<div class="flex justify-between py-1">
 						<span class="text-muted-foreground">UANG DIBAYAR</span>
 						<span class="text-foreground">{formatRupiah(detail.amountPaid)}</span>
 					</div>
-					<div class="border-t border-border/50 my-1 pt-1 flex justify-between font-semibold">
+					<div class="my-1 flex justify-between border-t border-border/50 pt-1 font-semibold">
 						<span class="text-muted-foreground">KEMBALIAN</span>
 						<span class="text-primary">{formatRupiah(detail.changeAmount)}</span>
 					</div>
@@ -177,8 +192,10 @@
 			</div>
 		{/if}
 
-		<Dialog.Footer class="sm:justify-end border-t border-border pt-4">
-			<Button variant="outline" class="font-mono text-xs" onclick={() => (open = false)}>Tutup</Button>
+		<Dialog.Footer class="border-t border-border pt-4 sm:justify-end">
+			<Button variant="outline" class="font-mono text-xs" onclick={() => (open = false)}
+				>Tutup</Button
+			>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

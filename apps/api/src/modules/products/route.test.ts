@@ -66,27 +66,33 @@ describe("Product Routes", () => {
   };
 
   it("GET /products should return 200", async () => {
-    service.getProduct.mockResolvedValue([
-      {
-        ...validProduct,
-        category: { name: "Food" },
-      },
-    ]);
+    service.getProduct.mockResolvedValue({
+      data: [
+        {
+          ...validProduct,
+          category: { name: "Food" },
+        },
+      ],
+      meta: { page: 1, limit: 10, totalData: 1, totalPages: 1 },
+    });
     const response = await app.handle(
       new Request("http://localhost/products", { headers }),
     );
     expect(response.status).toBe(200);
   });
 
-  it("GET /products with stock_lte should return 200", async () => {
-    service.getProduct.mockResolvedValue([
-      {
-        ...validProduct,
-        category: { name: "Food" },
-      },
-    ]);
+  it("GET /products with status should return 200", async () => {
+    service.getProduct.mockResolvedValue({
+      data: [
+        {
+          ...validProduct,
+          category: { name: "Food" },
+        },
+      ],
+      meta: { page: 1, limit: 10, totalData: 1, totalPages: 1 },
+    });
     const response = await app.handle(
-      new Request("http://localhost/products?stock_lte=10", { headers }),
+      new Request("http://localhost/products?status=LOW_STOCK", { headers }),
     );
     expect(response.status).toBe(200);
     expect(service.getProduct).toHaveBeenCalledWith(
@@ -94,6 +100,8 @@ describe("Product Routes", () => {
       undefined,
       undefined,
       undefined,
+      "LOW_STOCK",
+      1,
       10,
     );
   });
