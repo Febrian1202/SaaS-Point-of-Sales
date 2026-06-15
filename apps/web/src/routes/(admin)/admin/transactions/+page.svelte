@@ -360,10 +360,10 @@
 
 	<!-- Filter Controls -->
 	<div
-		class="flex flex-wrap items-end gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm"
+		class="flex flex-col flex-wrap gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm sm:flex-row sm:items-end"
 	>
 		<!-- Date Range Calendar -->
-		<div class="min-w-64 flex-1 space-y-1.5">
+		<div class="w-full flex-1 space-y-1.5 sm:w-auto sm:min-w-64">
 			<span class="font-mono text-xs text-secondary-foreground uppercase">Rentang Waktu</span>
 			<Popover.Root bind:open={openDateRange}>
 				<Popover.Trigger>
@@ -404,7 +404,7 @@
 		</div>
 
 		<!-- Search by Invoice -->
-		<div class="min-w-75 flex-2 space-y-1.5">
+		<div class="w-full flex-2 space-y-1.5 sm:w-auto sm:min-w-75">
 			<label for="search" class="font-mono text-xs text-secondary-foreground uppercase"
 				>Cari berdasarkan Struk</label
 			>
@@ -423,7 +423,7 @@
 		<Button
 			variant="outline"
 			onclick={resetFilters}
-			class="gap-2 border-border text-secondary-foreground"
+			class="w-full gap-2 border-border text-secondary-foreground sm:w-auto"
 		>
 			<RefreshCw class="h-4 w-4" />
 			<span class="font-mono text-xs">Reset</span>

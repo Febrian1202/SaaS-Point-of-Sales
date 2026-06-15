@@ -396,10 +396,10 @@
 
 	<!-- Filter Row -->
 	<div
-		class="flex flex-wrap items-end gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm"
+		class="flex flex-col flex-wrap gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm sm:flex-row sm:items-end"
 	>
 		<!-- Date Filter -->
-		<div class="min-w-64 flex-1 space-y-1.5">
+		<div class="w-full flex-1 space-y-1.5 sm:w-auto sm:min-w-50">
 			<span class="font-mono text-xs text-secondary-foreground">Pilih Tanggal</span>
 			<Popover.Root bind:open={openDate}>
 				<Popover.Trigger>
@@ -435,7 +435,7 @@
 		</div>
 
 		<!-- Type Filter -->
-		<div class="min-w-50 flex-1 space-y-1.5">
+		<div class="w-full flex-1 space-y-1.5 sm:w-auto sm:min-w-50">
 			<span class="font-mono text-xs text-secondary-foreground">Jenis Transaksi</span>
 			<Popover.Root bind:open={openType}>
 				<Popover.Trigger>
@@ -503,7 +503,7 @@
 		<Button
 			variant="outline"
 			onclick={resetFilters}
-			class="gap-2 border-border text-secondary-foreground"
+			class="w-full gap-2 border-border text-secondary-foreground sm:w-auto"
 		>
 			<RefreshCw class="size-4" />
 			<span class="font-mono text-xs">Reset Filter</span>
