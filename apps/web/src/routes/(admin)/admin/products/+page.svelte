@@ -6,7 +6,9 @@
 	import { getCoreRowModel, type ColumnDef } from '@tanstack/table-core';
 	import { renderSnippet } from '$lib/components/ui/data-table/render-helpers.js';
 	import * as Table from '$lib/components/ui/table';
-	import * as Select from '$lib/components/ui/select';
+	import * as Popover from '$lib/components/ui/popover';
+	import * as Command from '$lib/components/ui/command';
+	import { Check, ChevronsUpDown } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Badge } from '$lib/components/ui/badge';
@@ -41,6 +43,10 @@
 			name: string;
 		} | null;
 	};
+
+	// State filter popover
+	let openCategory = $state(false);
+	let openStatus = $state(false);
 
 	// State untuk Dialog
 	let showAdd = $state(false);
@@ -326,58 +332,143 @@
 		<!-- Kategori -->
 		<div class="min-w-50 flex-1 space-y-1.5">
 			<span class="font-mono text-xs text-secondary-foreground">Kategori</span>
-			<Select.Root
-				type="single"
-				value={selectedCategory}
-				onValueChange={(val) => {
-					selectedCategory = val;
-					handleFilterChange({ category: val });
-				}}
-			>
-				<Select.Trigger
-					class="flex w-full min-w-0 items-center justify-between font-mono text-sm"
-					aria-label="Filter kategori"
-				>
-					<span class="flex-1 truncate pr-2 text-left">
-						{#await data.streamed.categories}
-							<span class="text-muted-foreground">Memuat...</span>
-						{:then categories}
-							{categories?.find((c) => c.slug === selectedCategory)?.name ?? 'Semua Kategori'}
-						{/await}
-					</span>
-				</Select.Trigger>
-				<Select.Content>
-					<Select.Item value="" label="Semua Kategori" />
-					{#await data.streamed.categories then categories}
-						{#each categories ?? [] as category (category.id)}
-							<Select.Item value={category.slug} label={category.name} />
-						{/each}
-					{/await}
-				</Select.Content>
-			</Select.Root>
+			<Popover.Root bind:open={openCategory}>
+				<Popover.Trigger>
+					{#snippet child({ props })}
+						<Button
+							{...props}
+							variant="outline"
+							role="combobox"
+							aria-expanded={openCategory}
+							class="flex w-full min-w-0 items-center justify-between font-mono text-sm"
+						>
+							<span class="flex-1 truncate text-left">
+								{#await data.streamed.categories}
+									<span class="text-muted-foreground">Memuat...</span>
+								{:then categories}
+									{categories?.find((c) => c.slug === selectedCategory)?.name ?? 'Semua Kategori'}
+								{/await}
+							</span>
+							<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+						</Button>
+					{/snippet}
+				</Popover.Trigger>
+				<Popover.Content class="w-[var(--bits-popover-anchor-width)] p-0">
+					<Command.Root
+						class="focus:outline-none focus-visible:outline-none [&_[data-slot=command-input-wrapper]]:focus-within:ring-0 [&_[data-slot=command-input]]:focus:ring-0 [&_[data-slot=command-input]]:focus-visible:ring-0"
+					>
+						<Command.Input
+							class="h-9 border-0 focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
+							placeholder="Cari kategori..."
+						/>
+						<Command.List>
+							<Command.Empty>Kategori tidak ditemukan.</Command.Empty>
+							<Command.Group>
+								<Command.Item
+									value=""
+									onSelect={() => {
+										selectedCategory = '';
+										handleFilterChange({ category: '' });
+										openCategory = false;
+									}}
+								>
+									<Check
+										class="mr-2 h-4 w-4 {selectedCategory === '' ? 'opacity-100' : 'opacity-0'}"
+									/>
+									Semua Kategori
+								</Command.Item>
+								{#await data.streamed.categories then categories}
+									{#each categories ?? [] as category (category.id)}
+										<Command.Item
+											value={category.slug}
+											onSelect={() => {
+												selectedCategory = category.slug;
+												handleFilterChange({ category: category.slug });
+												openCategory = false;
+											}}
+										>
+											<Check
+												class="mr-2 h-4 w-4 {selectedCategory === category.slug
+													? 'opacity-100'
+													: 'opacity-0'}"
+											/>
+											{category.name}
+										</Command.Item>
+									{/each}
+								{/await}
+							</Command.Group>
+						</Command.List>
+					</Command.Root>
+				</Popover.Content>
+			</Popover.Root>
 		</div>
 
 		<!-- Status Stok -->
 		<div class="min-w-50 flex-1 space-y-1.5">
 			<span class="font-mono text-xs text-secondary-foreground">Status Stok</span>
-			<Select.Root
-				type="single"
-				value={selectedStatus}
-				onValueChange={(val) => {
-					selectedStatus = val;
-					handleFilterChange({ status: val });
-				}}
-			>
-				<Select.Trigger class="w-full font-mono text-sm" aria-label="Filter status stok">
-					{statusList.find((s) => s.value === selectedStatus)?.label ?? 'Semua Status'}
-				</Select.Trigger>
-				<Select.Content>
-					<Select.Item value="" label="Semua Status" />
-					{#each statusList as s (s.value)}
-						<Select.Item value={s.value} label={s.label} />
-					{/each}
-				</Select.Content>
-			</Select.Root>
+			<Popover.Root bind:open={openStatus}>
+				<Popover.Trigger>
+					{#snippet child({ props })}
+						<Button
+							{...props}
+							variant="outline"
+							role="combobox"
+							aria-expanded={openStatus}
+							class="flex w-full min-w-0 items-center justify-between font-mono text-sm"
+						>
+							<span class="flex-1 truncate text-left">
+								{statusList.find((s) => s.value === selectedStatus)?.label ?? 'Semua Status'}
+							</span>
+							<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+						</Button>
+					{/snippet}
+				</Popover.Trigger>
+				<Popover.Content class="w-(--bits-popover-anchor-width) p-0">
+					<Command.Root
+						class="focus:outline-none focus-visible:outline-none [&_[data-slot=command-input-wrapper]]:focus-within:ring-0 [&_[data-slot=command-input]]:focus:ring-0 [&_[data-slot=command-input]]:focus-visible:ring-0"
+					>
+						<Command.Input
+							class="h-9 border-0 focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
+							placeholder="Cari status..."
+						/>
+						<Command.List>
+							<Command.Empty>Status tidak ditemukan.</Command.Empty>
+							<Command.Group>
+								<Command.Item
+									value=""
+									onSelect={() => {
+										selectedStatus = '';
+										handleFilterChange({ status: '' });
+										openStatus = false;
+									}}
+								>
+									<Check
+										class="mr-2 h-4 w-4 {selectedStatus === '' ? 'opacity-100' : 'opacity-0'}"
+									/>
+									Semua Status
+								</Command.Item>
+								{#each statusList as s (s.value)}
+									<Command.Item
+										value={s.value}
+										onSelect={() => {
+											selectedStatus = s.value;
+											handleFilterChange({ status: s.value });
+											openStatus = false;
+										}}
+									>
+										<Check
+											class="mr-2 h-4 w-4 {selectedStatus === s.value
+												? 'opacity-100'
+												: 'opacity-0'}"
+										/>
+										{s.label}
+									</Command.Item>
+								{/each}
+							</Command.Group>
+						</Command.List>
+					</Command.Root>
+				</Popover.Content>
+			</Popover.Root>
 		</div>
 
 		<!-- Pencarian Cepat -->

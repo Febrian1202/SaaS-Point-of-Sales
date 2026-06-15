@@ -1,12 +1,21 @@
 <script lang="ts">
-	import { Coins, Wallet, ArrowRightLeft, Calendar, RefreshCw } from 'lucide-svelte';
+	import {
+		Coins,
+		Wallet,
+		ArrowRightLeft,
+		Calendar,
+		RefreshCw,
+		Check,
+		ChevronsUpDown
+	} from 'lucide-svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import { createSvelteTable, FlexRender } from '$lib/components/ui/data-table/index.js';
 	import { getCoreRowModel, type ColumnDef } from '@tanstack/table-core';
 	import { renderSnippet } from '$lib/components/ui/data-table/render-helpers.js';
 	import * as Table from '$lib/components/ui/table';
-	import * as Select from '$lib/components/ui/select';
+	import * as Popover from '$lib/components/ui/popover';
+	import * as Command from '$lib/components/ui/command';
 	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
@@ -24,6 +33,8 @@
 	// State filter
 	let selectedDate = $state(page.url.searchParams.get('date') ?? '');
 	let selectedType = $state(page.url.searchParams.get('type') ?? '');
+
+	let openType = $state(false);
 
 	// State Dialog Void
 	let showVoid = $state(false);
@@ -385,24 +396,67 @@
 		<!-- Type Filter -->
 		<div class="min-w-50 flex-1 space-y-1.5">
 			<span class="font-mono text-xs text-secondary-foreground">Jenis Transaksi</span>
-			<Select.Root
-				type="single"
-				value={selectedType}
-				onValueChange={(val) => {
-					selectedType = val;
-					handleFilterChange({ type: val });
-				}}
-			>
-				<Select.Trigger class="w-full font-mono text-sm" aria-label="Filter jenis">
-					{typesList.find((t) => t.value === selectedType)?.label ?? 'Semua Jenis'}
-				</Select.Trigger>
-				<Select.Content>
-					<Select.Item value="" label="Semua Jenis" />
-					{#each typesList as type (type.value)}
-						<Select.Item value={type.value} label={type.label} />
-					{/each}
-				</Select.Content>
-			</Select.Root>
+			<Popover.Root bind:open={openType}>
+				<Popover.Trigger>
+					{#snippet child({ props })}
+						<Button
+							{...props}
+							variant="outline"
+							role="combobox"
+							aria-expanded={openType}
+							class="flex w-full min-w-0 items-center justify-between font-mono text-sm"
+						>
+							<span class="flex-1 truncate text-left">
+								{typesList.find((t) => t.value === selectedType)?.label ?? 'Semua Jenis'}
+							</span>
+							<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+						</Button>
+					{/snippet}
+				</Popover.Trigger>
+				<Popover.Content class="w-[var(--bits-popover-anchor-width)] p-0">
+					<Command.Root
+						class="focus:outline-none focus-visible:outline-none [&_[data-slot=command-input-wrapper]]:focus-within:ring-0 [&_[data-slot=command-input]]:focus:ring-0 [&_[data-slot=command-input]]:focus-visible:ring-0"
+					>
+						<Command.Input
+							class="h-9 border-0 focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
+							placeholder="Cari jenis transaksi..."
+						/>
+						<Command.List>
+							<Command.Empty>Jenis tidak ditemukan.</Command.Empty>
+							<Command.Group>
+								<Command.Item
+									value=""
+									onSelect={() => {
+										selectedType = '';
+										handleFilterChange({ type: '' });
+										openType = false;
+									}}
+								>
+									<Check class="mr-2 h-4 w-4 {selectedType === '' ? 'opacity-100' : 'opacity-0'}" />
+									Semua Jenis
+								</Command.Item>
+								{#each typesList as type (type.value)}
+									<Command.Item
+										value={type.value}
+										onSelect={() => {
+											selectedType = type.value;
+											handleFilterChange({ type: type.value });
+											openType = false;
+										}}
+									>
+										<Check
+											class="mr-2 h-4 w-4 {selectedType === type.value
+												? 'opacity-100'
+												: 'opacity-0'}"
+										/>
+										{type.label}
+									</Command.Item>
+								{/each}
+							</Command.Group>
+						</Command.List>
+					</Command.Root>
+				</Popover.Content>
+			</Popover.Root>
 		</div>
 
 		<Button
