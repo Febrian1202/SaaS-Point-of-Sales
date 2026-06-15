@@ -2,6 +2,9 @@
 	import { Coins, Wallet, ArrowRightLeft, Calendar, RefreshCw } from 'lucide-svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
+	import { createSvelteTable, FlexRender } from '$lib/components/ui/data-table/index.js';
+	import { getCoreRowModel, type ColumnDef } from '@tanstack/table-core';
+	import { renderSnippet } from '$lib/components/ui/data-table/render-helpers.js';
 	import * as Table from '$lib/components/ui/table';
 	import * as Select from '$lib/components/ui/select';
 	import * as Card from '$lib/components/ui/card';
@@ -101,19 +104,19 @@
 		return `${day}/${month} ${hours}:${minutes}`;
 	}
 
-	// Mapping tipe transaksi
+	// Mapping tipe transaksi (Adhering to single-accent Graphite theme)
 	const typeLabels: Record<string, { label: string; color: string }> = {
-		transfer: { label: 'Transfer', color: 'border-blue-400/20 bg-blue-900/20 text-blue-400' },
+		transfer: { label: 'Transfer', color: 'border-border bg-surface text-foreground' },
 		tarik_tunai: {
 			label: 'Tarik Tunai',
-			color: 'border-purple-400/20 bg-purple-900/20 text-purple-400'
+			color: 'border-border bg-surface text-foreground'
 		},
 		pembayaran: {
 			label: 'Pembayaran',
-			color: 'border-amber-400/20 bg-amber-900/20 text-amber-400'
+			color: 'border-border bg-surface text-foreground'
 		},
-		'e-wallet': { label: 'E-Wallet', color: 'border-cyan-400/20 bg-cyan-900/20 text-cyan-400' },
-		other: { label: 'Lainnya', color: 'border-gray-400/20 bg-gray-900/20 text-gray-400' }
+		'e-wallet': { label: 'E-Wallet', color: 'border-border bg-surface text-foreground' },
+		other: { label: 'Lainnya', color: 'border-muted bg-muted text-muted-foreground' }
 	};
 
 	const typesList = [
@@ -123,7 +126,156 @@
 		{ value: 'e-wallet', label: 'E-Wallet' },
 		{ value: 'other', label: 'Lainnya' }
 	];
+
+	type BrilinkTransaction = {
+		id: string;
+		createdAt: string | Date | null;
+		referenceNumber: string;
+		trxType: string;
+		customerAmount: number | string;
+		adminFeeCharged: number | string;
+		agentCommission: number | string;
+		cashier?: { name: string } | null;
+		status: string;
+	};
+
+	// Column Definition Setup
+	const columns: ColumnDef<BrilinkTransaction>[] = [
+		{
+			accessorKey: 'createdAt',
+			header: 'Waktu',
+			cell: ({ row }) => renderSnippet(timeSnippet, row.original)
+		},
+		{
+			accessorKey: 'referenceNumber',
+			header: 'No. Ref',
+			cell: ({ row }) => renderSnippet(refSnippet, row.original)
+		},
+		{
+			accessorKey: 'trxType',
+			header: 'Jenis',
+			cell: ({ row }) => renderSnippet(typeSnippet, row.original)
+		},
+		{
+			accessorKey: 'customerAmount',
+			header: 'Nominal',
+			cell: ({ row }) => renderSnippet(amountSnippet, row.original)
+		},
+		{
+			accessorKey: 'adminFeeCharged',
+			header: 'Admin',
+			cell: ({ row }) => renderSnippet(adminFeeSnippet, row.original)
+		},
+		{
+			accessorKey: 'agentCommission',
+			header: 'Komisi',
+			cell: ({ row }) => renderSnippet(commissionSnippet, row.original)
+		},
+		{
+			accessorKey: 'cashier.name',
+			header: 'Kasir',
+			cell: ({ row }) => renderSnippet(cashierSnippet, row.original)
+		},
+		{
+			accessorKey: 'status',
+			header: 'Status',
+			cell: ({ row }) => renderSnippet(statusSnippet, row.original)
+		},
+		{
+			id: 'actions',
+			header: 'Aksi',
+			cell: ({ row }) => renderSnippet(actionsSnippet, row.original)
+		}
+	];
+
+	function initTable(transactions: BrilinkTransaction[]) {
+		return createSvelteTable({
+			get data() {
+				return transactions;
+			},
+			columns,
+			getCoreRowModel: getCoreRowModel()
+		});
+	}
 </script>
+
+<!-- Custom Cell Snippets -->
+{#snippet timeSnippet(trx: BrilinkTransaction)}
+	<span class="font-mono text-xs">{formatDateTime(trx.createdAt)}</span>
+{/snippet}
+
+{#snippet refSnippet(trx: BrilinkTransaction)}
+	<span class="font-mono text-xs font-semibold text-foreground">{trx.referenceNumber}</span>
+{/snippet}
+
+{#snippet typeSnippet(trx: BrilinkTransaction)}
+	{@const typeInfo = typeLabels[trx.trxType] || {
+		label: trx.trxType,
+		color: 'border-muted bg-muted/50 text-muted-foreground'
+	}}
+	<Badge
+		class="rounded-sm border px-2 py-0.5 font-mono text-[10px] font-bold tracking-wider uppercase shadow-none {typeInfo.color}"
+	>
+		{typeInfo.label}
+	</Badge>
+{/snippet}
+
+{#snippet amountSnippet(trx: BrilinkTransaction)}
+	<span class="font-mono text-sm text-foreground">{formatRupiah(Number(trx.customerAmount))}</span>
+{/snippet}
+
+{#snippet adminFeeSnippet(trx: BrilinkTransaction)}
+	<span class="font-mono text-sm text-secondary-foreground"
+		>{formatRupiah(Number(trx.adminFeeCharged))}</span
+	>
+{/snippet}
+
+{#snippet commissionSnippet(trx: BrilinkTransaction)}
+	<span class="font-mono text-sm font-semibold text-primary"
+		>{formatRupiah(Number(trx.agentCommission))}</span
+	>
+{/snippet}
+
+{#snippet cashierSnippet(trx: BrilinkTransaction)}
+	<span class="font-mono text-sm text-secondary-foreground">{trx.cashier?.name ?? 'Sistem'}</span>
+{/snippet}
+
+{#snippet statusSnippet(trx: BrilinkTransaction)}
+	{#if trx.status === 'success'}
+		<Badge
+			variant="outline"
+			class="border-transparent bg-primary/10 px-1.5 py-0.5 font-mono text-[9px] font-bold text-primary shadow-none"
+		>
+			<span class="mr-1.5 h-1.5 w-1.5 rounded-full bg-primary"></span>
+			BERHASIL
+		</Badge>
+	{:else}
+		<Badge
+			variant="outline"
+			class="border-transparent bg-destructive/10 px-1.5 py-0.5 font-mono text-[9px] font-bold text-destructive shadow-none"
+		>
+			<span class="mr-1.5 h-1.5 w-1.5 rounded-full bg-destructive"></span>
+			VOID
+		</Badge>
+	{/if}
+{/snippet}
+
+{#snippet actionsSnippet(trx: BrilinkTransaction)}
+	{#if trx.status === 'success'}
+		<Button
+			variant="outline"
+			size="sm"
+			class="h-7 border-destructive/20 font-mono text-[10px] tracking-wider text-destructive uppercase hover:bg-destructive hover:text-destructive-foreground"
+			onclick={() => {
+				targetId = trx.id;
+				targetRef = trx.referenceNumber;
+				showVoid = true;
+			}}
+		>
+			Void
+		</Button>
+	{/if}
+{/snippet}
 
 <svelte:head>
 	<title>{data.title}</title>
@@ -313,80 +465,22 @@
 						</Table.Row>
 					{/each}
 				{:then result}
-					{@const transactions = result?.data}
-					{#if transactions && transactions.length > 0}
-						{#each transactions as trx, rowIdx (trx.id)}
-							{@const typeInfo = typeLabels[trx.trxType] || {
-								label: trx.trxType,
-								color: 'border-muted bg-muted/50 text-muted-foreground'
-							}}
+					{@const resolvedTransactions = result?.data || []}
+					{#if resolvedTransactions.length > 0}
+						{@const table = initTable(resolvedTransactions)}
+						{#each table.getRowModel().rows as row, rowIdx (row.id)}
 							<Table.Row
-								class="group animate-in transition-colors fade-in slide-in-from-bottom-1 hover:bg-muted/50 {trx.status !==
-								'success'
+								class="group animate-in transition-colors fade-in slide-in-from-bottom-1 hover:bg-muted/50 {row
+									.original.status !== 'success'
 									? 'opacity-50'
 									: ''}"
 								style="animation-delay: {rowIdx * 40}ms; animation-fill-mode: both;"
 							>
-								<Table.Cell class="font-mono text-xs">
-									{formatDateTime(trx.createdAt)}
-								</Table.Cell>
-								<Table.Cell class="font-mono text-xs font-semibold text-foreground">
-									{trx.referenceNumber}
-								</Table.Cell>
-								<Table.Cell>
-									<Badge
-										class="rounded-sm border px-2 py-0.5 font-mono text-[10px] font-bold tracking-wider uppercase shadow-none {typeInfo.color}"
-									>
-										{typeInfo.label}
-									</Badge>
-								</Table.Cell>
-								<Table.Cell class="font-mono text-sm text-foreground">
-									{formatRupiah(Number(trx.customerAmount))}
-								</Table.Cell>
-								<Table.Cell class="font-mono text-sm text-secondary-foreground">
-									{formatRupiah(Number(trx.adminFeeCharged))}
-								</Table.Cell>
-								<Table.Cell class="font-mono text-sm font-semibold text-primary">
-									{formatRupiah(Number(trx.agentCommission))}
-								</Table.Cell>
-								<Table.Cell class="font-mono text-sm text-secondary-foreground">
-									{trx.cashier?.name ?? 'Sistem'}
-								</Table.Cell>
-								<Table.Cell>
-									{#if trx.status === 'success'}
-										<Badge
-											variant="outline"
-											class="border-transparent bg-primary/10 px-1.5 py-0.5 font-mono text-[9px] font-bold text-primary shadow-none"
-										>
-											<span class="mr-1.5 h-1.5 w-1.5 rounded-full bg-primary"></span>
-											BERHASIL
-										</Badge>
-									{:else}
-										<Badge
-											variant="outline"
-											class="border-transparent bg-destructive/10 px-1.5 py-0.5 font-mono text-[9px] font-bold text-destructive shadow-none"
-										>
-											<span class="mr-1.5 h-1.5 w-1.5 rounded-full bg-destructive"></span>
-											VOID
-										</Badge>
-									{/if}
-								</Table.Cell>
-								<Table.Cell class="text-right">
-									{#if trx.status === 'success'}
-										<Button
-											variant="outline"
-											size="sm"
-											class="h-7 border-destructive/20 font-mono text-[10px] tracking-wider text-destructive uppercase hover:bg-destructive hover:text-destructive-foreground"
-											onclick={() => {
-												targetId = trx.id;
-												targetRef = trx.referenceNumber;
-												showVoid = true;
-											}}
-										>
-											Void
-										</Button>
-									{/if}
-								</Table.Cell>
+								{#each row.getVisibleCells() as cell (cell.id)}
+									<Table.Cell class={cell.column.id === 'actions' ? 'text-right' : ''}>
+										<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
+									</Table.Cell>
+								{/each}
 							</Table.Row>
 						{/each}
 					{:else}

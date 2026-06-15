@@ -2,6 +2,9 @@
 	import { Search, RefreshCw, Eye, Ban } from 'lucide-svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
+	import { createSvelteTable, FlexRender } from '$lib/components/ui/data-table/index.js';
+	import { getCoreRowModel, type ColumnDef } from '@tanstack/table-core';
+	import { renderSnippet } from '$lib/components/ui/data-table/render-helpers.js';
 	import * as Table from '$lib/components/ui/table';
 	import * as HoverCard from '$lib/components/ui/hover-card';
 	import { Button } from '$lib/components/ui/button';
@@ -123,7 +126,171 @@
 		if (!items) return 0;
 		return items.reduce((sum, item) => sum + (item.qty || 0), 0);
 	}
+
+	type TransactionItem = {
+		id: string;
+		trxNumber: string;
+		cashier?: { name: string } | null;
+		items: TrxItem[];
+		totalAmount: number | string;
+		createdAt: string | Date;
+		status: string;
+	};
+
+	// Column Definition Setup
+	const columns: ColumnDef<TransactionItem>[] = [
+		{
+			accessorKey: 'trxNumber',
+			header: 'No. Struk',
+			cell: ({ row }) => renderSnippet(trxNumberSnippet, row.original)
+		},
+		{
+			accessorKey: 'cashier.name',
+			header: 'Kasir',
+			cell: ({ row }) => renderSnippet(cashierSnippet, row.original)
+		},
+		{
+			id: 'products',
+			header: 'Produk',
+			cell: ({ row }) => renderSnippet(productsSnippet, row.original)
+		},
+		{
+			accessorKey: 'totalAmount',
+			header: 'Total',
+			cell: ({ row }) => renderSnippet(totalAmountSnippet, row.original)
+		},
+		{
+			id: 'itemCount',
+			header: 'Item',
+			cell: ({ row }) => renderSnippet(itemCountSnippet, row.original)
+		},
+		{
+			accessorKey: 'createdAt',
+			header: 'Tgl & Waktu',
+			cell: ({ row }) => renderSnippet(createdAtSnippet, row.original)
+		},
+		{
+			accessorKey: 'status',
+			header: 'Status',
+			cell: ({ row }) => renderSnippet(statusSnippet, row.original)
+		},
+		{
+			id: 'actions',
+			header: 'Aksi',
+			cell: ({ row }) => renderSnippet(actionsSnippet, row.original)
+		}
+	];
+
+	function initTable(transactions: TransactionItem[]) {
+		return createSvelteTable({
+			get data() {
+				return transactions;
+			},
+			columns,
+			getCoreRowModel: getCoreRowModel()
+		});
+	}
 </script>
+
+<!-- Custom Cell Snippets -->
+{#snippet trxNumberSnippet(trx: TransactionItem)}
+	<span class="font-mono text-sm font-semibold">{trx.trxNumber}</span>
+{/snippet}
+
+{#snippet cashierSnippet(trx: TransactionItem)}
+	<span class="text-sm">{trx.cashier?.name || '-'}</span>
+{/snippet}
+
+{#snippet productsSnippet(trx: TransactionItem)}
+	<span class="max-w-xs truncate text-sm">{getTrxProducts(trx.items)}</span>
+{/snippet}
+
+{#snippet totalAmountSnippet(trx: TransactionItem)}
+	<span class="font-mono text-sm">{formatRupiah(trx.totalAmount)}</span>
+{/snippet}
+
+{#snippet itemCountSnippet(trx: TransactionItem)}
+	<span class="font-mono text-sm">{countTrxItems(trx.items)}</span>
+{/snippet}
+
+{#snippet createdAtSnippet(trx: TransactionItem)}
+	<span class="font-mono text-sm">{formatTrxDate(trx.createdAt)}</span>
+{/snippet}
+
+{#snippet statusSnippet(trx: TransactionItem)}
+	<Badge
+		variant={trx.status === 'void' ? 'destructive' : 'outline'}
+		class="border-border bg-background font-mono text-[9px] font-bold uppercase select-none"
+	>
+		{trx.status}
+	</Badge>
+{/snippet}
+
+{#snippet actionsSnippet(trx: TransactionItem)}
+	<div class="flex items-center justify-center gap-1">
+		<HoverCard.Root openDelay={0} closeDelay={100}>
+			<HoverCard.Trigger>
+				{#snippet child({ props })}
+					<Button
+						{...props}
+						variant="ghost"
+						size="icon"
+						class="group/btn h-8 w-8 text-secondary-foreground hover:bg-primary/10"
+						onclick={() => {
+							detailTargetId = trx.id;
+							showDetail = true;
+						}}
+					>
+						<Eye class="h-4 w-4 transition-colors group-hover/btn:text-primary" />
+					</Button>
+				{/snippet}
+			</HoverCard.Trigger>
+			<HoverCard.Content
+				class="z-50 w-auto rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 shadow-xl backdrop-blur-md"
+				side="top"
+				align="center"
+				sideOffset={5}
+			>
+				<span class="font-mono text-[10px] tracking-wider text-primary uppercase">Lihat Detail</span
+				>
+			</HoverCard.Content>
+		</HoverCard.Root>
+
+		{#if currentUser?.role === 'admin' && trx.status !== 'void'}
+			<HoverCard.Root openDelay={0} closeDelay={100}>
+				<HoverCard.Trigger>
+					{#snippet child({ props })}
+						<Button
+							{...props}
+							variant="ghost"
+							size="icon"
+							class="group/btn h-8 w-8 text-secondary-foreground hover:bg-destructive/10"
+							onclick={() => {
+								targetId = trx.id;
+								targetNumber = trx.trxNumber;
+								showVoid = true;
+							}}
+						>
+							<Ban class="h-4 w-4 transition-colors group-hover/btn:text-destructive" />
+						</Button>
+					{/snippet}
+				</HoverCard.Trigger>
+				<HoverCard.Content
+					class="z-50 w-auto rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 shadow-xl backdrop-blur-md"
+					side="top"
+					align="center"
+					sideOffset={5}
+				>
+					<span class="font-mono text-[10px] tracking-wider text-destructive uppercase"
+						>Void (Admin Only)</span
+					>
+				</HoverCard.Content>
+			</HoverCard.Root>
+		{:else}
+			<div class="h-8 w-8"></div>
+		{/if}
+	</div>
+{/snippet}
 
 <svelte:head>
 	<title>{data.title}</title>
@@ -236,108 +403,28 @@
 						</Table.Row>
 					{/each}
 				{:then result}
-					{#if result?.data && result.data.length > 0}
-						{#each result.data as trx, rowIdx (trx.id)}
-							{@const isVoided = trx.status === 'void'}
+					{@const resolvedTransactions = result?.data || []}
+					{#if resolvedTransactions.length > 0}
+						{@const table = initTable(resolvedTransactions)}
+						{#each table.getRowModel().rows as row, rowIdx (row.id)}
+							{@const isVoided = row.original.status === 'void'}
 							<Table.Row
 								class="group animate-in transition-colors fade-in slide-in-from-bottom-1 {isVoided
 									? 'bg-destructive/5 text-muted-foreground line-through hover:bg-destructive/10'
 									: 'hover:bg-muted/50'}"
 								style="animation-delay: {rowIdx * 40}ms; animation-fill-mode: both;"
 							>
-								<Table.Cell class="font-mono text-sm font-semibold">{trx.trxNumber}</Table.Cell>
-								<Table.Cell class="text-sm">{trx.cashier?.name || '-'}</Table.Cell>
-								<Table.Cell class="max-w-xs truncate text-sm">
-									{getTrxProducts(trx.items)}
-								</Table.Cell>
-								<Table.Cell class="text-right font-mono text-sm"
-									>{formatRupiah(trx.totalAmount)}</Table.Cell
-								>
-								<Table.Cell class="text-center font-mono text-sm">
-									{countTrxItems(trx.items)}
-								</Table.Cell>
-								<Table.Cell class="font-mono text-sm">
-									{formatTrxDate(trx.createdAt)}
-								</Table.Cell>
-								<Table.Cell>
-									<Badge
-										variant={isVoided ? 'destructive' : 'outline'}
-										class="border-border bg-background font-mono text-[9px] font-bold uppercase select-none"
+								{#each row.getVisibleCells() as cell (cell.id)}
+									<Table.Cell
+										class={cell.column.id === 'totalAmount'
+											? 'text-right'
+											: cell.column.id === 'itemCount' || cell.column.id === 'actions'
+												? 'text-center'
+												: ''}
 									>
-										{trx.status}
-									</Badge>
-								</Table.Cell>
-								<Table.Cell>
-									<div class="flex items-center justify-center gap-1">
-										<!-- Detail View Placeholder / trigger print receipt -->
-										<HoverCard.Root openDelay={0} closeDelay={100}>
-											<HoverCard.Trigger>
-												{#snippet child({ props })}
-													<Button
-														{...props}
-														variant="ghost"
-														size="icon"
-														class="group/btn h-8 w-8 text-secondary-foreground hover:bg-primary/10"
-														onclick={() => {
-															detailTargetId = trx.id;
-															showDetail = true;
-														}}
-													>
-														<Eye class="h-4 w-4 transition-colors group-hover/btn:text-primary" />
-													</Button>
-												{/snippet}
-											</HoverCard.Trigger>
-											<HoverCard.Content
-												class="z-50 w-auto rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 shadow-xl backdrop-blur-md"
-												side="top"
-												align="center"
-												sideOffset={5}
-											>
-												<span class="font-mono text-[10px] tracking-wider text-primary uppercase"
-													>Lihat Detail</span
-												>
-											</HoverCard.Content>
-										</HoverCard.Root>
-
-										<!-- Void (Admin Only) -->
-										{#if currentUser?.role === 'admin' && !isVoided}
-											<HoverCard.Root openDelay={0} closeDelay={100}>
-												<HoverCard.Trigger>
-													{#snippet child({ props })}
-														<Button
-															{...props}
-															variant="ghost"
-															size="icon"
-															class="group/btn h-8 w-8 text-secondary-foreground hover:bg-destructive/10"
-															onclick={() => {
-																targetId = trx.id;
-																targetNumber = trx.trxNumber;
-																showVoid = true;
-															}}
-														>
-															<Ban
-																class="h-4 w-4 transition-colors group-hover/btn:text-destructive"
-															/>
-														</Button>
-													{/snippet}
-												</HoverCard.Trigger>
-												<HoverCard.Content
-													class="z-50 w-auto rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 shadow-xl backdrop-blur-md"
-													side="top"
-													align="center"
-													sideOffset={5}
-												>
-													<span
-														class="font-mono text-[10px] tracking-wider text-destructive uppercase"
-														>Void (Admin Only)</span
-													>
-												</HoverCard.Content>
-											</HoverCard.Root>
-										{:else}
-											<div class="h-8 w-8"></div>
-										{/if}
-									</div>
-								</Table.Cell>
+										<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
+									</Table.Cell>
+								{/each}
 							</Table.Row>
 						{/each}
 					{:else}

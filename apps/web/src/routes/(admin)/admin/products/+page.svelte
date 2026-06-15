@@ -2,6 +2,9 @@
 	import { Search, Plus, RefreshCw, Edit2, Trash2 } from 'lucide-svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
+	import { createSvelteTable, FlexRender } from '$lib/components/ui/data-table/index.js';
+	import { getCoreRowModel, type ColumnDef } from '@tanstack/table-core';
+	import { renderSnippet } from '$lib/components/ui/data-table/render-helpers.js';
 	import * as Table from '$lib/components/ui/table';
 	import * as Select from '$lib/components/ui/select';
 	import { Button } from '$lib/components/ui/button';
@@ -20,7 +23,7 @@
 	// Props data
 	let { data } = $props();
 
-	// State untuk bind input search — diinisialisasi dari URL dan di-sync ulang saat navigasi
+	// State untuk bind input search
 	let searchQuery = $state(
 		page.url.searchParams.get('search') || page.url.searchParams.get('barcode') || ''
 	);
@@ -67,7 +70,7 @@
 		}
 	}
 
-	// Sync state saat URL berubah (misalnya saat navigasi via sidebar / back button)
+	// Sync state saat URL berubah
 	let prevUrl = $state(page.url.toString());
 	$effect(() => {
 		const currentUrl = page.url.toString();
@@ -80,7 +83,7 @@
 		}
 	});
 
-	// Helper untuk handle filter — bisa dipanggil setelah state diubah atau langsung menerima value baru
+	// Helper untuk handle filter
 	function handleFilterChange(patch: { category?: string; status?: string } = {}) {
 		const urlParams = new SvelteURLSearchParams(page.url.searchParams);
 
@@ -98,7 +101,6 @@
 		goto(`?${urlParams.toString()}`, { keepFocus: true, noScroll: true });
 	}
 
-	// Handler reset
 	function resetFilters() {
 		searchQuery = '';
 		selectedCategory = '';
@@ -107,7 +109,6 @@
 		goto('?', { keepFocus: true, noScroll: true });
 	}
 
-	// Fungsi pagination
 	function goToPage(newPage: number) {
 		const urlParams = new SvelteURLSearchParams(page.url.searchParams);
 		urlParams.set('page', newPage.toString());
@@ -120,7 +121,6 @@
 		const timer = setTimeout(() => {
 			const urlParams = new SvelteURLSearchParams(page.url.searchParams);
 
-			// Hapus kedua params
 			urlParams.delete('search');
 			urlParams.delete('barcode');
 
@@ -140,19 +140,157 @@
 				urlParams.delete('page');
 			}
 
-			// Navigasi diam-diam
 			goto(`?${urlParams.toString()}`, { keepFocus: true, noScroll: true });
 		}, 500);
 
 		return () => clearTimeout(timer);
 	});
 
-	const status = [
+	const statusList = [
 		{ value: 'AVAILABLE', label: 'Tersedia' },
 		{ value: 'LOW_STOCK', label: 'Stok Kurang' },
 		{ value: 'OUT_OF_STOCK', label: 'Stok Habis' }
 	];
+
+	// Column Definition Setup
+	const columns: ColumnDef<ProductItem>[] = [
+		{
+			accessorKey: 'barcode',
+			header: 'Barcode',
+			cell: ({ row }) => {
+				return renderSnippet(barcodeSnippet, row.original);
+			}
+		},
+		{
+			accessorKey: 'name',
+			header: 'Product Name',
+			cell: ({ row }) => {
+				return renderSnippet(nameSnippet, row.original);
+			}
+		},
+		{
+			id: 'category',
+			header: 'Category',
+			cell: ({ row }) => {
+				return renderSnippet(categorySnippet, row.original);
+			}
+		},
+		{
+			accessorKey: 'sellingPrice',
+			header: 'Price',
+			cell: ({ row }) => {
+				return renderSnippet(priceSnippet, row.original);
+			}
+		},
+		{
+			accessorKey: 'unit',
+			header: 'Unit',
+			cell: ({ row }) => {
+				return renderSnippet(unitSnippet, row.original);
+			}
+		},
+		{
+			accessorKey: 'stockQty',
+			header: 'Stock',
+			cell: ({ row }) => {
+				return renderSnippet(stockSnippet, row.original);
+			}
+		},
+		{
+			id: 'actions',
+			header: 'Action',
+			cell: ({ row }) => {
+				return renderSnippet(actionsSnippet, row.original);
+			}
+		}
+	];
+
+	function initTable(products: ProductItem[]) {
+		return createSvelteTable({
+			get data() {
+				return products;
+			},
+			columns,
+			getCoreRowModel: getCoreRowModel()
+		});
+	}
 </script>
+
+<!-- Custom Cell Snippets -->
+{#snippet barcodeSnippet(product: ProductItem)}
+	<span class="font-mono text-sm">{product.barcode || '-'}</span>
+{/snippet}
+
+{#snippet nameSnippet(product: ProductItem)}
+	{@const isLowStock = product.stockQty && product.stockQty <= 5}
+	<span class="block font-semibold text-foreground">{product.name}</span>
+	<span class="text-xs text-secondary-foreground">ID: {product.id}</span>
+	{#if isLowStock}
+		<span class="mt-1 flex items-center gap-1 text-[10px] text-destructive">
+			<span class="h-1.5 w-1.5 rounded-full bg-destructive"></span> Stok Menipis
+		</span>
+	{/if}
+{/snippet}
+
+{#snippet categorySnippet(product: ProductItem)}
+	<Badge
+		variant="outline"
+		class="border-border bg-background font-mono text-[10px] text-secondary-foreground uppercase"
+	>
+		{product.category?.name || '-'}
+	</Badge>
+{/snippet}
+
+{#snippet priceSnippet(product: ProductItem)}
+	<span class="font-mono text-sm">{formatRupiah(product.sellingPrice)}</span>
+{/snippet}
+
+{#snippet unitSnippet(product: ProductItem)}
+	<span class="font-mono text-sm">{product.unit || '-'}</span>
+{/snippet}
+
+{#snippet stockSnippet(product: ProductItem)}
+	{@const isLowStock = product.stockQty && product.stockQty <= 5}
+	<div class="flex flex-col items-center gap-1.5">
+		<span class="font-mono text-sm font-medium {isLowStock ? 'font-bold text-destructive' : ''}">
+			{product.stockQty ?? 0}
+		</span>
+		<div class="h-1.5 w-12 overflow-hidden rounded-full bg-background">
+			<div
+				class="h-full {isLowStock ? 'bg-destructive' : 'bg-primary'}"
+				style="width: {((product.stockQty ?? 0) / 100) * 100}%"
+			></div>
+		</div>
+	</div>
+{/snippet}
+
+{#snippet actionsSnippet(product: ProductItem)}
+	<div class="flex items-center justify-center gap-1">
+		<Button
+			variant="ghost"
+			size="icon"
+			class="h-8 w-8 text-secondary-foreground hover:text-primary"
+			onclick={() => {
+				editingProduct = product;
+				showAdd = true;
+			}}
+		>
+			<Edit2 class="h-4 w-4" />
+		</Button>
+		<Button
+			variant="ghost"
+			size="icon"
+			class="h-8 w-8 text-secondary-foreground hover:bg-destructive/10 hover:text-destructive"
+			onclick={() => {
+				targetId = product.id;
+				targetName = product.name;
+				showDelete = true;
+			}}
+		>
+			<Trash2 class="h-4 w-4" />
+		</Button>
+	</div>
+{/snippet}
 
 <svelte:head>
 	<title>{data.title}</title>
@@ -231,11 +369,11 @@
 				}}
 			>
 				<Select.Trigger class="w-full font-mono text-sm" aria-label="Filter status stok">
-					{status.find((s) => s.value === selectedStatus)?.label ?? 'Semua Status'}
+					{statusList.find((s) => s.value === selectedStatus)?.label ?? 'Semua Status'}
 				</Select.Trigger>
 				<Select.Content>
 					<Select.Item value="" label="Semua Status" />
-					{#each status as s (s.value)}
+					{#each statusList as s (s.value)}
 						<Select.Item value={s.value} label={s.label} />
 					{/each}
 				</Select.Content>
@@ -323,83 +461,32 @@
 						</Table.Row>
 					{/each}
 				{:then result}
-					{#each result?.data as product, rowIdx (product.id)}
-						{@const isLowStock = product.stockQty && product.stockQty <= 5}
-						<Table.Row
-							class="group animate-in transition-colors fade-in slide-in-from-bottom-1 {isLowStock
-								? 'bg-destructive/5 hover:bg-destructive/10'
-								: 'hover:bg-muted/50'}"
-							style="animation-delay: {rowIdx * 40}ms; animation-fill-mode: both;"
-						>
-							<Table.Cell class="font-mono text-sm">{product.barcode}</Table.Cell>
-							<Table.Cell>
-								<span class="block font-semibold text-foreground">{product.name}</span>
-								<span class="text-xs text-secondary-foreground">ID: {product.id}</span>
-								{#if isLowStock}
-									<span class="mt-1 flex items-center gap-1 text-[10px] text-destructive">
-										<span class="h-1.5 w-1.5 rounded-full bg-destructive"></span> Stok Menipis
-									</span>
-								{/if}
-							</Table.Cell>
-							<Table.Cell>
-								<Badge
-									variant="outline"
-									class="border-border bg-background font-mono text-[10px] text-secondary-foreground uppercase"
-								>
-									{product.category.name}
-								</Badge>
-							</Table.Cell>
-							<Table.Cell class="text-right font-mono text-sm"
-								>{formatRupiah(product.sellingPrice)}</Table.Cell
+					{@const resolvedProducts = result?.data || []}
+					{#if resolvedProducts.length > 0}
+						{@const table = initTable(resolvedProducts)}
+						{#each table.getRowModel().rows as row, rowIdx (row.id)}
+							{@const isLowStock = row.original.stockQty && row.original.stockQty <= 5}
+							<Table.Row
+								class="group animate-in transition-colors fade-in slide-in-from-bottom-1 {isLowStock
+									? 'bg-destructive/5 hover:bg-destructive/10'
+									: 'hover:bg-muted/50'}"
+								style="animation-delay: {rowIdx * 40}ms; animation-fill-mode: both;"
 							>
-							<Table.Cell class="text-center font-mono text-sm">
-								{product.unit || '-'}
-							</Table.Cell>
-							<Table.Cell>
-								<div class="flex flex-col items-center gap-1.5">
-									<span
-										class="font-mono text-sm font-medium {isLowStock
-											? 'font-bold text-destructive'
-											: ''}"
+								{#each row.getVisibleCells() as cell (cell.id)}
+									<Table.Cell
+										class={cell.column.id === 'sellingPrice'
+											? 'text-right'
+											: cell.column.id === 'unit' ||
+												  cell.column.id === 'stockQty' ||
+												  cell.column.id === 'actions'
+												? 'text-center'
+												: ''}
 									>
-										{product.stockQty}
-									</span>
-									<div class="h-1.5 w-12 overflow-hidden rounded-full bg-background">
-										<div
-											class="h-full {isLowStock ? 'bg-destructive' : 'bg-primary'}"
-											style="width: {((product.stockQty ?? 0) / 100) * 100}%"
-										></div>
-									</div>
-								</div>
-							</Table.Cell>
-							<Table.Cell>
-								<div class="flex items-center justify-center gap-1">
-									<Button
-										variant="ghost"
-										size="icon"
-										class="h-8 w-8 text-secondary-foreground hover:text-primary"
-										onclick={() => {
-											editingProduct = product;
-											showAdd = true;
-										}}
-									>
-										<Edit2 class="h-4 w-4" />
-									</Button>
-									<Button
-										variant="ghost"
-										size="icon"
-										class="h-8 w-8 text-secondary-foreground hover:bg-destructive/10 hover:text-destructive"
-										onclick={() => {
-											targetId = product.id;
-											targetName = product.name;
-											showDelete = true;
-										}}
-									>
-										<Trash2 class="h-4 w-4" />
-									</Button>
-								</div>
-							</Table.Cell>
-						</Table.Row>
+										<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
+									</Table.Cell>
+								{/each}
+							</Table.Row>
+						{/each}
 					{:else}
 						<Table.Row>
 							<Table.Cell colspan={7} class="h-24 text-center">
@@ -410,7 +497,7 @@
 								</div>
 							</Table.Cell>
 						</Table.Row>
-					{/each}
+					{/if}
 				{/await}
 			</Table.Body>
 		</Table.Root>

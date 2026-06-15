@@ -2,6 +2,9 @@
 	import { Search, Plus, RefreshCw, Edit2, Trash2 } from 'lucide-svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
+	import { createSvelteTable, FlexRender } from '$lib/components/ui/data-table/index.js';
+	import { getCoreRowModel, type ColumnDef } from '@tanstack/table-core';
+	import { renderSnippet } from '$lib/components/ui/data-table/render-helpers.js';
 	import * as Table from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
@@ -15,7 +18,7 @@
 	// Props data
 	let { data } = $props();
 
-	// State untuk bind input search — diinisialisasi dari URL dan di-sync ulang saat navigasi
+	// State untuk bind input search
 	let searchQuery = $state(page.url.searchParams.get('search') || '');
 
 	type CategoryItem = {
@@ -91,7 +94,81 @@
 
 		return () => clearTimeout(timer);
 	});
+
+	// Column Definition Setup
+	const columns: ColumnDef<CategoryItem>[] = [
+		{
+			accessorKey: 'name',
+			header: 'Kategori',
+			cell: ({ row }) => {
+				return renderSnippet(categoryNameSnippet, row.original);
+			}
+		},
+		{
+			accessorKey: 'slug',
+			header: 'Slug',
+			cell: ({ row }) => {
+				return renderSnippet(categorySlugSnippet, row.original);
+			}
+		},
+		{
+			id: 'actions',
+			header: 'Aksi',
+			cell: ({ row }) => {
+				return renderSnippet(categoryActionsSnippet, row.original);
+			}
+		}
+	];
+
+	// Reactive Table Instance using a derived options object to inject dynamically resolved data
+	// Since categories come from streaming, we handle it in the markup
+	function initTable(categories: CategoryItem[]) {
+		return createSvelteTable({
+			get data() {
+				return categories;
+			},
+			columns,
+			getCoreRowModel: getCoreRowModel()
+		});
+	}
 </script>
+
+<!-- Snippets for Custom Renderers -->
+{#snippet categoryNameSnippet(category: CategoryItem)}
+	<span class="block font-semibold text-foreground">{category.name}</span>
+{/snippet}
+
+{#snippet categorySlugSnippet(category: CategoryItem)}
+	<span class="font-mono text-sm text-secondary-foreground">{category.slug}</span>
+{/snippet}
+
+{#snippet categoryActionsSnippet(category: CategoryItem)}
+	<div class="flex items-center justify-center gap-1">
+		<Button
+			variant="ghost"
+			size="icon"
+			class="h-8 w-8 text-secondary-foreground hover:text-primary"
+			onclick={() => {
+				editingCategory = category;
+				showAdd = true;
+			}}
+		>
+			<Edit2 class="h-4 w-4" />
+		</Button>
+		<Button
+			variant="ghost"
+			size="icon"
+			class="h-8 w-8 text-secondary-foreground hover:bg-destructive/10 hover:text-destructive"
+			onclick={() => {
+				targetId = category.id;
+				targetName = category.name;
+				showDelete = true;
+			}}
+		>
+			<Trash2 class="h-4 w-4" />
+		</Button>
+	</div>
+{/snippet}
 
 <svelte:head>
 	<title>{data.title}</title>
@@ -186,45 +263,19 @@
 						</Table.Row>
 					{/each}
 				{:then categories}
-					{#if categories && categories.length > 0}
-						{#each categories as category, rowIdx (category.id)}
+					{@const resolvedCategories = categories || []}
+					{#if resolvedCategories.length > 0}
+						{@const table = initTable(resolvedCategories)}
+						{#each table.getRowModel().rows as row, rowIdx (row.id)}
 							<Table.Row
 								class="group animate-in transition-colors fade-in slide-in-from-bottom-1 hover:bg-muted/50"
 								style="animation-delay: {rowIdx * 40}ms; animation-fill-mode: both;"
 							>
-								<Table.Cell>
-									<span class="block font-semibold text-foreground">{category.name}</span>
-								</Table.Cell>
-								<Table.Cell class="font-mono text-sm text-secondary-foreground">
-									{category.slug}
-								</Table.Cell>
-								<Table.Cell>
-									<div class="flex items-center justify-center gap-1">
-										<Button
-											variant="ghost"
-											size="icon"
-											class="h-8 w-8 text-secondary-foreground hover:text-primary"
-											onclick={() => {
-												editingCategory = category;
-												showAdd = true;
-											}}
-										>
-											<Edit2 class="h-4 w-4" />
-										</Button>
-										<Button
-											variant="ghost"
-											size="icon"
-											class="h-8 w-8 text-secondary-foreground hover:bg-destructive/10 hover:text-destructive"
-											onclick={() => {
-												targetId = category.id;
-												targetName = category.name;
-												showDelete = true;
-											}}
-										>
-											<Trash2 class="h-4 w-4" />
-										</Button>
-									</div>
-								</Table.Cell>
+								{#each row.getVisibleCells() as cell (cell.id)}
+									<Table.Cell class={cell.column.id === 'actions' ? 'text-center' : ''}>
+										<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
+									</Table.Cell>
+								{/each}
 							</Table.Row>
 						{/each}
 					{:else}
