@@ -611,6 +611,7 @@ const main = async () => {
         agentCommission: "15000",
         referenceNumber: generateRefNumber(today, 1),
         status: "success",
+        notes: "Tarik dari BRImo, no rek 0011223344 a/n Budi Setiawan",
         createdAt: today,
       },
       {
@@ -622,6 +623,7 @@ const main = async () => {
         agentCommission: "2000",
         referenceNumber: generateRefNumber(today, 2),
         status: "success",
+        notes: "Topup OVO 08123456789 (Budi)",
         createdAt: today,
       },
       {
@@ -646,6 +648,7 @@ const main = async () => {
         agentCommission: "10000",
         referenceNumber: generateRefNumber(yesterday, 1),
         status: "success",
+        notes: "Transfer ke BCA 9876543210 (Joni)\nBerita: Bayar Kosan",
         createdAt: yesterday,
       },
       {

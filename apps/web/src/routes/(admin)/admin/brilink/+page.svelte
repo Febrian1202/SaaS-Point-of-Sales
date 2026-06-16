@@ -6,7 +6,9 @@
 		Calendar,
 		RefreshCw,
 		Check,
-		ChevronsUpDown
+		ChevronsUpDown,
+		Eye,
+		Ban
 	} from 'lucide-svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
@@ -20,12 +22,14 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Skeleton } from '$lib/components/ui/skeleton';
+	import * as HoverCard from '$lib/components/ui/hover-card';
 	import { formatRupiah } from '$lib/utils/index';
-	import { getVisiblePages } from '$lib/utils/shared';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import DeleteConfirmDialog from '$lib/features/shared/DeleteConfirmDialog.svelte';
+	import BrilinkDetailDialog from '$lib/features/admin/brilink/BrilinkDetailDialog.svelte';
 	import { deserialize } from '$app/forms';
 	import { toast } from 'svelte-sonner';
+	import * as Pagination from '$lib/components/ui/pagination';
 	import { Calendar as CalendarUI } from '$lib/components/ui/calendar';
 	import {
 		DateFormatter,
@@ -38,6 +42,8 @@
 	// Props data
 	let { data } = $props();
 
+	const currentUser = $derived(data?.user);
+
 	// Formatter untuk date
 	const df = new DateFormatter('id-ID', {
 		dateStyle: 'medium'
@@ -45,18 +51,26 @@
 
 	// State filter
 	let selectedDateStr = $state(page.url.searchParams.get('date') ?? '');
-	let selectedDateValue = $state<DateValue | undefined>(
-		selectedDateStr ? parseDate(selectedDateStr) : undefined
-	);
+	let selectedDateValue = $state<DateValue | undefined>();
 	let selectedType = $state(page.url.searchParams.get('type') ?? '');
+
+	$effect(() => {
+		if (selectedDateStr) {
+			selectedDateValue = parseDate(selectedDateStr);
+		} else {
+			selectedDateValue = undefined;
+		}
+	});
 
 	let openDate = $state(false);
 	let openType = $state(false);
 
-	// State Dialog Void
+	// State untuk Dialog
 	let showVoid = $state(false);
 	let targetId = $state('');
 	let targetRef = $state('');
+	let showDetail = $state(false);
+	let detailTargetId = $state('');
 
 	async function handleVoid() {
 		const formData = new FormData();
@@ -291,20 +305,69 @@
 {/snippet}
 
 {#snippet actionsSnippet(trx: BrilinkTransaction)}
-	{#if trx.status === 'success'}
-		<Button
-			variant="outline"
-			size="sm"
-			class="h-7 border-destructive/20 font-mono text-[10px] tracking-wider text-destructive uppercase hover:bg-destructive hover:text-destructive-foreground"
-			onclick={() => {
-				targetId = trx.id;
-				targetRef = trx.referenceNumber;
-				showVoid = true;
-			}}
-		>
-			Void
-		</Button>
-	{/if}
+	<div class="flex items-center justify-center gap-1">
+		<HoverCard.Root openDelay={0} closeDelay={100}>
+			<HoverCard.Trigger>
+				{#snippet child({ props })}
+					<Button
+						{...props}
+						variant="ghost"
+						size="icon"
+						class="group/btn h-8 w-8 text-secondary-foreground hover:bg-primary/10"
+						onclick={() => {
+							detailTargetId = trx.id;
+							showDetail = true;
+						}}
+					>
+						<Eye class="h-4 w-4 transition-colors group-hover/btn:text-primary" />
+					</Button>
+				{/snippet}
+			</HoverCard.Trigger>
+			<HoverCard.Content
+				class="z-50 w-auto rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 shadow-xl backdrop-blur-md"
+				side="top"
+				align="center"
+				sideOffset={5}
+			>
+				<span class="font-mono text-[10px] tracking-wider text-primary uppercase">Lihat Detail</span
+				>
+			</HoverCard.Content>
+		</HoverCard.Root>
+
+		{#if currentUser?.role === 'admin' && trx.status !== 'void'}
+			<HoverCard.Root openDelay={0} closeDelay={100}>
+				<HoverCard.Trigger>
+					{#snippet child({ props })}
+						<Button
+							{...props}
+							variant="ghost"
+							size="icon"
+							class="group/btn h-8 w-8 text-secondary-foreground hover:bg-destructive/10"
+							onclick={() => {
+								targetId = trx.id;
+								targetRef = trx.referenceNumber;
+								showVoid = true;
+							}}
+						>
+							<Ban class="h-4 w-4 transition-colors group-hover/btn:text-destructive" />
+						</Button>
+					{/snippet}
+				</HoverCard.Trigger>
+				<HoverCard.Content
+					class="z-50 w-auto rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 shadow-xl backdrop-blur-md"
+					side="top"
+					align="center"
+					sideOffset={5}
+				>
+					<span class="font-mono text-[10px] tracking-wider text-destructive uppercase"
+						>Void Transaksi</span
+					>
+				</HoverCard.Content>
+			</HoverCard.Root>
+		{:else}
+			<div class="h-8 w-8"></div>
+		{/if}
+	</div>
 {/snippet}
 
 <svelte:head>
@@ -327,187 +390,211 @@
 
 	<!-- Stats Grid (Bento Grid) -->
 	{#await data.streamed.summary}
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 			{#each Array.from({ length: 3 }, (_, i) => i) as i (i)}
-				<Card.Root class="relative overflow-hidden border-border bg-card p-6">
-					<Skeleton class="h-4 w-28" />
-					<Skeleton class="mt-4 h-8 w-40" />
-					<Skeleton class="mt-4 h-4 w-20" />
+				<Card.Root class="border-border bg-card">
+					<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
+						<Skeleton class="h-3 w-24" />
+						<Skeleton class="h-5 w-5 rounded-full" />
+					</Card.Header>
+					<Card.Content>
+						<Skeleton class="mt-1 h-7 w-32" />
+						<Skeleton class="mt-2 h-3 w-40" />
+					</Card.Content>
 				</Card.Root>
 			{/each}
 		</div>
 	{:then summary}
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 			<!-- Commission Card -->
-			<Card.Root class="group relative overflow-hidden border-border bg-card p-6">
-				<div class="absolute top-0 right-0 p-4 opacity-10">
-					<Coins class="size-16 text-foreground" />
-				</div>
-				<p class="mb-2 font-mono text-xs tracking-wider text-secondary-foreground uppercase">
-					Total Komisi Terpilih
-				</p>
-				<h3 class="font-tight text-3xl font-semibold text-primary">
-					{formatRupiah(summary?.grandTotalCommission ?? 0)}
-				</h3>
-				<div class="mt-4 flex items-center gap-2">
-					<span class="flex items-center font-mono text-xs text-secondary-foreground">
-						Berdasarkan filter tanggal
-					</span>
-				</div>
+			<Card.Root class="group border-border bg-card transition-colors hover:bg-border/20">
+				<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<span class="font-mono text-[10px] tracking-wider text-muted-foreground uppercase"
+						>Komisi Transaksi</span
+					>
+					<Coins class="size-5 text-primary" />
+				</Card.Header>
+				<Card.Content>
+					<div class="font-tight text-2xl font-semibold text-foreground">
+						{formatRupiah(summary?.grandTotalCommission ?? 0)}
+					</div>
+					<span class="mt-1 block font-mono text-[11px] text-muted-foreground"
+						>Sesuai rentang tanggal</span
+					>
+				</Card.Content>
 			</Card.Root>
 
 			<!-- Volume Card -->
-			<Card.Root class="group relative overflow-hidden border-border bg-card p-6">
-				<div class="absolute top-0 right-0 p-4 opacity-10">
-					<Wallet class="size-16 text-foreground" />
-				</div>
-				<p class="mb-2 font-mono text-xs tracking-wider text-secondary-foreground uppercase">
-					Total Volume Transaksi
-				</p>
-				<h3 class="font-tight text-3xl font-semibold text-foreground">
-					{formatRupiah(summary?.grandTotalVolume ?? 0)}
-				</h3>
-				<div class="mt-4 flex items-center gap-2">
-					<span class="flex items-center font-mono text-xs text-secondary-foreground">
-						Uang beredar (bruto)
-					</span>
-				</div>
+			<Card.Root class="group border-border bg-card transition-colors hover:bg-border/20">
+				<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<span class="font-mono text-[10px] tracking-wider text-muted-foreground uppercase"
+						>Volume Transaksi</span
+					>
+					<Wallet class="size-5 text-primary" />
+				</Card.Header>
+				<Card.Content>
+					<div class="font-tight text-2xl font-semibold text-foreground">
+						{formatRupiah(summary?.grandTotalVolume ?? 0)}
+					</div>
+					<span class="mt-1 block font-mono text-[11px] text-muted-foreground"
+						>Nilai kotor (Sesuai rentang tanggal)</span
+					>
+				</Card.Content>
 			</Card.Root>
 
 			<!-- Transaction Count Card -->
-			<Card.Root class="group relative overflow-hidden border-border bg-card p-6">
-				<div class="absolute top-0 right-0 p-4 opacity-10">
-					<ArrowRightLeft class="size-16 text-foreground" />
-				</div>
-				<p class="mb-2 font-mono text-xs tracking-wider text-secondary-foreground uppercase">
-					Jumlah Transaksi
-				</p>
-				<h3 class="font-tight text-3xl font-semibold text-foreground">
-					{summary?.breakdown?.reduce((acc, curr) => acc + curr.totalTransaction, 0) ?? 0}
-				</h3>
-				<div class="mt-4 flex items-center gap-2">
-					<span class="flex items-center font-mono text-xs text-secondary-foreground">
-						Transaksi berhasil
-					</span>
-				</div>
+			<Card.Root class="group border-border bg-card transition-colors hover:bg-border/20">
+				<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
+					<span class="font-mono text-[10px] tracking-wider text-muted-foreground uppercase"
+						>Total Transaksi</span
+					>
+					<ArrowRightLeft class="size-5 text-primary" />
+				</Card.Header>
+				<Card.Content>
+					<div class="font-tight text-2xl font-semibold text-foreground">
+						{summary?.breakdown?.reduce((acc, curr) => acc + curr.totalTransaction, 0) ?? 0}
+					</div>
+					<span class="mt-1 block font-mono text-[11px] text-muted-foreground"
+						>Transaksi berhasil (Sesuai rentang tanggal)</span
+					>
+				</Card.Content>
 			</Card.Root>
 		</div>
 	{/await}
 
 	<!-- Filter Row -->
 	<div
-		class="flex flex-col flex-wrap gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm sm:flex-row sm:items-end"
+		class="flex flex-col gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm md:flex-row md:items-end md:justify-between"
 	>
-		<!-- Date Filter -->
-		<div class="w-full flex-1 space-y-1.5 sm:w-auto sm:min-w-50">
-			<span class="font-mono text-xs text-secondary-foreground">Pilih Tanggal</span>
-			<Popover.Root bind:open={openDate}>
-				<Popover.Trigger>
-					{#snippet child({ props })}
-						<Button
-							variant="outline"
-							class={cn(
-								'w-full justify-start text-left font-mono font-normal',
-								!selectedDateValue && 'text-muted-foreground'
-							)}
-							{...props}
-						>
-							<Calendar class="mr-2 h-4 w-4" />
-							{selectedDateValue
-								? df.format(selectedDateValue.toDate(getLocalTimeZone()))
-								: 'Pilih Tanggal'}
-						</Button>
-					{/snippet}
-				</Popover.Trigger>
-				<Popover.Content class="w-auto p-0" align="start">
-					<CalendarUI.Root
-						value={selectedDateValue}
-						onValueChange={(val) => {
-							selectedDateValue = val;
-							selectedDateStr = val ? val.toString() : '';
-							handleFilterChange({ date: selectedDateStr });
-							openDate = false;
-						}}
-						initialFocus
-					/>
-				</Popover.Content>
-			</Popover.Root>
-		</div>
-
-		<!-- Type Filter -->
-		<div class="w-full flex-1 space-y-1.5 sm:w-auto sm:min-w-50">
-			<span class="font-mono text-xs text-secondary-foreground">Jenis Transaksi</span>
-			<Popover.Root bind:open={openType}>
-				<Popover.Trigger>
-					{#snippet child({ props })}
-						<Button
-							{...props}
-							variant="outline"
-							role="combobox"
-							aria-expanded={openType}
-							class="flex w-full min-w-0 items-center justify-between font-mono text-sm"
-						>
-							<span class="flex-1 truncate text-left">
-								{typesList.find((t) => t.value === selectedType)?.label ?? 'Semua Jenis'}
-							</span>
-							<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-						</Button>
-					{/snippet}
-				</Popover.Trigger>
-				<Popover.Content class="w-[var(--bits-popover-anchor-width)] p-0">
-					<Command.Root
-						class="focus:outline-none focus-visible:outline-none [&_[data-slot=command-input-wrapper]]:focus-within:ring-0 [&_[data-slot=command-input]]:focus:ring-0 [&_[data-slot=command-input]]:focus-visible:ring-0"
-					>
-						<Command.Input
-							class="h-9 border-0 focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
-							placeholder="Cari jenis transaksi..."
-						/>
-						<Command.List>
-							<Command.Empty>Jenis tidak ditemukan.</Command.Empty>
-							<Command.Group>
-								<Command.Item
-									value=""
-									onSelect={() => {
-										selectedType = '';
-										handleFilterChange({ type: '' });
-										openType = false;
-									}}
+		<!-- Filter Group -->
+		<div class="flex flex-1 flex-col gap-4 md:flex-row md:items-end">
+			<!-- Date Filter -->
+			<div class="w-full shrink-0 md:w-64">
+				<span class="font-mono text-xs text-secondary-foreground">Pilih Tanggal</span>
+				<div class="relative mt-1.5">
+					<Popover.Root bind:open={openDate}>
+						<Popover.Trigger class="w-full">
+							{#snippet child({ props })}
+								<Button
+									{...props}
+									variant="outline"
+									class={cn(
+										'w-full justify-start text-left font-mono font-normal',
+										!selectedDateValue && 'text-muted-foreground',
+										props.class as string
+									)}
 								>
-									<Check class="mr-2 h-4 w-4 {selectedType === '' ? 'opacity-100' : 'opacity-0'}" />
-									Semua Jenis
-								</Command.Item>
-								{#each typesList as type (type.value)}
-									<Command.Item
-										value={type.value}
-										onSelect={() => {
-											selectedType = type.value;
-											handleFilterChange({ type: type.value });
-											openType = false;
-										}}
-									>
-										<Check
-											class="mr-2 h-4 w-4 {selectedType === type.value
-												? 'opacity-100'
-												: 'opacity-0'}"
-										/>
-										{type.label}
-									</Command.Item>
-								{/each}
-							</Command.Group>
-						</Command.List>
-					</Command.Root>
-				</Popover.Content>
-			</Popover.Root>
+									<Calendar class="mr-2 h-4 w-4" />
+									<span class="font-mono">
+										{selectedDateValue
+											? df.format(selectedDateValue.toDate(getLocalTimeZone()))
+											: 'Pilih Tanggal'}
+									</span>
+								</Button>
+							{/snippet}
+						</Popover.Trigger>
+						<Popover.Content class="w-auto p-0" align="start">
+							<CalendarUI
+								type="single"
+								value={selectedDateValue as DateValue | undefined}
+								onValueChange={(val: unknown) => {
+									const parsedVal = val as DateValue | undefined;
+									selectedDateValue = parsedVal;
+									selectedDateStr = parsedVal ? parsedVal.toString() : '';
+									handleFilterChange({ date: selectedDateStr });
+									openDate = false;
+								}}
+							/>
+						</Popover.Content>
+					</Popover.Root>
+				</div>
+			</div>
+
+			<!-- Type Filter -->
+			<div class="w-full shrink-0 md:w-64">
+				<span class="font-mono text-xs text-secondary-foreground">Jenis Transaksi</span>
+				<div class="relative mt-1.5">
+					<Popover.Root bind:open={openType}>
+						<Popover.Trigger>
+							{#snippet child({ props })}
+								<Button
+									{...props}
+									variant="outline"
+									role="combobox"
+									aria-expanded={openType}
+									class={cn(
+										'flex w-full min-w-0 items-center justify-between font-mono text-sm font-normal',
+										props.class as string
+									)}
+								>
+									<span class="flex-1 truncate text-left font-mono">
+										{typesList.find((t) => t.value === selectedType)?.label ?? 'Semua Jenis'}
+									</span>
+									<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+								</Button>
+							{/snippet}
+						</Popover.Trigger>
+						<Popover.Content class="w-(--bits-popover-anchor-width) p-0">
+							<Command.Root
+								class="`**:data-[slot=command-input]:focus:ring-0 `**:data-[slot=command-input]:focus-visible:ring-0 focus:outline-none focus-visible:outline-none **:data-[slot=command-input-wrapper]:focus-within:ring-0"
+							>
+								<Command.Input
+									class="h-9 border-0 focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
+									placeholder="Cari jenis transaksi..."
+								/>
+								<Command.List>
+									<Command.Empty>Jenis tidak ditemukan.</Command.Empty>
+									<Command.Group>
+										<Command.Item
+											value=""
+											onSelect={() => {
+												selectedType = '';
+												handleFilterChange({ type: '' });
+												openType = false;
+											}}
+										>
+											<Check
+												class="mr-2 h-4 w-4 {selectedType === '' ? 'opacity-100' : 'opacity-0'}"
+											/>
+											Semua Jenis
+										</Command.Item>
+										{#each typesList as type (type.value)}
+											<Command.Item
+												value={type.value}
+												onSelect={() => {
+													selectedType = type.value;
+													handleFilterChange({ type: type.value });
+													openType = false;
+												}}
+											>
+												<Check
+													class="mr-2 h-4 w-4 {selectedType === type.value
+														? 'opacity-100'
+														: 'opacity-0'}"
+												/>
+												{type.label}
+											</Command.Item>
+										{/each}
+									</Command.Group>
+								</Command.List>
+							</Command.Root>
+						</Popover.Content>
+					</Popover.Root>
+				</div>
+			</div>
 		</div>
 
-		<Button
-			variant="outline"
-			onclick={resetFilters}
-			class="w-full gap-2 border-border text-secondary-foreground sm:w-auto"
-		>
-			<RefreshCw class="size-4" />
-			<span class="font-mono text-xs">Reset Filter</span>
-		</Button>
+		<!-- Action Group -->
+		<div class="flex shrink-0 items-end">
+			<Button
+				variant="outline"
+				onclick={resetFilters}
+				class="w-full gap-2 border-border text-secondary-foreground md:w-auto"
+			>
+				<RefreshCw class="size-4" />
+				<span class="font-mono text-xs">Reset Filter</span>
+			</Button>
+		</div>
 	</div>
 
 	<!-- Data Table Container -->
@@ -597,68 +684,61 @@
 	<!-- Pagination Info -->
 	<div class="flex items-center justify-between">
 		{#await data.streamed.transactions}
-			<p class="font-mono text-xs text-secondary-foreground">Showing - to - of - results</p>
+			<p class="font-mono text-xs text-secondary-foreground">Menampilkan - hingga - dari - hasil</p>
 		{:then result}
 			{@const meta = result?.meta}
 			{@const hasData = meta && meta.totalData > 0}
 
 			{#if hasData}
 				<p class="font-mono text-xs text-secondary-foreground">
-					Showing {(meta.page - 1) * meta.limit + 1} to {Math.min(
+					Menampilkan {(meta.page - 1) * meta.limit + 1} hingga {Math.min(
 						meta.page * meta.limit,
 						meta.totalData
-					)} of {meta.totalData} results
+					)} dari {meta.totalData} hasil
 				</p>
-				<div class="flex items-center gap-1">
-					<Button
-						variant="outline"
-						size="icon"
-						class="h-8 w-8 border-border"
-						disabled={meta.page <= 1}
-						onclick={() => goToPage(meta.page - 1)}
-					>
-						<span class="sr-only">Previous page</span>
-						&lt;
-					</Button>
-
-					{#each getVisiblePages(meta.page, meta.totalPages) as page (page)}
-						<Button
-							variant={page === meta.page ? 'default' : 'outline'}
-							class="h-8 w-8 p-0 text-xs {page === meta.page
-								? 'bg-primary text-primary-foreground hover:bg-primary/90'
-								: 'border-border text-secondary-foreground hover:bg-muted hover:text-foreground'}"
-							onclick={() => goToPage(page)}
-						>
-							{page}
-						</Button>
-					{/each}
-
-					{#if meta.totalPages > 5 && meta.page < meta.totalPages - 2}
-						<span class="px-2 text-secondary-foreground">...</span>
-						<Button
-							variant="outline"
-							size="icon"
-							class="h-8 w-8 border-border"
-							onclick={() => goToPage(meta.totalPages)}
-						>
-							{meta.totalPages}
-						</Button>
-					{/if}
-
-					<Button
-						variant="outline"
-						size="icon"
-						class="h-8 w-8 border-border"
-						disabled={meta.page >= meta.totalPages}
-						onclick={() => goToPage(meta.page + 1)}
-					>
-						<span class="sr-only">Next page</span>
-						&gt;
-					</Button>
-				</div>
+				<Pagination.Root
+					count={meta.totalData}
+					perPage={meta.limit}
+					page={meta.page}
+					siblingCount={1}
+					class="mx-0 w-auto"
+				>
+					{#snippet children({ pages, currentPage })}
+						<Pagination.Content>
+							<Pagination.Item>
+								<Pagination.PrevButton
+									disabled={meta.page <= 1}
+									onclick={() => goToPage(meta.page - 1)}
+								/>
+							</Pagination.Item>
+							{#each pages as page (page.key)}
+								{#if page.type === 'ellipsis'}
+									<Pagination.Item>
+										<Pagination.Ellipsis />
+									</Pagination.Item>
+								{:else}
+									<Pagination.Item>
+										<Pagination.Link
+											{page}
+											isActive={currentPage === page.value}
+											onclick={() => goToPage(page.value)}
+										/>
+									</Pagination.Item>
+								{/if}
+							{/each}
+							<Pagination.Item>
+								<Pagination.NextButton
+									disabled={meta.page >= meta.totalPages}
+									onclick={() => goToPage(meta.page + 1)}
+								/>
+							</Pagination.Item>
+						</Pagination.Content>
+					{/snippet}
+				</Pagination.Root>
 			{/if}
 		{/await}
 	</div>
 </div>
 
 <DeleteConfirmDialog bind:open={showVoid} itemName={targetRef} onConfirm={handleVoid} />
+<BrilinkDetailDialog bind:open={showDetail} transactionId={detailTargetId} />

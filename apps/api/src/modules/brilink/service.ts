@@ -189,6 +189,14 @@ export const getBrilinkTransactionDetail = async (
       eq(brilinkTransactions.tenantId, tenantId),
       eq(brilinkTransactions.id, id),
     ),
+    with: {
+      cashier: {
+        columns: {
+          id: true,
+          name: true,
+        },
+      },
+    },
   });
 
   if (!data)

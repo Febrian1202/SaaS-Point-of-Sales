@@ -149,7 +149,7 @@ export const schemaResponsePost = withSuccess(
   }),
 );
 
-export const schemaResponseGetDetail = withSuccess(baseBrilink);
+export const schemaResponseGetDetail = withSuccess(brilinkWithCashier);
 
 export const schemaResponsePostVoid = withSuccess(
   t.Pick(baseBrilink, ["referenceNumber", "id", "status"]),

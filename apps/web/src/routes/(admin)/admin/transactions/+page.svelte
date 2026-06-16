@@ -14,19 +14,15 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { formatRupiah } from '$lib/utils/index';
 	import { cn } from '$lib/utils';
-	import { getVisiblePages } from '$lib/utils/shared';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
+	import type { DateRange } from 'bits-ui';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import DeleteConfirmDialog from '$lib/features/shared/DeleteConfirmDialog.svelte';
 	import TransactionDetailDialog from '$lib/features/admin/transactions/TransactionDetailDialog.svelte';
 	import { deserialize } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import {
-		DateFormatter,
-		type DateValue,
-		getLocalTimeZone,
-		parseDate
-	} from '@internationalized/date';
+	import * as Pagination from '$lib/components/ui/pagination';
+	import { DateFormatter, parseDate, getLocalTimeZone } from '@internationalized/date';
 
 	let { data } = $props();
 
@@ -46,23 +42,23 @@
 	let initFrom = page.url.searchParams.get('from');
 	let initTo = page.url.searchParams.get('to');
 
-	let dateRange = $state({
+	let dateRange = $state<DateRange | undefined>({
 		start: initFrom ? parseDate(initFrom) : undefined,
 		end: initTo ? parseDate(initTo) : undefined
 	});
 
 	// Handle Date Range Change
-	function handleDateRangeChange(range: { start?: DateValue; end?: DateValue }) {
+	function handleDateRangeChange(range: DateRange | undefined) {
 		dateRange = range;
 		const urlParams = new SvelteURLSearchParams(page.url.searchParams);
 
-		if (range.start) {
+		if (range?.start) {
 			urlParams.set('from', range.start.toString());
 		} else {
 			urlParams.delete('from');
 		}
 
-		if (range.end) {
+		if (range?.end) {
 			urlParams.set('to', range.end.toString());
 		} else {
 			urlParams.delete('to');
@@ -360,74 +356,84 @@
 
 	<!-- Filter Controls -->
 	<div
-		class="flex flex-col flex-wrap gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm sm:flex-row sm:items-end"
+		class="flex flex-col gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm md:flex-row md:items-end md:justify-between"
 	>
-		<!-- Date Range Calendar -->
-		<div class="w-full flex-1 space-y-1.5 sm:w-auto sm:min-w-64">
-			<span class="font-mono text-xs text-secondary-foreground uppercase">Rentang Waktu</span>
-			<Popover.Root bind:open={openDateRange}>
-				<Popover.Trigger>
-					{#snippet child({ props })}
-						<Button
-							variant="outline"
-							class={cn(
-								'w-full justify-start text-left font-mono font-normal',
-								!dateRange.start && 'text-muted-foreground'
-							)}
-							{...props}
-						>
-							<CalendarIcon class="mr-2 h-4 w-4" />
-							{#if dateRange.start}
-								{#if dateRange.end}
-									{df.format(dateRange.start.toDate(getLocalTimeZone()))} - {df.format(
-										dateRange.end.toDate(getLocalTimeZone())
+		<!-- Filter Group -->
+		<div class="flex flex-1 flex-col gap-4 md:flex-row md:items-end">
+			<!-- Date Range Calendar -->
+			<div class="w-full shrink-0 md:w-72">
+				<span class="font-mono text-xs text-secondary-foreground uppercase">Rentang Waktu</span>
+				<div class="relative mt-1.5">
+					<Popover.Root bind:open={openDateRange}>
+						<Popover.Trigger>
+							{#snippet child({ props })}
+								<Button
+									{...props}
+									variant="outline"
+									class={cn(
+										'w-full justify-start text-left font-mono font-normal',
+										!dateRange?.start && 'text-muted-foreground',
+										props.class as string
 									)}
-								{:else}
-									{df.format(dateRange.start.toDate(getLocalTimeZone()))}
-								{/if}
-							{:else}
-								Pilih Rentang Tanggal
-							{/if}
-						</Button>
-					{/snippet}
-				</Popover.Trigger>
-				<Popover.Content class="w-auto p-0" align="start">
-					<RangeCalendar
-						value={dateRange}
-						onValueChange={handleDateRangeChange}
-						initialFocus
-						numberOfMonths={2}
-						placeholder={dateRange?.start}
-					/>
-				</Popover.Content>
-			</Popover.Root>
-		</div>
+								>
+									<CalendarIcon class="mr-2 h-4 w-4" />
+									<span class="font-mono">
+										{#if dateRange?.start}
+											{#if dateRange?.end}
+												{df.format(dateRange.start.toDate(getLocalTimeZone()))} - {df.format(
+													dateRange.end.toDate(getLocalTimeZone())
+												)}
+											{:else}
+												{df.format(dateRange.start.toDate(getLocalTimeZone()))}
+											{/if}
+										{:else}
+											Pilih Rentang Tanggal
+										{/if}
+									</span>
+								</Button>
+							{/snippet}
+						</Popover.Trigger>
+						<Popover.Content class="w-auto p-0" align="start">
+							<RangeCalendar
+								value={dateRange}
+								onValueChange={handleDateRangeChange}
+								numberOfMonths={2}
+								placeholder={dateRange?.start}
+							/>
+						</Popover.Content>
+					</Popover.Root>
+				</div>
+			</div>
 
-		<!-- Search by Invoice -->
-		<div class="w-full flex-2 space-y-1.5 sm:w-auto sm:min-w-75">
-			<label for="search" class="font-mono text-xs text-secondary-foreground uppercase"
-				>Cari berdasarkan Struk</label
-			>
-			<div class="relative">
-				<Search class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
-				<Input
-					id="search"
-					bind:value={searchQuery}
-					type="text"
-					placeholder="Cari No. Struk / Invoice..."
-					class="pl-9 font-sans text-sm"
-				/>
+			<!-- Search by Invoice -->
+			<div class="w-full flex-1">
+				<label for="search" class="font-mono text-xs text-secondary-foreground uppercase"
+					>Cari berdasarkan Struk</label
+				>
+				<div class="relative mt-1.5">
+					<Search class="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
+					<Input
+						id="search"
+						bind:value={searchQuery}
+						type="text"
+						placeholder="Cari No. Struk / Invoice..."
+						class="w-full pl-9 font-sans text-sm"
+					/>
+				</div>
 			</div>
 		</div>
 
-		<Button
-			variant="outline"
-			onclick={resetFilters}
-			class="w-full gap-2 border-border text-secondary-foreground sm:w-auto"
-		>
-			<RefreshCw class="h-4 w-4" />
-			<span class="font-mono text-xs">Reset</span>
-		</Button>
+		<!-- Action Group -->
+		<div class="flex shrink-0 items-end">
+			<Button
+				variant="outline"
+				onclick={resetFilters}
+				class="w-full gap-2 border-border text-secondary-foreground md:w-auto"
+			>
+				<RefreshCw class="h-4 w-4" />
+				<span class="font-mono text-xs">Reset</span>
+			</Button>
+		</div>
 	</div>
 
 	<!-- Transaction Table Container -->
@@ -538,53 +544,45 @@
 						meta.totalData
 					)} dari {meta.totalData} hasil
 				</p>
-				<div class="flex items-center gap-1">
-					<Button
-						variant="outline"
-						size="icon"
-						class="h-8 w-8 border-border"
-						disabled={meta.page <= 1}
-						onclick={() => goToPage(meta.page - 1)}
-					>
-						<span class="sr-only">Previous page</span>
-						&lt;
-					</Button>
-
-					{#each getVisiblePages(meta.page, meta.totalPages) as page (page)}
-						<Button
-							variant={page === meta.page ? 'default' : 'outline'}
-							class="h-8 w-8 p-0 text-xs {page === meta.page
-								? 'bg-primary text-primary-foreground hover:bg-primary/90'
-								: 'border-border text-secondary-foreground hover:bg-muted hover:text-foreground'}"
-							onclick={() => goToPage(page)}
-						>
-							{page}
-						</Button>
-					{/each}
-
-					{#if meta.totalPages > 5 && meta.page < meta.totalPages - 2}
-						<span class="px-2 text-secondary-foreground">...</span>
-						<Button
-							variant="outline"
-							size="icon"
-							class="h-8 w-8 border-border"
-							onclick={() => goToPage(meta.totalPages)}
-						>
-							{meta.totalPages}
-						</Button>
-					{/if}
-
-					<Button
-						variant="outline"
-						size="icon"
-						class="h-8 w-8 border-border"
-						disabled={meta.page >= meta.totalPages}
-						onclick={() => goToPage(meta.page + 1)}
-					>
-						<span class="sr-only">Next page</span>
-						&gt;
-					</Button>
-				</div>
+				<Pagination.Root
+					count={meta.totalData}
+					perPage={meta.limit}
+					page={meta.page}
+					siblingCount={1}
+					class="mx-0 w-auto"
+				>
+					{#snippet children({ pages, currentPage })}
+						<Pagination.Content>
+							<Pagination.Item>
+								<Pagination.PrevButton
+									disabled={meta.page <= 1}
+									onclick={() => goToPage(meta.page - 1)}
+								/>
+							</Pagination.Item>
+							{#each pages as page (page.key)}
+								{#if page.type === 'ellipsis'}
+									<Pagination.Item>
+										<Pagination.Ellipsis />
+									</Pagination.Item>
+								{:else}
+									<Pagination.Item>
+										<Pagination.Link
+											{page}
+											isActive={currentPage === page.value}
+											onclick={() => goToPage(page.value)}
+										/>
+									</Pagination.Item>
+								{/if}
+							{/each}
+							<Pagination.Item>
+								<Pagination.NextButton
+									disabled={meta.page >= meta.totalPages}
+									onclick={() => goToPage(meta.page + 1)}
+								/>
+							</Pagination.Item>
+						</Pagination.Content>
+					{/snippet}
+				</Pagination.Root>
 			{/if}
 		{/await}
 	</div>

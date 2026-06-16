@@ -15,8 +15,8 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
 	// Ambil query params
 	const search = url.searchParams.get('search') ?? '';
 	const page = url.searchParams.get('page') ?? 1;
-	const from = url.searchParams.get('from') ?? undefined;
-	const to = url.searchParams.get('to') ?? undefined;
+	const from = url.searchParams.get('from') ?? '';
+	const to = url.searchParams.get('to') ?? '';
 
 	const transactionsResPromise = serverApi.transactions.get({
 		$query: {

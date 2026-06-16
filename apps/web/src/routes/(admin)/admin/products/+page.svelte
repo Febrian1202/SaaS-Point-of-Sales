@@ -14,13 +14,13 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { formatRupiah } from '$lib/utils/index';
 	import { isBarcode } from '$lib/utils/index';
-	import { getVisiblePages } from '$lib/utils/shared';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import ProductDialog from '$lib/features/admin/product/ProductDialog.svelte';
 	import DeleteConfirmDialog from '$lib/features/shared/DeleteConfirmDialog.svelte';
 	import { deserialize } from '$app/forms';
 	import { toast } from 'svelte-sonner';
+	import * as Pagination from '$lib/components/ui/pagination';
 
 	// Props data
 	let { data } = $props();
@@ -353,9 +353,9 @@
 						</Button>
 					{/snippet}
 				</Popover.Trigger>
-				<Popover.Content class="w-[var(--bits-popover-anchor-width)] p-0">
+				<Popover.Content class="w-(--bits-popover-anchor-width) p-0">
 					<Command.Root
-						class="focus:outline-none focus-visible:outline-none [&_[data-slot=command-input-wrapper]]:focus-within:ring-0 [&_[data-slot=command-input]]:focus:ring-0 [&_[data-slot=command-input]]:focus-visible:ring-0"
+						class="focus:outline-none focus-visible:outline-none **:data-[slot=command-input]:focus:ring-0 **:data-[slot=command-input]:focus-visible:ring-0 **:data-[slot=command-input-wrapper]:focus-within:ring-0"
 					>
 						<Command.Input
 							class="h-9 border-0 focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
@@ -425,7 +425,7 @@
 				</Popover.Trigger>
 				<Popover.Content class="w-(--bits-popover-anchor-width) p-0">
 					<Command.Root
-						class="focus:outline-none focus-visible:outline-none [&_[data-slot=command-input-wrapper]]:focus-within:ring-0 [&_[data-slot=command-input]]:focus:ring-0 [&_[data-slot=command-input]]:focus-visible:ring-0"
+						class="focus:outline-none focus-visible:outline-none **:data-[slot=command-input]:focus:ring-0 **:data-[slot=command-input]:focus-visible:ring-0 **:data-[slot=command-input-wrapper]:focus-within:ring-0"
 					>
 						<Command.Input
 							class="h-9 border-0 focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
@@ -597,65 +597,57 @@
 	<!-- Pagination -->
 	<div class="flex items-center justify-between">
 		{#await data.streamed.products}
-			<p class="font-mono text-xs text-secondary-foreground">Showing - to - of - results</p>
+			<p class="font-mono text-xs text-secondary-foreground">Menampilkan - hingga - dari - hasil</p>
 		{:then result}
 			{@const meta = result?.meta}
 			{@const hasData = meta && meta.totalData > 0}
 
 			{#if hasData}
 				<p class="font-mono text-xs text-secondary-foreground">
-					Showing {(meta.page - 1) * meta.limit + 1} to {Math.min(
+					Menampilkan {(meta.page - 1) * meta.limit + 1} hingga {Math.min(
 						meta.page * meta.limit,
 						meta.totalData
-					)} of {meta.totalData} results
+					)} dari {meta.totalData} hasil
 				</p>
-				<div class="flex items-center gap-1">
-					<Button
-						variant="outline"
-						size="icon"
-						class="h-8 w-8 border-border"
-						disabled={meta.page <= 1}
-						onclick={() => goToPage(meta.page - 1)}
-					>
-						<span class="sr-only">Previous page</span>
-						&lt;
-					</Button>
-
-					{#each getVisiblePages(meta.page, meta.totalPages) as page (page)}
-						<Button
-							variant={page === meta.page ? 'default' : 'outline'}
-							class="h-8 w-8 p-0 text-xs {page === meta.page
-								? 'bg-primary text-primary-foreground hover:bg-primary/90'
-								: 'border-border text-secondary-foreground hover:bg-muted hover:text-foreground'}"
-							onclick={() => goToPage(page)}
-						>
-							{page}
-						</Button>
-					{/each}
-
-					{#if meta.totalPages > 5 && meta.page < meta.totalPages - 2}
-						<span class="px-2 text-secondary-foreground">...</span>
-						<Button
-							variant="outline"
-							size="icon"
-							class="h-8 w-8 border-border"
-							onclick={() => goToPage(meta.totalPages)}
-						>
-							{meta.totalPages}
-						</Button>
-					{/if}
-
-					<Button
-						variant="outline"
-						size="icon"
-						class="h-8 w-8 border-border"
-						disabled={meta.page >= meta.totalPages}
-						onclick={() => goToPage(meta.page + 1)}
-					>
-						<span class="sr-only">Next page</span>
-						&gt;
-					</Button>
-				</div>
+				<Pagination.Root
+					count={meta.totalData}
+					perPage={meta.limit}
+					page={meta.page}
+					siblingCount={1}
+					class="mx-0 w-auto"
+				>
+					{#snippet children({ pages, currentPage })}
+						<Pagination.Content>
+							<Pagination.Item>
+								<Pagination.PrevButton
+									disabled={meta.page <= 1}
+									onclick={() => goToPage(meta.page - 1)}
+								/>
+							</Pagination.Item>
+							{#each pages as page (page.key)}
+								{#if page.type === 'ellipsis'}
+									<Pagination.Item>
+										<Pagination.Ellipsis />
+									</Pagination.Item>
+								{:else}
+									<Pagination.Item>
+										<Pagination.Link
+											{page}
+											isActive={currentPage === page.value}
+											onclick={() => goToPage(page.value)}
+										/>
+									</Pagination.Item>
+								{/if}
+							{/each}
+							<Pagination.Item>
+								<Pagination.NextButton
+									disabled={meta.page >= meta.totalPages}
+									onclick={() => goToPage(meta.page + 1)}
+								/>
+							</Pagination.Item>
+						</Pagination.Content>
+					{/snippet}
+				</Pagination.Root>
 			{/if}
 		{/await}
 	</div>
