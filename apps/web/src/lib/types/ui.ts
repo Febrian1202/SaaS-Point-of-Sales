@@ -54,6 +54,18 @@ export type TrxDetail = {
 	}[];
 };
 
+// User & Staff Types
+export type UserRole = 'admin' | 'cashier';
+
+export type StaffItem = {
+	id: string;
+	name: string;
+	email: string;
+	role: UserRole;
+	tenantId: string;
+	isActive?: boolean;
+};
+
 // Brilink Types
 export type BrilinkTransaction = {
 	id: string;
