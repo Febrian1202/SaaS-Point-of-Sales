@@ -100,7 +100,7 @@
 
 		const timer = setTimeout(() => {
 			const isBarcodeQuery = isBarcode(query);
-			
+
 			const currentSearch = searchParams.getParam('search');
 			const currentBarcode = searchParams.getParam('barcode');
 

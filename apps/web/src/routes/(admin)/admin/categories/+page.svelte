@@ -74,7 +74,7 @@
 			const query = searchQuery?.trim() || '';
 			const currentQuery = searchParams.getParam('search') || '';
 			const isQueryChanged = query !== currentQuery;
-			
+
 			if (isQueryChanged) {
 				searchParams.updateSearch(query);
 			}
