@@ -90,6 +90,8 @@ bun test             # bun test
 - Prettier: tabs, single quotes, no trailing commas, 100 char width.
 - Use `cn()` from `$lib/utils.ts` for conditional Tailwind classes.
 - Add shadcn components to `src/lib/components/ui/` via shadcn-svelte CLI.
+- **Frontend State & URL Hook**: Use `useSearchParams` hook from `$lib/hooks/useSearchParams.svelte.ts` for reactive URL parameter syncing instead of manually handling `SvelteURLSearchParams` and `$effect` blocks.
+- **UI Types & Constants**: Define shared UI types (like `ProductItem`, `TrxItem`, `ProductStatus`) in `$lib/types/ui.ts` and global constants in `$lib/constants/index.ts` to avoid duplication inside `.svelte` files.
 
 ## apps/mobile
 

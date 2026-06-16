@@ -4,11 +4,12 @@
 	import { page } from '$app/state';
 	import { createSvelteTable, FlexRender } from '$lib/components/ui/data-table/index.js';
 	import { getCoreRowModel, type ColumnDef } from '@tanstack/table-core';
+	import type { CategoryItem } from '$lib/types';
+	import { useSearchParams } from '$lib/hooks/useSearchParams.svelte.js';
 	import { renderSnippet } from '$lib/components/ui/data-table/render-helpers.js';
 	import * as Table from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
-	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import CategoryDialog from '$lib/features/admin/category/CategoryDialog.svelte';
 	import DeleteConfirmDialog from '$lib/features/shared/DeleteConfirmDialog.svelte';
@@ -19,14 +20,9 @@
 	let { data } = $props();
 
 	// State untuk bind input search
-	let searchQuery = $state(page.url.searchParams.get('search') || '');
+	const searchParams = useSearchParams();
 
-	type CategoryItem = {
-		id: string;
-		name: string;
-		slug: string;
-		createdAt?: Date | string | null;
-	};
+	let searchQuery = $state(searchParams.getParam('search'));
 
 	// State untuk Dialog
 	let showAdd = $state(false);
@@ -74,21 +70,13 @@
 
 	// Debounce pencarian
 	$effect(() => {
-		const query = searchQuery.trim();
-
 		const timer = setTimeout(() => {
-			const urlParams = new SvelteURLSearchParams(page.url.searchParams);
-
-			const isQueryChanged = query !== page.url.searchParams.get('search');
-
-			if (query) {
-				urlParams.set('search', query);
-			} else {
-				urlParams.delete('search');
-			}
-
+			const query = searchQuery?.trim() || '';
+			const currentQuery = searchParams.getParam('search') || '';
+			const isQueryChanged = query !== currentQuery;
+			
 			if (isQueryChanged) {
-				goto(`?${urlParams.toString()}`, { keepFocus: true, noScroll: true });
+				searchParams.updateSearch(query);
 			}
 		}, 500);
 

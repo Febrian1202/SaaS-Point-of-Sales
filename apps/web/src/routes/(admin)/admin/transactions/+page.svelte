@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { Search, RefreshCw, Eye, Ban, CalendarIcon } from 'lucide-svelte';
-	import { goto, invalidateAll } from '$app/navigation';
-	import { page } from '$app/state';
+	import { invalidateAll } from '$app/navigation';
 	import { createSvelteTable, FlexRender } from '$lib/components/ui/data-table/index.js';
 	import { getCoreRowModel, type ColumnDef } from '@tanstack/table-core';
+	import { useSearchParams } from '$lib/hooks/useSearchParams.svelte.js';
 	import { renderSnippet } from '$lib/components/ui/data-table/render-helpers.js';
 	import * as Table from '$lib/components/ui/table';
 	import * as HoverCard from '$lib/components/ui/hover-card';
@@ -14,7 +14,6 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { formatRupiah } from '$lib/utils/index';
 	import { cn } from '$lib/utils';
-	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import type { DateRange } from 'bits-ui';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import DeleteConfirmDialog from '$lib/features/shared/DeleteConfirmDialog.svelte';
@@ -33,14 +32,16 @@
 		dateStyle: 'medium'
 	});
 
+	const searchParams = useSearchParams();
+
 	// State pencarian
-	let searchQuery = $state(page.url.searchParams.get('search') || '');
+	let searchQuery = $state(searchParams.getParam('search'));
 
 	// State filter range calendar
 	let openDateRange = $state(false);
 
-	let initFrom = page.url.searchParams.get('from');
-	let initTo = page.url.searchParams.get('to');
+	let initFrom = searchParams.getParam('from');
+	let initTo = searchParams.getParam('to');
 
 	let dateRange = $state<DateRange | undefined>({
 		start: initFrom ? parseDate(initFrom) : undefined,
@@ -50,22 +51,11 @@
 	// Handle Date Range Change
 	function handleDateRangeChange(range: DateRange | undefined) {
 		dateRange = range;
-		const urlParams = new SvelteURLSearchParams(page.url.searchParams);
 
-		if (range?.start) {
-			urlParams.set('from', range.start.toString());
-		} else {
-			urlParams.delete('from');
-		}
-
-		if (range?.end) {
-			urlParams.set('to', range.end.toString());
-		} else {
-			urlParams.delete('to');
-		}
-
-		urlParams.delete('page');
-		goto(`?${urlParams.toString()}`, { keepFocus: true, noScroll: true });
+		searchParams.updateUrl({
+			from: range?.start?.toString(),
+			to: range?.end?.toString()
+		});
 	}
 
 	// State dialog void
@@ -98,47 +88,28 @@
 		}
 	}
 
-	// Sync input saat URL berubah
-	let prevUrl = $state(page.url.toString());
-	$effect(() => {
-		const currentUrl = page.url.toString();
-		if (currentUrl !== prevUrl) {
-			prevUrl = currentUrl;
-			searchQuery = page.url.searchParams.get('search') || '';
-		}
-	});
-
 	// Reset pencarian
 	function resetFilters() {
 		searchQuery = '';
 		dateRange = { start: undefined, end: undefined };
-		goto('?', { keepFocus: true, noScroll: true });
+		searchParams.updateUrl({ search: '', from: '', to: '' });
 	}
 
 	// Pagination
 	function goToPage(newPage: number) {
-		const urlParams = new SvelteURLSearchParams(page.url.searchParams);
-		urlParams.set('page', newPage.toString());
-		goto(`?${urlParams.toString()}`, { keepFocus: true, noScroll: true });
+		searchParams.updateUrl({ page: newPage.toString() });
 	}
 
 	// Debounce pencarian
 	$effect(() => {
-		const query = searchQuery.trim();
+		const query = searchQuery?.trim() || '';
 
 		const timer = setTimeout(() => {
-			const urlParams = new SvelteURLSearchParams(page.url.searchParams);
-			const isQueryChanged = query !== page.url.searchParams.get('search');
-
-			if (query) {
-				urlParams.set('search', query);
-			} else {
-				urlParams.delete('search');
-			}
+			const currentSearch = searchParams.getParam('search');
+			const isQueryChanged = query !== currentSearch;
 
 			if (isQueryChanged) {
-				urlParams.delete('page');
-				goto(`?${urlParams.toString()}`, { keepFocus: true, noScroll: true });
+				searchParams.updateSearch(query);
 			}
 		}, 500);
 
@@ -155,29 +126,31 @@
 		return `${day}/${month} ${hours}:${minutes}`;
 	}
 
-	type TrxItem = {
+	type TranscationSubItem = {
 		qty: number | null;
 		product: { name: string } | null;
 	};
 
-	function getTrxProducts(items: TrxItem[]) {
+	function getTrxProducts(items: TranscationSubItem[]) {
 		if (!items || items.length === 0) return '-';
 		return items.map((i) => i.product?.name || 'Produk').join(', ');
 	}
 
-	function countTrxItems(items: TrxItem[]) {
+	function countTrxItems(items: TranscationSubItem[]) {
 		if (!items) return 0;
 		return items.reduce((sum, item) => sum + (item.qty || 0), 0);
 	}
 
+	// This is the actual shape received from API streaming
 	type TransactionItem = {
 		id: string;
 		trxNumber: string;
-		cashier?: { name: string } | null;
-		items: TrxItem[];
-		totalAmount: number | string;
-		createdAt: string | Date;
+		cashier: { name: string } | null;
+		totalAmount: string | number;
+		paymentMethod: string;
 		status: string;
+		createdAt: string | Date;
+		items: TranscationSubItem[];
 	};
 
 	// Column Definition Setup

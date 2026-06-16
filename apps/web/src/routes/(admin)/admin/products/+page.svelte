@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { Search, Plus, RefreshCw, Edit2, Trash2 } from 'lucide-svelte';
-	import { goto, invalidateAll } from '$app/navigation';
-	import { page } from '$app/state';
+	import { invalidateAll } from '$app/navigation';
 	import { createSvelteTable, FlexRender } from '$lib/components/ui/data-table/index.js';
 	import { getCoreRowModel, type ColumnDef } from '@tanstack/table-core';
+	import { useSearchParams } from '$lib/hooks/useSearchParams.svelte.js';
 	import { renderSnippet } from '$lib/components/ui/data-table/render-helpers.js';
 	import * as Table from '$lib/components/ui/table';
 	import * as Popover from '$lib/components/ui/popover';
@@ -14,7 +14,6 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { formatRupiah } from '$lib/utils/index';
 	import { isBarcode } from '$lib/utils/index';
-	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import ProductDialog from '$lib/features/admin/product/ProductDialog.svelte';
 	import DeleteConfirmDialog from '$lib/features/shared/DeleteConfirmDialog.svelte';
@@ -25,13 +24,7 @@
 	// Props data
 	let { data } = $props();
 
-	// State untuk bind input search
-	let searchQuery = $state(
-		page.url.searchParams.get('search') || page.url.searchParams.get('barcode') || ''
-	);
-	let selectedCategory = $state(page.url.searchParams.get('category') ?? '');
-	let selectedStatus = $state(page.url.searchParams.get('status') ?? '');
-
+	// Shape received from API
 	type ProductItem = {
 		id: string;
 		name: string;
@@ -43,6 +36,13 @@
 			name: string;
 		} | null;
 	};
+
+	const searchParams = useSearchParams();
+
+	// State untuk bind input search
+	let searchQuery = $state(searchParams.getParam('search') || searchParams.getParam('barcode'));
+	let selectedCategory = $state(searchParams.getParam('category'));
+	let selectedStatus = $state(searchParams.getParam('status'));
 
 	// State filter popover
 	let openCategory = $state(false);
@@ -76,35 +76,11 @@
 		}
 	}
 
-	// Sync state saat URL berubah
-	let prevUrl = $state(page.url.toString());
-	$effect(() => {
-		const currentUrl = page.url.toString();
-		if (currentUrl !== prevUrl) {
-			prevUrl = currentUrl;
-			searchQuery =
-				page.url.searchParams.get('search') || page.url.searchParams.get('barcode') || '';
-			selectedCategory = page.url.searchParams.get('category') ?? '';
-			selectedStatus = page.url.searchParams.get('status') ?? '';
-		}
-	});
-
-	// Helper untuk handle filter
 	function handleFilterChange(patch: { category?: string; status?: string } = {}) {
-		const urlParams = new SvelteURLSearchParams(page.url.searchParams);
+		const category = 'category' in patch ? patch.category : selectedCategory;
+		const status = 'status' in patch ? patch.status : selectedStatus;
 
-		const cat = 'category' in patch ? patch.category : selectedCategory;
-		const st = 'status' in patch ? patch.status : selectedStatus;
-
-		if (cat) urlParams.set('category', cat);
-		else urlParams.delete('category');
-
-		if (st) urlParams.set('status', st);
-		else urlParams.delete('status');
-
-		urlParams.delete('page');
-
-		goto(`?${urlParams.toString()}`, { keepFocus: true, noScroll: true });
+		searchParams.updateUrl({ category, status });
 	}
 
 	function resetFilters() {
@@ -112,41 +88,37 @@
 		selectedCategory = '';
 		selectedStatus = '';
 
-		goto('?', { keepFocus: true, noScroll: true });
+		searchParams.updateUrl({ search: '', barcode: '', category: '', status: '' });
 	}
 
 	function goToPage(newPage: number) {
-		const urlParams = new SvelteURLSearchParams(page.url.searchParams);
-		urlParams.set('page', newPage.toString());
-		goto(`?${urlParams.toString()}`, { keepFocus: true, noScroll: true });
+		searchParams.updateUrl({ page: newPage.toString() });
 	}
 
 	$effect(() => {
-		const query = searchQuery.trim();
+		const query = searchQuery?.trim() || '';
 
 		const timer = setTimeout(() => {
-			const urlParams = new SvelteURLSearchParams(page.url.searchParams);
-
-			urlParams.delete('search');
-			urlParams.delete('barcode');
+			const isBarcodeQuery = isBarcode(query);
+			
+			const currentSearch = searchParams.getParam('search');
+			const currentBarcode = searchParams.getParam('barcode');
 
 			const isQueryChanged =
-				(isBarcode(query) && query !== page.url.searchParams.get('barcode')) ||
-				(!isBarcode(query) && query !== page.url.searchParams.get('search'));
-
-			if (query) {
-				if (isBarcode(query)) {
-					urlParams.set('barcode', query);
-				} else {
-					urlParams.set('search', query);
-				}
-			}
+				(isBarcodeQuery && query !== currentBarcode) ||
+				(!isBarcodeQuery && query !== currentSearch);
 
 			if (isQueryChanged) {
-				urlParams.delete('page');
+				if (query) {
+					if (isBarcodeQuery) {
+						searchParams.updateUrl({ barcode: query, search: '' });
+					} else {
+						searchParams.updateUrl({ search: query, barcode: '' });
+					}
+				} else {
+					searchParams.updateUrl({ search: '', barcode: '' });
+				}
 			}
-
-			goto(`?${urlParams.toString()}`, { keepFocus: true, noScroll: true });
 		}, 500);
 
 		return () => clearTimeout(timer);

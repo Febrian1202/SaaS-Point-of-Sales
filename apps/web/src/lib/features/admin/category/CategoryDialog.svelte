@@ -9,10 +9,7 @@
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { toast } from 'svelte-sonner';
 
-	type CategoryItem = {
-		id: string;
-		name: string;
-	};
+	import type { CategoryItem } from '$lib/types';
 
 	type Props = {
 		open?: boolean;
