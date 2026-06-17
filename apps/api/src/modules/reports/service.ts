@@ -154,36 +154,53 @@ export const getMonthlySummary = async (
 ) => {
   const { month } = query;
 
-  // Siapkan start date dan end date
-  const startDate = `${month}-01`;
-  const endDate = `${month}-31`;
+  // Dapatkan tahun dan bulan dari format YYYY-MM
+  const [yearStr, monthStr] = month.split("-");
+  const year = Number(yearStr);
+  const monthNum = Number(monthStr);
 
-  const result = await db
-    .select({
-      totalRetailRevenue: sum(dailySummaries.retailRevenue),
-      totalRetailCogs: sum(dailySummaries.retailCogs),
-      totalBrilinkCommission: sum(dailySummaries.brilinkCommission),
-      grandTotalRevenue: sum(dailySummaries.totalRevenue),
-      grandTotalProfit: sum(dailySummaries.grossProfit),
-      totalTrxCount: sum(dailySummaries.trxCount),
-    })
-    .from(dailySummaries)
-    .where(
-      and(
-        eq(dailySummaries.tenantId, tenantId),
-        gte(dailySummaries.summaryDate, startDate),
-        lte(dailySummaries.summaryDate, endDate),
-      ),
-    );
+  // Cari tanggal terakhir dari bulan yang diminta
+  const lastDay = new Date(year, monthNum, 0).getDate();
+  const startDate = `${month}-01`;
+  const endDate = `${month}-${lastDay.toString().padStart(2, "0")}`;
+
+  // Hindari query masa depan yang tidak relevan (optimasi)
+  // Tetapi getDailyRangeSummary akan meng-handle kalkulasi otomatis
+  // Kita tarik seluruh data dari tanggal 1 sampai hari terakhir bulan tersebut
+  const dailyRanges = await getDailyRangeSummary(tenantId, {
+    from: startDate,
+    to: endDate,
+  });
+
+  // Agregasi hasil array dari getDailyRangeSummary
+  const aggregated = dailyRanges.reduce(
+    (acc, curr) => {
+      acc.retailRevenue += curr.retailRevenue;
+      acc.retailCogs += curr.retailCogs || 0;
+      acc.brilinkCommission += curr.brilinkCommission;
+      acc.totalRevenue += curr.totalRevenue;
+      acc.grossProfit += curr.grossProfit;
+      acc.trxCount += curr.trxCount;
+      return acc;
+    },
+    {
+      retailRevenue: 0,
+      retailCogs: 0,
+      brilinkCommission: 0,
+      totalRevenue: 0,
+      grossProfit: 0,
+      trxCount: 0,
+    },
+  );
 
   return {
     month: month,
-    retailRevenue: Number(result[0]?.totalRetailRevenue || 0),
-    retailCogs: Number(result[0]?.totalRetailCogs || 0),
-    brilinkCommission: Number(result[0]?.totalBrilinkCommission || 0),
-    totalRevenue: Number(result[0]?.grandTotalRevenue || 0),
-    grossProfit: Number(result[0]?.grandTotalProfit || 0),
-    trxCount: Number(result[0]?.totalTrxCount || 0),
+    retailRevenue: aggregated.retailRevenue,
+    retailCogs: aggregated.retailCogs,
+    brilinkCommission: aggregated.brilinkCommission,
+    totalRevenue: aggregated.totalRevenue,
+    grossProfit: aggregated.grossProfit,
+    trxCount: aggregated.trxCount,
   };
 };
 
@@ -256,6 +273,7 @@ export const getDailyRangeSummary = async (
     .map((r) => ({
       date: r.summaryDate,
       retailRevenue: Number(r.retailRevenue || 0),
+      retailCogs: Number(r.retailCogs || 0),
       brilinkCommission: Number(r.brilinkCommission || 0),
       trxCount: Number(r.trxCount || 0),
       itemsSold: Number(r.itemsSold || 0),

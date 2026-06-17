@@ -58,7 +58,9 @@
 				};
 			});
 		} else {
-			const sortedData = [...rawRange].sort((a, b) => a.date.localeCompare(b.date));
+			// Get all data from the raw range into a map for fast lookup
+			const dataMap = new Map(rawRange.map((r) => [r.date, r]));
+
 			const weeks: Array<{
 				name: string;
 				revenue: number;
@@ -70,40 +72,49 @@
 				dateRange: string;
 			}> = [];
 
+			// Create 4 exactly 7-day chunks going backwards from today
+			const today = new Date();
+
 			for (let i = 0; i < 4; i++) {
-				const startIdx = i * 7;
-				const endIdx = startIdx + 7;
-				const weekDays = sortedData.slice(startIdx, endIdx);
+				const chunkData = [];
+				let endDate = new SvelteDate(today);
+				endDate.setDate(today.getDate() - i * 7);
 
-				if (weekDays.length > 0) {
-					const totalRevenue = weekDays.reduce((sum, d) => sum + d.retailRevenue, 0);
-					const totalBrilink = weekDays.reduce((sum, d) => sum + (d.brilinkCommission || 0), 0);
-					const totalGrossProfit = weekDays.reduce((sum, d) => sum + (d.grossProfit || 0), 0);
-					const totalTrxCount = weekDays.reduce((sum, d) => sum + (d.trxCount || 0), 0);
-					const totalItemsSold = weekDays.reduce((sum, d) => sum + (d.itemsSold || 0), 0);
+				let startDate = new SvelteDate(endDate);
+				startDate.setDate(endDate.getDate() - 6);
 
-					const isCurrent = i === 3;
-
-					const startDate = new SvelteDate(weekDays[0].date);
-					const endDate = new SvelteDate(weekDays[weekDays.length - 1].date);
-
-					const startLabel = startDate.toLocaleDateString('id-ID', {
-						day: 'numeric',
-						month: 'short'
-					});
-					const endLabel = endDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-
-					weeks.push({
-						name: `MINGGU ${i + 1}`,
-						revenue: totalRevenue,
-						brilinkCommission: totalBrilink,
-						grossProfit: totalGrossProfit,
-						trxCount: totalTrxCount,
-						itemsSold: totalItemsSold,
-						isCurrent,
-						dateRange: `${startLabel} - ${endLabel}`
-					});
+				// Collect the 7 days for this chunk
+				for (let d = new SvelteDate(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+					const dateStr = d.toISOString().substring(0, 10);
+					const dayData = dataMap.get(dateStr);
+					if (dayData) {
+						chunkData.push(dayData);
+					}
 				}
+
+				const totalRevenue = chunkData.reduce((sum, d) => sum + d.retailRevenue, 0);
+				const totalBrilink = chunkData.reduce((sum, d) => sum + (d.brilinkCommission || 0), 0);
+				const totalGrossProfit = chunkData.reduce((sum, d) => sum + (d.grossProfit || 0), 0);
+				const totalTrxCount = chunkData.reduce((sum, d) => sum + (d.trxCount || 0), 0);
+				const totalItemsSold = chunkData.reduce((sum, d) => sum + (d.itemsSold || 0), 0);
+
+				const startLabel = startDate.toLocaleDateString('id-ID', {
+					day: 'numeric',
+					month: 'short'
+				});
+				const endLabel = endDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+
+				// We unshift to make the oldest week first (left side of chart)
+				weeks.unshift({
+					name: `MINGGU ${4 - i}`,
+					revenue: totalRevenue,
+					brilinkCommission: totalBrilink,
+					grossProfit: totalGrossProfit,
+					trxCount: totalTrxCount,
+					itemsSold: totalItemsSold,
+					isCurrent: i === 0,
+					dateRange: `${startLabel} - ${endLabel}`
+				});
 			}
 
 			const maxRevenue = Math.max(...weeks.map((w) => w.revenue), 1);
@@ -195,11 +206,15 @@
 									{#snippet child({ props })}
 										<div
 											{...props}
-											class="w-full cursor-pointer rounded-t-sm transition-all duration-300 hover:brightness-125 {bar.isToday
-												? 'border-t-4 border-primary bg-primary/30'
-												: 'border-t-2 border-primary bg-primary/20'}"
+											class="group relative w-full cursor-pointer rounded-lg border transition-colors duration-300 hover:border-muted-foreground/50 {bar.isToday
+												? 'border-primary/50 bg-primary/10'
+												: 'border-border/50 bg-border/30'}"
 											style="height: {bar.height};"
-										></div>
+										>
+											<div
+												class="absolute inset-0 rounded-lg bg-primary/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+											></div>
+										</div>
 									{/snippet}
 								</HoverCard.Trigger>
 								<HoverCard.Content
