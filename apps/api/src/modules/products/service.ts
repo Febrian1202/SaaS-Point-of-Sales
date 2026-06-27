@@ -28,7 +28,7 @@ export const getProduct = async (
   } else if (status === "LOW_STOCK") {
     filters.push(lte(products.stockQty, 5));
   } else if (status === "OUT_OF_STOCK") {
-    filters.push(lte(products.stockQty, 0));
+    filters.push(eq(products.stockQty, 0));
   }
 
   const offset = ((page ?? 1) - 1) * (limit ?? 10);

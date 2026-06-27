@@ -2,6 +2,20 @@
  * Shared UI Types
  */
 
+export type CartItem = {
+	productId: string;
+	name: string;
+	barcode: string | null;
+	unit: string | null;
+	unitPrice: number;
+	qty: number;
+	subtotal: number;
+};
+
+export type PaymentMethod = 'cash' | 'transfer' | 'qris';
+
+export type BrilinkTrxType = 'transfer' | 'tarik_tunai' | 'pembayaran' | 'e-wallet' | 'other';
+
 // Product Types
 export type ProductStatus = 'AVAILABLE' | 'LOW_STOCK' | 'OUT_OF_STOCK';
 

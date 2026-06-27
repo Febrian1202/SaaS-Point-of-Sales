@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Search, Plus, RefreshCw, Edit2, Trash2 } from 'lucide-svelte';
+	import { Search, Plus, RefreshCw, Pencil, Trash2 } from 'lucide-svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { createSvelteTable, FlexRender } from '$lib/components/ui/data-table/index.js';
 	import { getCoreRowModel, type ColumnDef } from '@tanstack/table-core';
@@ -253,7 +253,7 @@
 				showAdd = true;
 			}}
 		>
-			<Edit2 class="h-4 w-4" />
+			<Pencil class="h-4 w-4" />
 		</Button>
 		<Button
 			variant="ghost"

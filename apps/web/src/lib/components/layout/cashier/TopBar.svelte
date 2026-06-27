@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { Bell, Settings, LogOut, User as UserIcon } from 'lucide-svelte';
+	import { Bell, LogOut, User as UserIcon } from 'lucide-svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Avatar from '$lib/components/ui/avatar';
-	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import { base } from '$app/paths';
 	import { enhance } from '$app/forms';
@@ -22,17 +21,7 @@
 
 	<!-- Search & Actions -->
 	<div class="flex flex-1 items-center justify-end gap-6">
-		<!-- Search Field (Using Shadcn Input) -->
-		<!-- <div class="relative w-full max-w-xs"> -->
-		<!-- 	<Search class="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" /> -->
-		<!-- 	<Input -->
-		<!-- 		class="w-full border-border bg-card pr-4 pl-10 text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-0" -->
-		<!-- 		placeholder="Cari produk..." -->
-		<!-- 		type="text" -->
-		<!-- 	/> -->
-		<!-- </div> -->
-
-		<!-- Action Buttons (Using Shadcn Button with Ghost variant) -->
+		<!-- Action Buttons -->
 		<div class="flex items-center gap-3">
 			<Button
 				variant="ghost"
@@ -40,14 +29,6 @@
 				class="size-10 text-muted-foreground hover:bg-border/50 hover:text-foreground"
 			>
 				<Bell class="size-5" />
-			</Button>
-
-			<Button
-				variant="ghost"
-				size="icon"
-				class="size-10 text-muted-foreground hover:bg-border/50 hover:text-foreground"
-			>
-				<Settings class="size-5" />
 			</Button>
 
 			<!-- User Profile Dropdown (Shadcn UI) -->
@@ -74,10 +55,6 @@
 					<DropdownMenu.Item class="cursor-pointer focus:bg-border focus:text-foreground">
 						<UserIcon class="mr-2 size-4" />
 						Profil Saya
-					</DropdownMenu.Item>
-					<DropdownMenu.Item class="cursor-pointer focus:bg-border focus:text-foreground">
-						<Settings class="mr-2 size-4" />
-						Pengaturan
 					</DropdownMenu.Item>
 					<DropdownMenu.Separator class="bg-border" />
 

@@ -34,7 +34,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 			$headers: headers
 		}),
 		serverApi.products.get({
-			$query: { status: 'OUT_OF_STOCK' },
+			$query: { status: 'LOW_STOCK' },
 			$headers: headers
 		})
 	]);

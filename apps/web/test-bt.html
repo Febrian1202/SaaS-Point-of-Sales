@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Bluetooth Test</title>
+	</head>
+	<body>
+		<button onclick="test()">Test Bluetooth</button>
+		<p id="res"></p>
+		<script>
+			async function test() {
+				try {
+					if (!navigator.bluetooth) {
+						document.getElementById('res').innerText = 'Web Bluetooth tidak disupport browser ini.';
+						return;
+					}
+					const device = await navigator.bluetooth.requestDevice({
+						acceptAllDevices: true
+					});
+					document.getElementById('res').innerText = 'Terhubung: ' + device.name;
+				} catch (e) {
+					document.getElementById('res').innerText = 'Error: ' + e.message;
+				}
+			}
+		</script>
+	</body>
+</html>

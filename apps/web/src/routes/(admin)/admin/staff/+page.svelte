@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, Edit2, ShieldOff, Search, Users, UserCheck, UserX } from 'lucide-svelte';
+	import { Plus, Pencil, ShieldOff, Search, Users, UserCheck, UserX } from 'lucide-svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { deserialize } from '$app/forms';
 	import { toast } from 'svelte-sonner';
@@ -246,7 +246,7 @@
 												showAdd = true;
 											}}
 										>
-											<Edit2 class="h-4 w-4" />
+											<Pencil class="h-4 w-4" />
 										</Button>
 										<Button
 											variant="ghost"
