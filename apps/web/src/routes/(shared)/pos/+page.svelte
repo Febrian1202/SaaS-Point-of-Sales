@@ -1,14 +1,5 @@
 <script lang="ts">
-	import {
-		Search,
-		ShoppingCart,
-		Minus,
-		Plus,
-		Trash2,
-		Receipt,
-		CheckCircle2,
-		Printer
-	} from 'lucide-svelte';
+	import { Search, ShoppingCart, Minus, Plus, Trash2, Receipt, CheckCircle2 } from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
@@ -20,7 +11,8 @@
 	import { PAYMENT_METHODS } from '$lib/constants';
 	import { toast } from 'svelte-sonner';
 	import { deserialize } from '$app/forms';
-	import BluetoothPrintButton from '$lib/features/pos/BluetoothPrintButton.svelte';
+	import PrinterStatus from '$lib/components/printer/PrinterStatus.svelte';
+	import SerialPrintButton from '$lib/components/printer/SerialPrintButton.svelte';
 
 	let { data } = $props();
 
@@ -209,9 +201,7 @@
 	<title>Kasir (POS) | Transa</title>
 </svelte:head>
 
-<div
-	class="flex h-[calc(100vh-6rem)] animate-in gap-6 duration-500 fade-in slide-in-from-bottom-3 print:hidden"
->
+<div class="flex h-[calc(100vh-6rem)] animate-in gap-6 duration-500 fade-in slide-in-from-bottom-3">
 	<!-- Area Kiri: Katalog Produk (60%) -->
 	<div class="flex flex-1 flex-col overflow-hidden">
 		<!-- Header Kiri: Search & Filter -->
@@ -344,7 +334,11 @@
 					<ShoppingCart class="size-4 text-primary" />
 					Keranjang
 				</Card.Title>
-				<Badge variant="secondary" class="font-mono text-xs font-bold">{cartItemCount} item</Badge>
+				<div class="flex items-center gap-2">
+					<PrinterStatus />
+					<Badge variant="secondary" class="font-mono text-xs font-bold">{cartItemCount} item</Badge
+					>
+				</div>
 			</div>
 		</Card.Header>
 
@@ -529,96 +523,14 @@
 				>
 					Lihat Struk
 				</Button>
-				<Button variant="outline" class="flex-1 border-border" onclick={() => window.print()}>
-					<Printer class="mr-2 size-4" /> Cetak PDF
-				</Button>
+				{#if receiptData}
+					<SerialPrintButton
+						{receiptData}
+						tenantName={data.user?.tenantName || 'Transa Store'}
+						cashierName={data.user?.name || '-'}
+					/>
+				{/if}
 			</div>
-
-			{#if receiptData}
-				<BluetoothPrintButton
-					{receiptData}
-					tenantName={data.user?.tenantName || 'Transa Store'}
-					cashierName={data.user?.name || '-'}
-				/>
-			{/if}
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>
-
-{#if receiptData}
-	<div
-		class="mx-auto hidden w-[58mm] p-2 font-mono text-[10px] leading-tight text-black print:block"
-	>
-		<div class="mb-4 text-center">
-			<h1 class="text-sm font-bold">{data.user?.tenantName || 'Transa Store'}</h1>
-		</div>
-
-		<div class="mb-3 border-b border-dashed border-black pb-2">
-			<div class="flex justify-between">
-				<span>No:</span>
-				<span>{receiptData.trxNumber}</span>
-			</div>
-			<div class="flex justify-between">
-				<span>Tgl:</span>
-				<span>
-					{receiptData.createdAt.toLocaleString('id-ID', {
-						dateStyle: 'short',
-						timeStyle: 'short'
-					})}
-				</span>
-			</div>
-			<div class="flex justify-between">
-				<span>Ksr:</span>
-				<span>{data.user?.name || '-'}</span>
-			</div>
-		</div>
-
-		<div class="mb-3 space-y-2 border-b border-dashed border-black pb-2">
-			{#each receiptData.items as item (item.productId)}
-				<div>
-					<div class="truncate font-bold">{item.name}</div>
-					<div class="flex justify-between">
-						<span>{item.qty} x {item.unitPrice.toLocaleString('id-ID')}</span>
-						<span>{item.subtotal.toLocaleString('id-ID')}</span>
-					</div>
-				</div>
-			{/each}
-		</div>
-
-		<div class="mb-4 space-y-1">
-			<div class="flex justify-between font-bold">
-				<span>TOTAL</span>
-				<span>{receiptData.totalAmount.toLocaleString('id-ID')}</span>
-			</div>
-			<div class="flex justify-between">
-				<span>BAYAR ({receiptData.paymentMethod.toUpperCase()})</span>
-				<span>{receiptData.amountPaid.toLocaleString('id-ID')}</span>
-			</div>
-			<div class="flex justify-between">
-				<span>KEMBALI</span>
-				<span>{receiptData.changeAmount.toLocaleString('id-ID')}</span>
-			</div>
-		</div>
-
-		<div class="mt-6 border-t border-dashed border-black pt-2 text-center">
-			<p>Terima Kasih</p>
-		</div>
-	</div>
-{/if}
-
-<!-- Mode Print (Hanya tampil saat diprint) -->
-<style>
-	@media print {
-		@page {
-			margin: 0;
-			size: 58mm 210mm; /* Ukuran thermal printer standard */
-		}
-
-		.print\:block {
-			display: block !important;
-		}
-		.print\:hidden {
-			display: none !important;
-		}
-	}
-</style>
